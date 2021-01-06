@@ -71,7 +71,6 @@ for (i in 2:nrow(traffic_day)) {
     minute_counter = minute_counter + 1
   }
 }
-plot(visit_density, main = "Number of Visitors on May 1, 2019")
 
 # Create "indicators" for commercials (given there are on this day)
 broad_day <- subset(broad, date == "2019-05-01")
@@ -84,3 +83,13 @@ for (i in 1:nrow(broad_day)) {
   time_min[i] <- floor(as.numeric(time_min[i]))*60 + 100*(as.numeric(time_min[i])-floor(as.numeric(time_min[i]))) + 1
 }
 broad_day <- cbind(broad_day, time_min)
+
+# Plotting
+time_interval = 1:1400 # standard is 1:1400
+plot(visit_density[time_interval], main = "Number of Visitors on May 1, 2019")
+for (i in 1:nrow(broad_day)){
+  #if (as.numeric(broad_day$time_min[i]) >= 1000 & as.numeric(broad_day$time_min[i]) <= 1100) {
+    abline(v = as.numeric(broad_day$time_min[i]), col = 'blue')
+  #}
+}
+axis(1, at = seq(1:101), labels=time_interval)
