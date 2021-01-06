@@ -71,7 +71,8 @@ for (i in 2:nrow(traffic_day)) {
     minute_counter = minute_counter + 1
   }
 }
-plot(visit_density, main = "Number of Visitors on May 1, 2019")
+
+plot(visit_density, main = "Number of Visitors on May 1, 2019", type = "l")
 
 # Create "indicators" for commercials (given there are on this day)
 broad_day <- subset(broad, date == "2019-05-01")
@@ -81,6 +82,6 @@ time_min <- vector(mode ="character", length = nrow(broad_day))
 for (i in 1:nrow(broad_day)) {
   time_min[i] <- gsub(":", "", broad_day$time[i])
   time_min[i] <- as.numeric(time_min[i]) / 10000
-  time_min[i] <- floor(as.numeric(time_min[i]))*60 + 100*(as.numeric(time_min[i])-floor(as.numeric(time_min[i]))) + 1
+  time_min[i] <- floor(as.numeric(time_min[i]))*60 + 100*(as.numeric(time_min[i])-floor(as.numeric(time_min[i])))
 }
 broad_day <- cbind(broad_day, time_min)
