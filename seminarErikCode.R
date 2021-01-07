@@ -1,6 +1,9 @@
 ## SEMINAR COOLBLUE BA&QM 2021 Team 21
 ## @author: Erik van der Heide
 
+install.packages("chron")
+library(chron)
+
 # Load data
 traffic <- read.csv(file.choose(), header = T)
 broad <- read.csv(file.choose(), header = T)
@@ -40,7 +43,9 @@ sum(traffic$country == "Netherlands")
 sum(traffic$country == "Belgium")
 
 # Descriptive of BROAD
+head(broad)
 summary(broad)
+
 unique(broad$operator)
 unique(broad$channel)
 unique(broad$date)
@@ -72,6 +77,8 @@ for (i in 2:nrow(traffic_day)) {
   }
 }
 
+plot(visit_density, main = "Number of Visitors on May 1, 2019", type = "l")
+
 # Create "indicators" for commercials (given there are on this day)
 broad_day <- subset(broad, date == "2019-05-01")
 broad_day <- broad_day[order(broad_day$time),]
@@ -80,7 +87,7 @@ time_min <- vector(mode ="character", length = nrow(broad_day))
 for (i in 1:nrow(broad_day)) {
   time_min[i] <- gsub(":", "", broad_day$time[i])
   time_min[i] <- as.numeric(time_min[i]) / 10000
-  time_min[i] <- floor(as.numeric(time_min[i]))*60 + 100*(as.numeric(time_min[i])-floor(as.numeric(time_min[i]))) + 1
+  time_min[i] <- floor(as.numeric(time_min[i]))*60 + 100*(as.numeric(time_min[i])-floor(as.numeric(time_min[i])))
 }
 broad_day <- cbind(broad_day, time_min)
 
@@ -93,3 +100,37 @@ for (i in 1:nrow(broad_day)){
   #}
 }
 axis(1, at = seq(1:101), labels=time_interval)
+
+##################################################################
+scopeDays = 31 + 28 + 31 + 30 + 31 + 30
+#add time_min and date to every travel
+traffic['time_min'] <- 0
+traffic$date_time <- as.character(traffic$date_time)
+trafficDateSplitWhole <- strsplit(traffic$date_time, "\\s+")
+trafficDateSplitUnlist <- unlist(trafficDateSplitWhole)
+traffic$time <- trafficDateSplitUnlist[seq(2, length(trafficDateSplitUnlist), 2)]
+traffic$date <- trafficDateSplitUnlist[seq(1, length(trafficDateSplitUnlist), 2)]
+traffic$time_min <- 60 * 24 * as.numeric(times(traffic$time))
+
+traffic <- traffic[order(traffic$date, traffic$time),]
+
+# Creating a new data frame on day-basis
+
+# For broadcasts:
+adAmount = matrix(0, scopeDays)
+for (i in 1:scopeDays){
+  iDate = as.Date(i - 1, origin = "2019-01-01")
+  adsIDate = sum(broad$date == iDate)
+  adAmount[i] = adsIDate
+}
+plot(adAmount)
+
+# For traffic:
+trafAmount = matrix(0, scopeDays)
+for (i in 1:7){
+  iDate = as.Date(i - 1, origin = "2019-01-01")
+  trafsIDate = sum(traffic$date == iDate)
+  trafAmount[i] = trafsIDate
+}
+plot(trafAmount)
+plot(trafAmount[1:7,])
