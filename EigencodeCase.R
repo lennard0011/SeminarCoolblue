@@ -180,3 +180,34 @@ plot(impact)
 
 #####################################################################################################
 
+# Code for different channels which kind of commercial
+
+totChannel <- data.frame(unique(broadorder$channel))
+emptyMat <- matrix(0,nrow(totChannel),4)
+ratioMatrix <- data.frame(cbind(totChannel, emptyMat))
+colnames(ratioMatrix) <- c("channel", "laptopratio", "wasmachineratio", "televisieratio", "totalcommercials")
+
+count <- 0
+
+for(i in 1: nrow(totChannel)){
+channel <- ratioMatrix[i,"channel"]
+
+broadchannel <- broad[which(broad$channel == channel), ]
+broadlaptop <- broadchannel[which(broadchannel$product_category == "laptops"),]
+broadwas <- broadchannel[which(broadchannel$product_category == "wasmachines"),]
+broadtv <- broadchannel[which(broadchannel$product_category == "televisies"),]
+
+print(channel)
+ratioMatrix[i,"totalcommercials"] <- nrow(broadchannel)
+ratioMatrix[i,"laptopratio"] <- nrow(broadlaptop) / nrow(broadchannel)
+ratioMatrix[i,"wasmachineratio"] <- nrow(broadwas) / nrow(broadchannel)
+
+if (nrow(broadwas) == nrow(broadchannel)) {
+  count =  count + 1
+}
+ratioMatrix[i,"televisieratio"] <- nrow(broadtv) / nrow(broadchannel)
+}
+# Percentage of one kind of commercial on channels
+print(count / nrow(totChannel))
+
+
