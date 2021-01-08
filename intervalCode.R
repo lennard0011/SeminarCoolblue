@@ -23,6 +23,8 @@ trafficDateSplitUnlist <- unlist(trafficDateSplitWhole)
 traffictime <- trafficDateSplitUnlist[seq(2, length(trafficDateSplitUnlist), 2)]
 traffic$date <- trafficDateSplitUnlist[seq(1, length(trafficDateSplitUnlist), 2)]
 traffic$time_min <- 60 * 24 * as.numeric(times(traffictime))
+trafficDateSplitWhole <-  NULL
+trafficDateSplitUnlist <- NULL
 
 #count visits pre-commercial
 broad['preVisitors'] <- 0
