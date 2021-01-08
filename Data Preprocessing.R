@@ -40,6 +40,62 @@ nBroad <- nrow(broad)
   trafficDateSplitUnlist <- NULL
   traffictime <- NULL
   
+#Further country specific variables + Aggregate clicks no a day
+  
+  traffic_net = subset(traffic, country == 'Netherlands')
+  traffic_bel = subset(traffic, country == 'Belgium')
+  broad_net = subset(broad, country == 'Netherlands')
+  broad_bel = subset(broad, country == 'Belgium')
+  
+  #amount of days in time-frame
+  amountDays = 31 + 28 + 31 + 30 + 31 + 30
+  scopeDays = amountDays
+  #set of unique advertising dates
+  uniqueDates = unique(broad$date)
+  uniqueDatesBel = unique(broad_bel$date)
+  uniqueDatesNet = unique(broad_net$date)
+  uniqueDatesBoth = base::intersect(uniqueDatesBel, uniqueDatesNet) #adverts in both on certain day
+  uniqueDatesOnlyBel = base::setdiff(uniqueDatesBel, uniqueDatesBoth) #adverts only in Belgium on certain day
+  uniqueDatesOnlyNet = base::setdiff(uniqueDatesNet, uniqueDatesBoth) #adverts only in Netherlands on certain day
+  
+  #amount of advertisements per day -- Total
+  adAmount = matrix(0, scopeDays)
+  for (i in 1:scopeDays){
+    iDate = as.Date(i - 1, origin = "2019-01-01")
+    adsIDate = sum(broad$date == iDate)
+    adAmount[i] = adsIDate
+  }
+  
+  #amount of advertisements per day -- Netherlands
+  adAmountNet = as.matrix(table(broad_net$date))
+  
+  #amount of advertisemetns per day -- Belgium
+  adAmountBel <- as.matrix(table(broad_bel$date))
+  
+  #amount of traffic per day -- Netherlands (approx. running time 5 seconds)
+  trafAmountNet <- as.matrix(table(traffic_net$date)) #how much traffic per day
+  
+  #amount of traffic per day -- Belgium (approx. running time 5 seconds)
+  trafAmountBel <- as.matrix(table(traffic_bel$date))
+  
+  #amount of traffic per day -- Total
+  #NOTE: you can only run this if you have run both Net and Bel
+  trafAmount = trafAmountNet + trafAmountBel
+<<<<<<< .merge_file_a14324
+
+## Adding (time series) dummy to the data
+  
+  #national holidays
+  holidaysNames <- c("Nieuwjaarsdag", "Goede Vrijdag", "Eerste Paasdag", 
+                     "Tweede Paasdag", "Koningsdag", "Bevrijdingsdag", 
+                     "Hemelvaartsdag", "Eerste Pinksterdag", 
+                     "Tweede Pinksterdag")
+  holidaysDates <- c("2019-01-01", "2019-04-19", "2019-04-21", "2019-04-22", 
+                     "2019-04-27", "2019-05-05", "2019-05-30", "2019-06-09",
+                     "2019-06-10")
+  # TODO: weekday and week dummies
+=======
+  
 #For the direct effects model we calculate the amount of traffic in an interval before the broadcast and after the broadcast
 #Results are stored in the column preVisitors and postVisitors in the dataframe broad
 #BEWARE IT TAKES A LONG TIME TO RUN
@@ -69,80 +125,4 @@ nBroad <- nrow(broad)
     if(index %% 1000 == 0) {print(Sys.time() - start)}
   }
   
-#Further country specific variables + Aggregate clicks no a day
-  
-  traffic_net = subset(traffic, country == 'Netherlands')
-  traffic_bel = subset(traffic, country == 'Belgium')
-  broad_net = subset(broad, country == 'Netherlands')
-  broad_bel = subset(broad, country == 'Belgium')
-  
-  #amount of days in time-frame
-  amountDays = 31 + 28 + 31 + 30 + 31 + 30
-  scopeDays = amountDays
-  #set of unique advertising dates
-  uniqueDates = unique(broad$date)
-  uniqueDatesBel = unique(broad_bel$date)
-  uniqueDatesNet = unique(broad_net$date)
-  uniqueDatesBoth = base::intersect(uniqueDatesBel, uniqueDatesNet) #adverts in both on certain day
-  uniqueDatesOnlyBel = base::setdiff(uniqueDatesBel, uniqueDatesBoth) #adverts only in Belgium on certain day
-  uniqueDatesOnlyNet = base::setdiff(uniqueDatesNet, uniqueDatesBoth) #adverts only in Netherlands on certain day
-  
-  #amount of advertisements per day -- Total
-  adAmount = matrix(0, scopeDays)
-  for (i in 1:scopeDays){
-    iDate = as.Date(i - 1, origin = "2019-01-01")
-    adsIDate = sum(broad$date == iDate)
-    adAmount[i] = adsIDate
-  }
-  
-  #amount of advertisements per day -- Netherlands
-  adAmountNet = matrix(0, scopeDays)
-  for (i in 1:scopeDays){
-    iDateNet = as.Date(i - 1, origin = "2019-01-01")
-    adsIDateNet = sum(broad_net$date == iDateNet)
-    adAmountNet[i] = adsIDateNet
-  }
-  
-  #amount of advertisemetns per day -- Belgium
-  adAmountBel = matrix(0, scopeDays)
-  for (i in 1:scopeDays){
-    iDateBel = as.Date(i - 1, origin = "2019-01-01")
-    adsIDateBel = sum(broad_bel$date == iDateBel)
-    adAmountBel[i] = adsIDateBel
-  }
-  
-  #amount of traffic per day -- Netherlands (approx. running time 10 min)
-  trafAmountNet = matrix(0, amountDays) #how much traffic per day
-  for (i in 1:nrow(traffic_net)) {
-    if(i %% 10000 == 0){
-      print(i)
-    }
-    dayNrNet = yday(traffic_net[i,]$date_time) 
-    trafAmountNet[dayNrNet] = trafAmountNet[dayNrNet] + 1
-  }
-  
-  #amount of traffic per day -- Belgium (approx. running time = 00:08:15)
-  trafAmountBel = matrix(0, amountDays) #how much traffic per day
-  for (i in 1:nrow(traffic_bel)) {
-    if(i %% 10000 == 0){
-      print(i)
-    }
-    dayNrBel = yday(traffic_bel[i,]$date_time) 
-    trafAmountBel[dayNrBel] = trafAmountBel[dayNrBel] + 1
-  }
-  
-  #amount of traffic per day -- Total
-  #NOTE: you can only run this if you have run both Net and Bel
-  trafAmount = trafAmountNet + trafAmountBel
-
-## Adding (time series) dummy to the data
-  
-  #national holidays
-  holidaysNames <- c("Nieuwjaarsdag", "Goede Vrijdag", "Eerste Paasdag", 
-                     "Tweede Paasdag", "Koningsdag", "Bevrijdingsdag", 
-                     "Hemelvaartsdag", "Eerste Pinksterdag", 
-                     "Tweede Pinksterdag")
-  holidaysDates <- c("2019-01-01", "2019-04-19", "2019-04-21", "2019-04-22", 
-                     "2019-04-27", "2019-05-05", "2019-05-30", "2019-06-09",
-                     "2019-06-10")
-  # TODO: weekday and week dummies
+>>>>>>> .merge_file_a15152
