@@ -96,40 +96,16 @@ nBroad <- nrow(broad)
   }
   
   #amount of advertisements per day -- Netherlands
-  adAmountNet = matrix(0, scopeDays)
-  for (i in 1:scopeDays){
-    iDateNet = as.Date(i - 1, origin = "2019-01-01")
-    adsIDateNet = sum(broad_net$date == iDateNet)
-    adAmountNet[i] = adsIDateNet
-  }
+  adAmountNet = as.matrix(table(broad_net$date))
   
   #amount of advertisemetns per day -- Belgium
-  adAmountBel = matrix(0, scopeDays)
-  for (i in 1:scopeDays){
-    iDateBel = as.Date(i - 1, origin = "2019-01-01")
-    adsIDateBel = sum(broad_bel$date == iDateBel)
-    adAmountBel[i] = adsIDateBel
-  }
+  adAmountBel <- as.matrix(table(broad_bel$date))
   
-  #amount of traffic per day -- Netherlands (approx. running time 10 min)
-  trafAmountNet = matrix(0, amountDays) #how much traffic per day
-  for (i in 1:nrow(traffic_net)) {
-    if(i %% 10000 == 0){
-      print(i)
-    }
-    dayNrNet = yday(traffic_net[i,]$date_time) 
-    trafAmountNet[dayNrNet] = trafAmountNet[dayNrNet] + 1
-  }
+  #amount of traffic per day -- Netherlands (approx. running time 5 seconds)
+  trafAmountNet <- as.matrix(table(traffic_net$date)) #how much traffic per day
   
-  #amount of traffic per day -- Belgium (approx. running time = 00:08:15)
-  trafAmountBel = matrix(0, amountDays) #how much traffic per day
-  for (i in 1:nrow(traffic_bel)) {
-    if(i %% 10000 == 0){
-      print(i)
-    }
-    dayNrBel = yday(traffic_bel[i,]$date_time) 
-    trafAmountBel[dayNrBel] = trafAmountBel[dayNrBel] + 1
-  }
+  #amount of traffic per day -- Belgium (approx. running time 5 seconds)
+  trafAmountBel <- as.matrix(table(traffic_bel$date))
   
   #amount of traffic per day -- Total
   #NOTE: you can only run this if you have run both Net and Bel
