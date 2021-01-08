@@ -40,35 +40,6 @@ nBroad <- nrow(broad)
   trafficDateSplitUnlist <- NULL
   traffictime <- NULL
   
-#For the direct effects model we calculate the amount of traffic in an interval before the broadcast and after the broadcast
-#Results are stored in the column preVisitors and postVisitors in the dataframe broad
-#BEWARE IT TAKES A LONG TIME TO RUN
-  
-  #count visits pre-commercial
-  broad['preVisitors'] <- 0
-  intervalSize <- 5
-  start <- Sys.time()
-  for (index in 1:500) { #nBroad
-    broadDate <- broad$date[[index]]
-    broadTime <- broad$time_min[[index]]
-    extraViews <- 0
-    if(broadTime - intervalSize < 0){
-      extraViews <- length(which(traffic$date == as.Date(broadDate) - 1 & traffic$time_min >= 60*24 - intervalSize))
-    } else{
-      broad$preVisitors[[index]] <- length(which(traffic$date == broadDate & traffic$time_min < broadTime & traffic$time_min >= broadTime - intervalSize)) + extraViews
-    }
-    if(index %% 1000 == 0) {print(Sys.time() - start)}
-  }
-  #count visits post-commercial
-  broad['postVisitors'] <- 0
-  start <- Sys.time()
-  for (index in 1:500) { #nBroad
-    broadDate <- broad$date[[index]]
-    broadTime <- broad$time_min[[index]]
-    broad$postVisitors[[index]] <- length(which(traffic$date == broadDate & traffic$time_min >= broadTime & traffic$time_min < broadTime + intervalSize))
-    if(index %% 1000 == 0) {print(Sys.time() - start)}
-  }
-  
 #Further country specific variables + Aggregate clicks no a day
   
   traffic_net = subset(traffic, country == 'Netherlands')
@@ -110,4 +81,33 @@ nBroad <- nrow(broad)
   #amount of traffic per day -- Total
   #NOTE: you can only run this if you have run both Net and Bel
   trafAmount = trafAmountNet + trafAmountBel
+  
+#For the direct effects model we calculate the amount of traffic in an interval before the broadcast and after the broadcast
+#Results are stored in the column preVisitors and postVisitors in the dataframe broad
+#BEWARE IT TAKES A LONG TIME TO RUN
+  
+  #count visits pre-commercial
+  broad['preVisitors'] <- 0
+  intervalSize <- 5
+  start <- Sys.time()
+  for (index in 1:500) { #nBroad
+    broadDate <- broad$date[[index]]
+    broadTime <- broad$time_min[[index]]
+    extraViews <- 0
+    if(broadTime - intervalSize < 0){
+      extraViews <- length(which(traffic$date == as.Date(broadDate) - 1 & traffic$time_min >= 60*24 - intervalSize))
+    } else{
+      broad$preVisitors[[index]] <- length(which(traffic$date == broadDate & traffic$time_min < broadTime & traffic$time_min >= broadTime - intervalSize)) + extraViews
+    }
+    if(index %% 1000 == 0) {print(Sys.time() - start)}
+  }
+  #count visits post-commercial
+  broad['postVisitors'] <- 0
+  start <- Sys.time()
+  for (index in 1:500) { #nBroad
+    broadDate <- broad$date[[index]]
+    broadTime <- broad$time_min[[index]]
+    broad$postVisitors[[index]] <- length(which(traffic$date == broadDate & traffic$time_min >= broadTime & traffic$time_min < broadTime + intervalSize))
+    if(index %% 1000 == 0) {print(Sys.time() - start)}
+  }
   
