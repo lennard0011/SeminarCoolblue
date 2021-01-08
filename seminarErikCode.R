@@ -1,12 +1,15 @@
 ## SEMINAR COOLBLUE BA&QM 2021 Team 21
 ## @author: Erik van der Heide
+## note to myself: use rm(var) to clean up workspace (environment)
+## note to myself: dplyr packages takes care of lag()
 
 # Packages
-install.packages("chron") # times()
-library(chron)
+install.packages("dplyr")
+library("dplyr")
 
 # Load data
 broad <- read.csv(file.choose(), header = T)
+broad <- broad[order(broad$date, broad$time),]
 traffic <- read.csv(file.choose(), header = T)
 
 # Descriptive of TRAFFIC 
@@ -42,6 +45,7 @@ unique(broad$channel)
 unique(broad$date)
 unique(broad$time)
 unique(broad$position_in_break)
+sum(broad$position_in_break == "99")
 unique(broad$length_of_spot)
 unique(broad$program_before)
 unique(broad$program_after)
@@ -73,14 +77,6 @@ plot(visit_density, main = "Number of Visitors on May 1, 2019", type = "l")
 # Create "indicators" for commercials (given there are on this day)
 broad_day <- subset(broad, date == "2019-05-01")
 broad_day <- broad_day[order(broad_day$time),]
-time_min <- vector(mode ="character", length = nrow(broad_day))
-# convert times to numbers
-for (i in 1:nrow(broad_day)) {
-  time_min[i] <- gsub(":", "", broad_day$time[i])
-  time_min[i] <- as.numeric(time_min[i]) / 10000
-  time_min[i] <- floor(as.numeric(time_min[i]))*60 + 100*(as.numeric(time_min[i])-floor(as.numeric(time_min[i])))
-}
-broad_day <- cbind(broad_day, time_min)
 
 # Plotting
 time_interval = 1:1400 # standard is 1:1400
@@ -91,18 +87,57 @@ for (i in 1:nrow(broad_day)){
   #}
 }
 
-# Copied = data preperation
-scopeDays = 31 + 28 + 31 + 30 + 31 + 30
-#add time_min and date to every travel
-traffic['time_min'] <- 0
-traffic$date_time <- as.character(traffic$date_time)
-trafficDateSplitWhole <- strsplit(traffic$date_time, "\\s+")
-trafficDateSplitUnlist <- unlist(trafficDateSplitWhole)
-traffic$time <- trafficDateSplitUnlist[seq(2, length(trafficDateSplitUnlist), 2)]
-traffic$date <- trafficDateSplitUnlist[seq(1, length(trafficDateSplitUnlist), 2)]
-traffic$time_min <- 60 * 24 * as.numeric(times(traffic$time)) # need chron
+# Plot data on daily basis
 
-traffic <- traffic[order(traffic$date, traffic$time),]
+#plot all broadcasts (partly copied from Marjolein)
+plot(adAmount)
+for (i in 1:nrow(uniqueDates)){
+  abline(v = yday(uniqueDatesNet[i]), col = 'blue') # Blue=Net only
+  abline(v = yday(uniqueDatesBel[i]), col = 'red') # Red=Bel only
+  abline(v = yday(uniqueDatesBoth[i]), col = 'green') # Green=Both
+}
 
-# Creating data on day basis:
-# ... (needs to be efficient)
+#plot broadcasts Net + dummies (partly copied from Marjolein)
+plot(adAmountNet)
+for (i in 1:length(uniqueDatesNet)){
+  abline(v = yday(uniqueDatesNet[i]), col = 'blue') # ads
+}
+for (i in 1:length(holidaysDates)) {
+  abline(v = yday(holidaysDates[i]), col = 'orange') # holidays
+}
+
+#plot daily traffic Net (partly copied from Marjolein)
+plot(trafAmountNet)
+for (i in 1:length(uniqueDatesNet)){ 
+  abline(v = yday(uniqueDatesNet[i]), col = 'blue') # ads
+}
+for (i in 1:length(holidaysDates)) {
+  abline(v = yday(holidaysDates[i]), col = 'orange') # holidays
+} # global spike on Hemelvaartsdag in Net
+for (i in 1:length(trafAmountNet)) {
+  if (wday(unique(traffic$date)[i]) == 3) { # wednesdays
+    abline(v = yday(unique(traffic$date)[i]), col = 'yellow') # plot all mondays
+  }
+}
+
+#plot daily traffic Bel (partly copied from Marjolein)
+plot(trafAmountBel)
+for (i in 1:length(uniqueDatesBel)){
+  abline(v = yday(uniqueDatesBel[i]), col = 'red') # ads
+}
+for (i in 1:length(holidaysDates)) {
+  abline(v = yday(holidaysDates[i]), col = 'orange') # holidays
+} # local spike on Hemvelvaartsdag in Bel
+
+# Simple regression for Net
+simpleAR1 <- lm(trafAmountNet ~ lag(trafAmountNet, 1))
+summary(simpleAR1)
+# TODO:
+  #regress on day-dummies
+  #regress on all holidays
+  #regress on hemelvaartsdag
+  #regress on weekdummies
+  #regress on a linear trend
+  #regress with first differences
+  #unit root test
+  #other tests from time series analyses / AMM W3

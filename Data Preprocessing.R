@@ -134,4 +134,15 @@ nBroad <- nrow(broad)
   #amount of traffic per day -- Total
   #NOTE: you can only run this if you have run both Net and Bel
   trafAmount = trafAmountNet + trafAmountBel
+
+## Adding (time series) dummy to the data
   
+  #national holidays
+  holidaysNames <- c("Nieuwjaarsdag", "Goede Vrijdag", "Eerste Paasdag", 
+                     "Tweede Paasdag", "Koningsdag", "Bevrijdingsdag", 
+                     "Hemelvaartsdag", "Eerste Pinksterdag", 
+                     "Tweede Pinksterdag")
+  holidaysDates <- c("2019-01-01", "2019-04-19", "2019-04-21", "2019-04-22", 
+                     "2019-04-27", "2019-05-05", "2019-05-30", "2019-06-09",
+                     "2019-06-10")
+  # TODO: weekday and week dummies
