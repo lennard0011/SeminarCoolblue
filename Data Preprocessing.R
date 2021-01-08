@@ -13,6 +13,9 @@ library("data.table")
 traffic <- read.csv(file.choose(), header = T)
 broad <- read.csv(file.choose(), header = T)
 
+nTraffic <- nrow(traffic)
+nBroad <- nrow(broad)
+
 #now that packages and data has been loaded, we start by creating new features and set the data up in a nice and usable way
 
 #First we add the column time_min to traffic and broad, which is the time in a scale of minutes (from 0 to 24*60= 1440)
@@ -37,7 +40,7 @@ broad <- read.csv(file.choose(), header = T)
   trafficDateSplitUnlist <- NULL
   traffictime <- NULL
   
-#For the direct effects model we calculate the amount of traffic in a interval before the broadcast and after the broadcast
+#For the direct effects model we calculate the amount of traffic in an interval before the broadcast and after the broadcast
 #Results are stored in the column preVisitors and postVisitors in the dataframe broad
 #BEWARE IT TAKES A LONG TIME TO RUN
   
@@ -66,25 +69,25 @@ broad <- read.csv(file.choose(), header = T)
     if(index %% 1000 == 0) {print(Sys.time() - start)}
   }
   
-#Further country specific variables
+#Further country specific variables + Aggregate clicks no a day
   
-  traffic_netherlands = subset(traffic, country == 'Netherlands')
-  traffic_belgium = subset(traffic, country == 'Belgium')
-  broadcast_netherlands = subset(broad, country == 'Netherlands')
-  broadcast_belgium = subset(broad, country == 'Belgium')
+  traffic_net = subset(traffic, country == 'Netherlands')
+  traffic_bel = subset(traffic, country == 'Belgium')
+  broad_net = subset(broad, country == 'Netherlands')
+  broad_bel = subset(broad, country == 'Belgium')
   
   #amount of days in time-frame
   amountDays = 31 + 28 + 31 + 30 + 31 + 30
   scopeDays = amountDays
   #set of unique advertising dates
   uniqueDates = unique(broad$date)
-  uniqueDatesBel = unique(broadcast_belgium$date)
-  uniqueDatesNet = unique(broadcast_netherlands$date)
+  uniqueDatesBel = unique(broad_bel$date)
+  uniqueDatesNet = unique(broad_net$date)
   uniqueDatesBoth = base::intersect(uniqueDatesBel, uniqueDatesNet) #adverts in both on certain day
   uniqueDatesOnlyBel = base::setdiff(uniqueDatesBel, uniqueDatesBoth) #adverts only in Belgium on certain day
   uniqueDatesOnlyNet = base::setdiff(uniqueDatesNet, uniqueDatesBoth) #adverts only in Netherlands on certain day
   
-  #amount of advertisments per day 
+  #amount of advertisements per day -- Total
   adAmount = matrix(0, scopeDays)
   for (i in 1:scopeDays){
     iDate = as.Date(i - 1, origin = "2019-01-01")
@@ -92,12 +95,43 @@ broad <- read.csv(file.choose(), header = T)
     adAmount[i] = adsIDate
   }
   
-  #amount of traffic per day for belgium
-  dayNrs = matrix(0, amountDays) #how much traffic per day
-  for (i in 1:nrow(traffic_belgium)){
+  #amount of advertisements per day -- Netherlands
+  adAmountNet = matrix(0, scopeDays)
+  for (i in 1:scopeDays){
+    iDateNet = as.Date(i - 1, origin = "2019-01-01")
+    adsIDateNet = sum(broad_net$date == iDateNet)
+    adAmountNet[i] = adsIDateNet
+  }
+  
+  #amount of advertisemetns per day -- Belgium
+  adAmountBel = matrix(0, scopeDays)
+  for (i in 1:scopeDays){
+    iDateBel = as.Date(i - 1, origin = "2019-01-01")
+    adsIDateBel = sum(broad_bel$date == iDateBel)
+    adAmountBel[i] = adsIDateBel
+  }
+  
+  #amount of traffic per day -- Netherlands (approx. running time 10 min)
+  trafAmountNet = matrix(0, amountDays) #how much traffic per day
+  for (i in 1:nrow(traffic_net)) {
     if(i %% 10000 == 0){
       print(i)
     }
-    dayNr = yday(traffic_belgium[i,]$date_time) 
-    dayNrs[dayNr] = dayNrs[dayNr] + 1
+    dayNrNet = yday(traffic_net[i,]$date_time) 
+    trafAmountNet[dayNrNet] = trafAmountNet[dayNrNet] + 1
   }
+  
+  #amount of traffic per day -- Belgium (approx. running time = 00:08:15)
+  trafAmountBel = matrix(0, amountDays) #how much traffic per day
+  for (i in 1:nrow(traffic_bel)) {
+    if(i %% 10000 == 0){
+      print(i)
+    }
+    dayNrBel = yday(traffic_bel[i,]$date_time) 
+    trafAmountBel[dayNrBel] = trafAmountBel[dayNrBel] + 1
+  }
+  
+  #amount of traffic per day -- Total
+  #NOTE: you can only run this if you have run both Net and Bel
+  trafAmount = trafAmountNet + trafAmountBel
+  
