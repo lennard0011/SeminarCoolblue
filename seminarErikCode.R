@@ -1,51 +1,42 @@
 ## SEMINAR COOLBLUE BA&QM 2021 Team 21
 ## @author: Erik van der Heide
 
-install.packages("chron")
+# Packages
+install.packages("chron") # times()
 library(chron)
 
 # Load data
-traffic <- read.csv(file.choose(), header = T)
 broad <- read.csv(file.choose(), header = T)
+traffic <- read.csv(file.choose(), header = T)
 
 # Descriptive of TRAFFIC 
 head(traffic)
-summary(traffic)
-
 min(traffic$date_time)
 max(traffic$date_time)
-
 summary(traffic$visits_index)
-
 unique(traffic$medium)
 sum(traffic$medium == "app")
 sum(traffic$medium == "website")
-
 unique(traffic$visit_source)
 sum(traffic$visit_source =="push notification")
 sum(traffic$visit_source =="direct")
 sum(traffic$visit_source =="search")
 sum(traffic$visit_source =="paid search")
 sum(traffic$visit_source =="other")
-
 unique(traffic$page_category)
 sum(traffic$page_category == "home")
 sum(traffic$page_category == "other")
 sum(traffic$page_category == "product")
-
 summary(traffic$avg_session_quality)
-
 summary(traffic$bounces)
-#sum(traffic$bounces == 1) # doesn't work
-
+count_bounces <- traffic$bounces
+sum(na.omit(count_bounces) == 0)
 unique(traffic$country)
 sum(traffic$country == "Netherlands")
 sum(traffic$country == "Belgium")
 
-# Descriptive of BROAD
+# Descriptive of BROAD (I took most occuring from Jupyter)
 head(broad)
-summary(broad)
-
 unique(broad$operator)
 unique(broad$channel)
 unique(broad$date)
@@ -56,7 +47,7 @@ unique(broad$program_before)
 unique(broad$program_after)
 unique(broad$program_category_before)
 unique(broad$program_category_after)
-unique(broad$gross_rating_point)
+summary(broad$gross_rating_point)
 unique(broad$product_category)
 unique(broad$country)
 
@@ -99,9 +90,8 @@ for (i in 1:nrow(broad_day)){
     abline(v = as.numeric(broad_day$time_min[i]), col = 'blue')
   #}
 }
-axis(1, at = seq(1:101), labels=time_interval)
 
-##################################################################
+# Copied = data preperation
 scopeDays = 31 + 28 + 31 + 30 + 31 + 30
 #add time_min and date to every travel
 traffic['time_min'] <- 0
@@ -110,27 +100,9 @@ trafficDateSplitWhole <- strsplit(traffic$date_time, "\\s+")
 trafficDateSplitUnlist <- unlist(trafficDateSplitWhole)
 traffic$time <- trafficDateSplitUnlist[seq(2, length(trafficDateSplitUnlist), 2)]
 traffic$date <- trafficDateSplitUnlist[seq(1, length(trafficDateSplitUnlist), 2)]
-traffic$time_min <- 60 * 24 * as.numeric(times(traffic$time))
+traffic$time_min <- 60 * 24 * as.numeric(times(traffic$time)) # need chron
 
 traffic <- traffic[order(traffic$date, traffic$time),]
 
-# Creating a new data frame on day-basis
-
-# For broadcasts:
-adAmount = matrix(0, scopeDays)
-for (i in 1:scopeDays){
-  iDate = as.Date(i - 1, origin = "2019-01-01")
-  adsIDate = sum(broad$date == iDate)
-  adAmount[i] = adsIDate
-}
-plot(adAmount)
-
-# For traffic:
-trafAmount = matrix(0, scopeDays)
-for (i in 1:7){
-  iDate = as.Date(i - 1, origin = "2019-01-01")
-  trafsIDate = sum(traffic$date == iDate)
-  trafAmount[i] = trafsIDate
-}
-plot(trafAmount)
-plot(trafAmount[1:7,])
+# Creating data on day basis:
+# ... (needs to be efficient)
