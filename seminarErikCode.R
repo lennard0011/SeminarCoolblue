@@ -5,6 +5,7 @@
 
 # Packages
 install.packages("dplyr")
+
 library("dplyr")
 
 # Load data
@@ -129,15 +130,35 @@ for (i in 1:length(holidaysDates)) {
   abline(v = yday(holidaysDates[i]), col = 'orange') # holidays
 } # local spike on Hemvelvaartsdag in Bel
 
-# Simple regression for Net
-simpleAR1 <- lm(trafAmountNet ~ lag(trafAmountNet, 1))
-summary(simpleAR1)
+# Simple regressions for Netherlands
+#AR(1)
+regrAR1 <- lm(trafAmountNet ~ lag(trafAmountNet, 1))
+summary(regrAR1) # AR(1) is 0.001 significant
+#on a trend
+regrTrend <- lm(trafAmountNet ~ c(1:181))
+summary(regrTrend) # Trend is 0.05 significant
+#on weekdays
+trafAmountNetDiff <- c(NA, diff(trafAmountNet)) # first difference
+regrDays <- lm(trafAmountNetDiff ~ 0 + dummyMonday + dummyTuesday + 
+                 dummyWednesday + dummyThursday + dummyFriday + 
+                 dummySaturday + dummySunday)
+summary(regrDays) # Tuesday 0.01, Thursday 0.01, Friday 0.01, Saturday 0.05,
+                  # Sunday 0.01 significant (so mostly weekends)
+#on holidays
+regrHolidays <- lm(trafAmountNet ~ lag(trafAmountNet, 1) + dummyHolidays)
+summary(regrHolidays) # 0.05 sign without lag, not significant with lag
+#on hemelvaartsdag
+regrHemelvaartsdag <- lm(trafAmountNet ~ lag(trafAmountNet, 1) + 
+                           dummyHemelvaartsdag)
+summary(regrHemelvaartsdag) # Hemelvaart is 0.05 significant
+#on ads
+regrAdsNet <- lm(trafAmountNet ~ lag(trafAmountNet, 1) + dummyAdsNet)
+summary(regrAdsNet) # not significant
+#on lagged ads
+
 # TODO:
-  #regress on day-dummies
-  #regress on all holidays
-  #regress on hemelvaartsdag
-  #regress on weekdummies
-  #regress on a linear trend
+  #testing for a unit root (slide 28-30 TRA)
+  #advertenties
   #regress with first differences
-  #unit root test
+  #do you have to do first diff for dummies? go over Time Series again.
   #other tests from time series analyses / AMM W3

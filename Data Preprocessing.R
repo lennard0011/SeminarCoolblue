@@ -81,7 +81,6 @@ nBroad <- nrow(broad)
   #amount of traffic per day -- Total
   #NOTE: you can only run this if you have run both Net and Bel
   trafAmount = trafAmountNet + trafAmountBel
-<<<<<<< .merge_file_a14324
 
 ## Adding (time series) dummy to the data
   
@@ -93,8 +92,47 @@ nBroad <- nrow(broad)
   holidaysDates <- c("2019-01-01", "2019-04-19", "2019-04-21", "2019-04-22", 
                      "2019-04-27", "2019-05-05", "2019-05-30", "2019-06-09",
                      "2019-06-10")
-  # TODO: weekday and week dummies
-=======
+  dummyHolidays <- matrix(rep(0), nrow = amountDays)
+  for (i in 1:length(holidaysDates)) {
+    index <- yday(holidaysDates[i])
+    dummyHolidays[index] <- 1
+  }
+  dummyHemelvaartsdag <- matrix(rep(0), nrow = amountDays)
+  dummyHemelvaartsdag[150] <- 1
+  #weekday and week dummies (might be simplified with a package?)
+  dummyMonday <- matrix(rep(0), nrow = amountDays) 
+  dummyTuesday <- matrix(rep(0), nrow = amountDays) 
+  dummyWednesday <- matrix(rep(0), nrow = amountDays) 
+  dummyThursday <- matrix(rep(0), nrow = amountDays) 
+  dummyFriday <- matrix(rep(0), nrow = amountDays) 
+  dummySaturday <- matrix(rep(0), nrow = amountDays) 
+  dummySunday <- matrix(rep(0), nrow = amountDays) 
+  allDates <- sort(unique(traffic$date))
+  for (i in 1:amountDays) {
+    if (wday(allDates[i]) == 1) { dummyMonday[i] <- 1 }
+    if (wday(allDates[i]) == 2) { dummyTuesday[i] <- 1 }
+    if (wday(allDates[i]) == 3) { dummyWednesday[i] <- 1 }
+    if (wday(allDates[i]) == 4) { dummyThursday[i] <- 1 }
+    if (wday(allDates[i]) == 5) { dummyFriday[i] <- 1 }
+    if (wday(allDates[i]) == 6) { dummySaturday[i] <- 1 }
+    if (wday(allDates[i]) == 7) { dummySunday[i] <- 1 }
+  }
+  #ads dummies
+  dummyAds <- matrix(rep(0), nrow = amountDays)
+  for (i in 1:length(uniqueDates)) {
+    index <- yday(uniqueDates[i])
+    dummyAds[index] <- 1
+  }
+  dummyAdsNet <- matrix(rep(0), nrow = amountDays)
+  for (i in 1:length(uniqueDatesNet)) {
+    index <- yday(uniqueDatesNet[i])
+    dummyAdsNet[index] <- 1
+  }
+  dummyAdsBel <- matrix(rep(0), nrow = amountDays)
+  for (i in 1:length(uniqueDatesBel)) {
+    index <- yday(uniqueDatesBel[i])
+    dummyAdsBel[index] <- 1
+  }
   
 #For the direct effects model we calculate the amount of traffic in an interval before the broadcast and after the broadcast
 #Results are stored in the column preVisitors and postVisitors in the dataframe broad
@@ -124,5 +162,3 @@ nBroad <- nrow(broad)
     broad$postVisitors[[index]] <- length(which(traffic$date == broadDate & traffic$time_min >= broadTime & traffic$time_min < broadTime + intervalSize))
     if(index %% 1000 == 0) {print(Sys.time() - start)}
   }
-  
->>>>>>> .merge_file_a15152
