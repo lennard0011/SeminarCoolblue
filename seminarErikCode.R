@@ -131,34 +131,50 @@ for (i in 1:length(holidaysDates)) {
 } # local spike on Hemvelvaartsdag in Bel
 
 # Simple regressions for Netherlands
-#AR(1)
+
+#simple AR(1)
 regrAR1 <- lm(trafAmountNet ~ lag(trafAmountNet, 1))
 summary(regrAR1) # AR(1) is 0.001 significant
+
 #on a trend
 regrTrend <- lm(trafAmountNet ~ c(1:181))
 summary(regrTrend) # Trend is 0.05 significant
-#on weekdays
 trafAmountNetDiff <- c(NA, diff(trafAmountNet)) # first difference
+regrTrend2 <- lm(trafAmountNetDiff ~ 1) # should be the same
+summary(regrTrend2) # now there is no significant trend
+
+#on weekdays
 regrDays <- lm(trafAmountNetDiff ~ 0 + dummyMonday + dummyTuesday + 
                  dummyWednesday + dummyThursday + dummyFriday + 
                  dummySaturday + dummySunday)
 summary(regrDays) # Tuesday 0.01, Thursday 0.01, Friday 0.01, Saturday 0.05,
                   # Sunday 0.01 significant (so mostly weekends)
+
+#on months
+regrMonths <- lm(trafAmountNetDiff ~ 0 + dummyJanuary + dummyFebruary + 
+                 dummyMarch + dummyApril + dummyMay + dummyJune)
+summary(regrMonths) # none of them are significant
+
 #on holidays
 regrHolidays <- lm(trafAmountNet ~ lag(trafAmountNet, 1) + dummyHolidays)
 summary(regrHolidays) # 0.05 sign without lag, not significant with lag
-#on hemelvaartsdag
+
+#on Hemelvaartsdag (aberrant observation)
 regrHemelvaartsdag <- lm(trafAmountNet ~ lag(trafAmountNet, 1) + 
                            dummyHemelvaartsdag)
-summary(regrHemelvaartsdag) # Hemelvaart is 0.05 significant
+summary(regrHemelvaartsdag) # Hemelvaart is 0.05 significant, of which type?
+
 #on ads
 regrAdsNet <- lm(trafAmountNet ~ lag(trafAmountNet, 1) + dummyAdsNet)
 summary(regrAdsNet) # not significant
+
 #on lagged ads
+regrAdsNetLag <- lm(trafAmountNet ~ lag(trafAmountNet, 1) + dummyAdsNet 
+                 + lag(dummyAdsNet, 1))
+summary(regrAdsNetLag) # not significant as well
 
 # TODO:
   #testing for a unit root (slide 28-30 TRA)
-  #advertenties
-  #regress with first differences
-  #do you have to do first diff for dummies? go over Time Series again.
-  #other tests from time series analyses / AMM W3
+  #create best ARMA(p,q) model: lowest AIC&SIC, plot autocorrelations (AR1=to0)
+  #inclusion of level and/or trend  
+  #misspecification tests (slide 21-23 BasicConc2 TRA / Ectrie 2)

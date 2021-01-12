@@ -9,7 +9,7 @@ library("ggplot2")
 library("lubridate")
 library("data.table")
 
-#Inladen van de twee tabellen
+m#Inladen van de twee tabellen
 traffic <- read.csv(file.choose(), header = T)
 broad <- read.csv(file.choose(), header = T)
 
@@ -116,6 +116,21 @@ nBroad <- nrow(broad)
     if (wday(allDates[i]) == 5) { dummyFriday[i] <- 1 }
     if (wday(allDates[i]) == 6) { dummySaturday[i] <- 1 }
     if (wday(allDates[i]) == 7) { dummySunday[i] <- 1 }
+  }
+  #month dummies
+  dummyJanuary <- matrix(rep(0), nrow = amountDays)
+  dummyFebruary <- matrix(rep(0), nrow = amountDays)
+  dummyMarch <- matrix(rep(0), nrow = amountDays)
+  dummyApril <- matrix(rep(0), nrow = amountDays)
+  dummyMay <- matrix(rep(0), nrow = amountDays)
+  dummyJune <- matrix(rep(0), nrow = amountDays)
+  for (i in 1:amountDays) {
+    if (month(allDates[i]) == 1) { dummyJanuary[i] <- 1 }
+    if (month(allDates[i]) == 2) { dummyFebruary[i] <- 1 }
+    if (month(allDates[i]) == 3) { dummyMarch[i] <- 1 }
+    if (month(allDates[i]) == 4) { dummyApril[i] <- 1 }
+    if (month(allDates[i]) == 5) { dummyMay[i] <- 1 }
+    if (month(allDates[i]) == 6) { dummyJune[i] <- 1 }
   }
   #ads dummies
   dummyAds <- matrix(rep(0), nrow = amountDays)
