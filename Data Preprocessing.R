@@ -12,7 +12,7 @@ library("data.table")
 library("caTools")
 library("fastDummies")
 
-m#Inladen van de twee tabellen
+#Inladen van de twee tabellen
 traffic <- read.csv(file.choose(), header = T)
 broad <- read.csv(file.choose(), header = T)
 
@@ -75,7 +75,7 @@ nBroad <- nrow(broad)
   #amount of advertisements per day -- Netherlands
   adAmountNet = as.matrix(table(broad_net$date))
   
-  #amount of advertisemetns per day -- Belgium
+  #amount of advertisements per day -- Belgium
   adAmountBel <- as.matrix(table(broad_bel$date))
   
   #amount of traffic per day -- Netherlands (approx. running time 5 seconds)
@@ -111,7 +111,7 @@ nBroad <- nrow(broad)
   
   weekdaysDummies <- dummy_cols(allweekdays)
   weekdaysDummies <- cbind(allDates, weekdaysDummies[, c(4, 2, 6, 3, 5, 7, 8)])
-  colnames(weekdaysdummies) <- c("data", "mondag", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
+  colnames(weekdaysDummies) <- c("data", "mondag", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
   
   #month dummies
   monthDummies <- dummy_cols(month(allDates))
