@@ -3,6 +3,8 @@ install.packages("chron")
 install.packages("ggplot2")
 install.packages("lubridate")
 install.packages("fastDummies")
+install.packages("zoo")
+install.packages("CausalImpact")
 
 #Adding packages
 library("chron")
@@ -11,6 +13,8 @@ library("lubridate")
 library("data.table")
 library("caTools")
 library("fastDummies")
+library("zoo")
+library("CausalImpact")
 
 #Inladen van de twee tabellen
 traffic = read.csv(file.choose(), header = T)
