@@ -73,7 +73,10 @@ for (i in 2:nrow(traffic_day)) {
   }
 }
 
-plot(visit_density, main = "Number of Visitors on May 1, 2019", type = "l")
+plot(visit_density, main = "Number of Visitors on May 1, 2019", type = "l",
+     xlab = "Time (hours)", ylab = "Number of clicks", xaxt='n')
+axis(side =1, at=c(0,60,120,180,240,300,360,420,480,540,600,660,720,780,840,900,
+                   960,1020,1080,1140,1200,1260,1320,1380,1440), labels= 0:24)
 
 # Create "indicators" for commercials (given there are on this day)
 broad_day <- subset(broad, date == "2019-05-01")
@@ -108,27 +111,35 @@ for (i in 1:length(holidaysDates)) {
 }
 
 #plot daily traffic Net (partly copied from Marjolein)
-plot(trafAmountNet)
-for (i in 1:length(uniqueDatesNet)){ 
-  abline(v = yday(uniqueDatesNet[i]), col = 'blue') # ads
+plot(trafAmountNet/1000, type = "l", xaxt='n', yaxt = 'n', ann=FALSE)
+for (i in 1:length(uniqueDatesNet)){
+  abline(v = yday(uniqueDatesNet[i]), col = '#DCDCDC', lwd = 3) # ads
 }
-for (i in 1:length(holidaysDates)) {
-  abline(v = yday(holidaysDates[i]), col = 'orange') # holidays
-} # global spike on Hemelvaartsdag in Net
-for (i in 1:length(trafAmountNet)) {
-  if (wday(unique(traffic$date)[i]) == 3) { # wednesdays
-    abline(v = yday(unique(traffic$date)[i]), col = 'yellow') # plot all mondays
-  }
-}
+par(new=TRUE)
+plot(trafAmountNet/1000, las=1, type = "l", xaxt='n', xlab = "Time (months)", 
+     ylab = "Daily visits (x1000)", main = "Website traffic Netherlands Jan-Jun 2019")
+axis(side =1, at=c(0, 31, 59, 90, 120, 151, 181), labels= c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'))
+#for (i in 1:length(holidaysDates)) {
+#  abline(v = yday(holidaysDates[i]), col = 'orange') # holidays
+#} # global spike on Hemelvaartsdag in Net
+#for (i in 1:length(trafAmountNet)) {
+#  if (wday(unique(traffic$date)[i]) == 3) { # wednesdays
+#    abline(v = yday(unique(traffic$date)[i]), col = 'yellow') # plot all mondays
+#  }
+#}
 
 #plot daily traffic Bel (partly copied from Marjolein)
-plot(trafAmountBel)
+plot(trafAmountBel/1000, type = "l", xaxt='n', yaxt = 'n', ann=FALSE)
 for (i in 1:length(uniqueDatesBel)){
-  abline(v = yday(uniqueDatesBel[i]), col = 'red') # ads
+  abline(v = yday(uniqueDatesBel[i]), col = '#DCDCDC', lwd = 3) # ads
 }
-for (i in 1:length(holidaysDates)) {
-  abline(v = yday(holidaysDates[i]), col = 'orange') # holidays
-} # local spike on Hemvelvaartsdag in Bel
+par(new=TRUE)
+plot(trafAmountBel/1000, las=1, type = "l", xaxt='n', xlab = "Time (months)", 
+     ylab = "Daily visits (x1000)", main = "Website traffic Belgium Jan-Jun 2019")
+axis(side =1, at=c(0, 31, 59, 90, 120, 151, 181), labels= c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'))
+#for (i in 1:length(holidaysDates)) {
+#  abline(v = yday(holidaysDates[i]), col = 'orange') # holidays
+#} # local spike on Hemvelvaartsdag in Bel
 
 # Simple regressions for Netherlands
 
@@ -178,3 +189,4 @@ summary(regrAdsNetLag) # not significant as well
   #create best ARMA(p,q) model: lowest AIC&SIC, plot autocorrelations (AR1=to0)
   #inclusion of level and/or trend  
   #misspecification tests (slide 21-23 BasicConc2 TRA / Ectrie 2)
+  #we might have a 2-regime threshold model?

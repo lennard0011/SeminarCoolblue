@@ -177,3 +177,5 @@ nBroad <- nrow(broad)
     broad$postVisitors[[index]] <- length(which(traffic$date == broadDate & traffic$time_min >= broadTime & traffic$time_min < broadTime + intervalSize))
     if(index %% 1000 == 0) {print(Sys.time() - start)}
   }
+
+  
