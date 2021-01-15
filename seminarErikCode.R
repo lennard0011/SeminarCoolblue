@@ -73,7 +73,10 @@ for (i in 2:nrow(traffic_day)) {
   }
 }
 
-plot(visit_density, main = "Number of Visitors on May 1, 2019", type = "l")
+plot(visit_density, main = "Number of Visitors on May 1, 2019", type = "l",
+     xlab = "Time (hours)", ylab = "Number of clicks", xaxt='n')
+axis(side =1, at=c(0,60,120,180,240,300,360,420,480,540,600,660,720,780,840,900,
+                   960,1020,1080,1140,1200,1260,1320,1380,1440), labels= 0:24)
 
 # Create "indicators" for commercials (given there are on this day)
 broad_day <- subset(broad, date == "2019-05-01")
@@ -108,10 +111,14 @@ for (i in 1:length(holidaysDates)) {
 }
 
 #plot daily traffic Net (partly copied from Marjolein)
-plot(trafAmountNet)
-for (i in 1:length(uniqueDatesNet)){ 
-  abline(v = yday(uniqueDatesNet[i]), col = 'blue') # ads
+plot(trafAmountNet/1000, type = "l", xaxt='n', yaxt = 'n', ann=FALSE)
+for (i in 1:length(uniqueDatesNet)){
+  abline(v = yday(uniqueDatesNet[i]), col = '#DCDCDC', lwd = 3) # ads
 }
+par(new=TRUE)
+plot(trafAmountNet/1000, las=1, type = "l", xaxt='n', xlab = "Time (months)", 
+     ylab = "Daily visits (x1000)", main = "Website traffic Netherlands Jan-Jun 2019")
+axis(side =1, at=c(0, 31, 59, 90, 120, 151, 181), labels= c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'))
 for (i in 1:length(holidaysDates)) {
   abline(v = yday(holidaysDates[i]), col = 'orange') # holidays
 } # global spike on Hemelvaartsdag in Net
@@ -122,13 +129,17 @@ for (i in 1:length(trafAmountNet)) {
 }
 
 #plot daily traffic Bel (partly copied from Marjolein)
-plot(trafAmountBel)
+plot(trafAmountBel/1000, type = "l", xaxt='n', yaxt = 'n', ann=FALSE)
 for (i in 1:length(uniqueDatesBel)){
-  abline(v = yday(uniqueDatesBel[i]), col = 'red') # ads
+  abline(v = yday(uniqueDatesBel[i]), col = '#DCDCDC', lwd = 3) # ads
 }
-for (i in 1:length(holidaysDates)) {
-  abline(v = yday(holidaysDates[i]), col = 'orange') # holidays
-} # local spike on Hemvelvaartsdag in Bel
+par(new=TRUE)
+plot(trafAmountBel/1000, las=1, type = "l", xaxt='n', xlab = "Time (months)", 
+     ylab = "Daily visits (x1000)", main = "Website traffic Belgium Jan-Jun 2019")
+axis(side =1, at=c(0, 31, 59, 90, 120, 151, 181), labels= c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'))
+#for (i in 1:length(holidaysDates)) {
+#  abline(v = yday(holidaysDates[i]), col = 'orange') # holidays
+#} # local spike on Hemvelvaartsdag in Bel
 
 # Simple regressions for Netherlands
 
@@ -144,17 +155,24 @@ regrTrend2 <- lm(trafAmountNetDiff ~ 1) # should be the same
 summary(regrTrend2) # now there is no significant trend
 
 #on weekdays
-regrDays <- lm(trafAmountNetDiff ~ 0 + dummyMonday + dummyTuesday + 
-                 dummyWednesday + dummyThursday + dummyFriday + 
-                 dummySaturday + dummySunday)
+regrDays <- lm(trafAmountNetDiff ~ 0 + dummyWeekdays[,2] + dummyWeekdays[,3] +
+                 dummyWeekdays[,4] + dummyWeekdays[,5] + dummyWeekdays[,6] +
+                 dummyWeekdays[,7] + dummyWeekdays[,8])
+names(regrDays$coefficients) <- c('monday','tuesday','wednesday','thursday',
+                                  'friday','saturday','sunday')
 summary(regrDays) # Tuesday 0.01, Thursday 0.01, Friday 0.01, Saturday 0.05,
                   # Sunday 0.01 significant (so mostly weekends)
+# TODO: F-test on whether weekends significantly differ from weekdays.
 
 #on months
-regrMonths <- lm(trafAmountNetDiff ~ 0 + dummyJanuary + dummyFebruary + 
-                 dummyMarch + dummyApril + dummyMay + dummyJune)
+regrMonths <- lm(trafAmountNetDiff ~ 0 + dummyMonths[,2] + dummyMonths[,3] + 
+                   dummyMonths[,4] + dummyMonths[,5] + dummyMonths[,6] + 
+                   dummyMonths[,7])
+names(regrMonths$coefficients) <- c('january','february','march','april','may',
+                                    'june')
 summary(regrMonths) # none of them are significant
 
+## NOTE: IF YOU RUN REGR WITH LAG(), THEN YOU NEED TO RELOAD DPLYR
 #on holidays
 regrHolidays <- lm(trafAmountNet ~ lag(trafAmountNet, 1) + dummyHolidays)
 summary(regrHolidays) # 0.05 sign without lag, not significant with lag
@@ -165,7 +183,7 @@ regrHemelvaartsdag <- lm(trafAmountNet ~ lag(trafAmountNet, 1) +
 summary(regrHemelvaartsdag) # Hemelvaart is 0.05 significant, of which type?
 
 #on ads
-regrAdsNet <- lm(trafAmountNet ~ lag(trafAmountNet, 1) + dummyAdsNet)
+regrAdsNet <- lm(trafAmountNet ~ lag(trafAmountNet, 1) + dummyAds)
 summary(regrAdsNet) # not significant
 
 #on lagged ads
@@ -178,3 +196,4 @@ summary(regrAdsNetLag) # not significant as well
   #create best ARMA(p,q) model: lowest AIC&SIC, plot autocorrelations (AR1=to0)
   #inclusion of level and/or trend  
   #misspecification tests (slide 21-23 BasicConc2 TRA / Ectrie 2)
+  #we might have a 2-regime threshold model?
