@@ -12,7 +12,7 @@ library("data.table")
 library("caTools")
 library("fastDummies")
 
-m#Inladen van de twee tabellen
+#Inladen van de twee tabellen
 traffic <- read.csv(file.choose(), header = T)
 broad <- read.csv(file.choose(), header = T)
 
@@ -109,20 +109,20 @@ nBroad <- nrow(broad)
   allDates <- sort(unique(traffic$date))
   allweekdays <- weekdays(as.Date(allDates))
   
-  weekdaysDummies <- dummy_cols(allweekdays)
-  weekdaysDummies <- cbind(allDates, weekdaysDummies[, c(4, 2, 6, 3, 5, 7, 8)])
-  colnames(weekdaysdummies) <- c("data", "mondag", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
+  dummyWeekdays <- dummy_cols(allweekdays) # column 2 = monday, 8 = sunday
+  dummyWeekdays <- cbind(allDates, dummyWeekdays[, c(4, 2, 6, 3, 5, 7, 8)])
+  colnames(dummyWeekdays) <- c("data", "mondag", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
   
   #month dummies
-  monthDummies <- dummy_cols(month(allDates))
-  monthDummies <- cbind(allDates, monthDummies[, 2:7])
-  colnames(monthDummies) <- c("data", "January", "February", "March", "April", "May", "June")
+  dummyMonths <- dummy_cols(month(allDates))
+  dummyMonths <- cbind(allDates, dummyMonths[, 2:7]) # column 2 = Jan, 7 = Jun
+  colnames(dummyMonths) <- c("data", "January", "February", "March", "April", "May", "June")
   
   #ads dummies
-  dummyAds <- matrix(rep(0), nrow = amountDays)
+  dummyAdsTot <- matrix(rep(0), nrow = amountDays)
   for (i in 1:length(uniqueDates)) {
     index <- yday(uniqueDates[i])
-    dummyAds[index] <- 1
+    dummyAdsTot[index] <- 1
   }
   dummyAdsNet <- matrix(rep(0), nrow = amountDays)
   for (i in 1:length(uniqueDatesNet)) {
@@ -134,39 +134,6 @@ nBroad <- nrow(broad)
     index <- yday(uniqueDatesBel[i])
     dummyAdsBel[index] <- 1
   }
-  
-#For the direct effects model we calculate the amount of traffic in an interval before the broadcast and after the broadcast
-#Results are stored in the column preVisitors and postVisitors in the dataframe broad
-#BEWARE IT TAKES A LONG TIME TO RUN
-  BroadCountAmount <- 100
-  #count visits pre-commercial
-  broad['preVisitors'] <- 0
-  intervalSize <- 5
-  start <- Sys.time()
-  for (index in 1:BroadCountAmount) { #nBroad
-    broadDate <- broad$date[[index]]
-    broadTime <- broad$time_min[[index]]
-    broadCountry <- broad$country[[index]]
-    extraViews <- 0
-    if(intervalSize > broadTime ){
-      extraViews <- length(which(traffic$date == as.Date(broadDate) - 1 & traffic$time_min >= 60*24 - intervalSize + broadTime & traffic$country == broadCountry))
-    }
-    broad$preVisitors[[index]] <- length(which(traffic$date == broadDate & traffic$country == broadCountry & traffic$time_min < broadTime & traffic$time_min >= broadTime - intervalSize)) + extraViews
-    if(index %% 1000 == 0) {print(Sys.time() - start)}
-  }
-  #count visits post-commercial
-  broad['postVisitors'] <- 0
-  start <- Sys.time()
-  for (index in 1:BroadCountAmount) { #nBroad
-    broadDate <- broad$date[[index]]
-    broadTime <- broad$time_min[[index]]
-    broadCountry <- broad$country[[index]]
-    extraViews <- 0
-    if(broadTime > 60*24 - intervalSize){
-      extraViews <- length(which(traffic$date == as.Date(broadDate) + 1 & traffic$country == broadCountry & traffic$time_min <= intervalSize - broadTime & traffic$country == broadCountry))
-    }
-    broad$postVisitors[[index]] <- length(which(traffic$date == broadDate & traffic$country == broadCountry & traffic$time_min >= broadTime & traffic$time_min < broadTime + intervalSize))
-    if(index %% 1000 == 0) {print(Sys.time() - start)}
-  }
-
-  
+  dummyAds <- cbind(dummyAdsTot, dummyAdsNet, dummyAdsBel) #1=Tot, 2=NL, 3=BE
+  colnames(dummyAds) <- c("Ads Total","Ads Netherlands","Ads Belgium")
+  rm(dummyAdsTot); rm(dummyAdsNet); rm(dummyAdsBel)

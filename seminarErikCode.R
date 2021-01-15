@@ -119,14 +119,14 @@ par(new=TRUE)
 plot(trafAmountNet/1000, las=1, type = "l", xaxt='n', xlab = "Time (months)", 
      ylab = "Daily visits (x1000)", main = "Website traffic Netherlands Jan-Jun 2019")
 axis(side =1, at=c(0, 31, 59, 90, 120, 151, 181), labels= c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'))
-#for (i in 1:length(holidaysDates)) {
-#  abline(v = yday(holidaysDates[i]), col = 'orange') # holidays
-#} # global spike on Hemelvaartsdag in Net
-#for (i in 1:length(trafAmountNet)) {
-#  if (wday(unique(traffic$date)[i]) == 3) { # wednesdays
-#    abline(v = yday(unique(traffic$date)[i]), col = 'yellow') # plot all mondays
-#  }
-#}
+for (i in 1:length(holidaysDates)) {
+  abline(v = yday(holidaysDates[i]), col = 'orange') # holidays
+} # global spike on Hemelvaartsdag in Net
+for (i in 1:length(trafAmountNet)) {
+  if (wday(unique(traffic$date)[i]) == 3) { # wednesdays
+    abline(v = yday(unique(traffic$date)[i]), col = 'yellow') # plot all mondays
+  }
+}
 
 #plot daily traffic Bel (partly copied from Marjolein)
 plot(trafAmountBel/1000, type = "l", xaxt='n', yaxt = 'n', ann=FALSE)
@@ -155,17 +155,24 @@ regrTrend2 <- lm(trafAmountNetDiff ~ 1) # should be the same
 summary(regrTrend2) # now there is no significant trend
 
 #on weekdays
-regrDays <- lm(trafAmountNetDiff ~ 0 + dummyMonday + dummyTuesday + 
-                 dummyWednesday + dummyThursday + dummyFriday + 
-                 dummySaturday + dummySunday)
+regrDays <- lm(trafAmountNetDiff ~ 0 + dummyWeekdays[,2] + dummyWeekdays[,3] +
+                 dummyWeekdays[,4] + dummyWeekdays[,5] + dummyWeekdays[,6] +
+                 dummyWeekdays[,7] + dummyWeekdays[,8])
+names(regrDays$coefficients) <- c('monday','tuesday','wednesday','thursday',
+                                  'friday','saturday','sunday')
 summary(regrDays) # Tuesday 0.01, Thursday 0.01, Friday 0.01, Saturday 0.05,
                   # Sunday 0.01 significant (so mostly weekends)
+# TODO: F-test on whether weekends significantly differ from weekdays.
 
 #on months
-regrMonths <- lm(trafAmountNetDiff ~ 0 + dummyJanuary + dummyFebruary + 
-                 dummyMarch + dummyApril + dummyMay + dummyJune)
+regrMonths <- lm(trafAmountNetDiff ~ 0 + dummyMonths[,2] + dummyMonths[,3] + 
+                   dummyMonths[,4] + dummyMonths[,5] + dummyMonths[,6] + 
+                   dummyMonths[,7])
+names(regrMonths$coefficients) <- c('january','february','march','april','may',
+                                    'june')
 summary(regrMonths) # none of them are significant
 
+## NOTE: IF YOU RUN REGR WITH LAG(), THEN YOU NEED TO RELOAD DPLYR
 #on holidays
 regrHolidays <- lm(trafAmountNet ~ lag(trafAmountNet, 1) + dummyHolidays)
 summary(regrHolidays) # 0.05 sign without lag, not significant with lag
@@ -176,7 +183,7 @@ regrHemelvaartsdag <- lm(trafAmountNet ~ lag(trafAmountNet, 1) +
 summary(regrHemelvaartsdag) # Hemelvaart is 0.05 significant, of which type?
 
 #on ads
-regrAdsNet <- lm(trafAmountNet ~ lag(trafAmountNet, 1) + dummyAdsNet)
+regrAdsNet <- lm(trafAmountNet ~ lag(trafAmountNet, 1) + dummyAds)
 summary(regrAdsNet) # not significant
 
 #on lagged ads
