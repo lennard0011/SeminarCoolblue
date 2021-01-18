@@ -6,14 +6,14 @@ library(caTools)
 #For the direct effects model we calculate the amount of traffic in an interval before the broadcast and after the broadcast
 #Results are stored in the column preVisitors and postVisitors in the dataframe broad
 #BEWARE IT TAKES A LONG TIME TO RUN
-BroadCountAmount <- 100
+BroadCountAmount <- nBroad #nBroad
 
 #count visits pre-commercial
 broad['preVisitorsDirect'] <- 0
 broad['preVisitorsSearch'] <- 0
 intervalSize <- 2
 start <- Sys.time()
-for (index in 1:BroadCountAmount) { #nBroad
+for (index in 1:BroadCountAmount) {
   broadDate <- broad$date[[index]]
   broadTime <- broad$time_min[[index]]
   broadCountry <- broad$country[[index]]
