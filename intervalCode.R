@@ -19,7 +19,7 @@ for (index in 1:BroadCountAmount) { #nBroad
   broadCountry <- broad$country[[index]]
   extraViewsDirect <- 0
   extraViewsSearch <- 0
-  if(intervalSize > broadTime ){
+  if(intervalSize > broadTime){ # include views from prev. day if close to midnight
     extraViewsDirect <- length(which( (traffic$visit_source == "direct" | traffic$visit_source == "other") & traffic$date == as.Date(broadDate) - 1 & traffic$time_min >= 60*24 - intervalSize + broadTime & traffic$country == broadCountry))
     extraViewsSearch <- length(which( (traffic$visit_source == "paid search" | traffic$visit_source == "search") & traffic$date == as.Date(broadDate) - 1 & traffic$time_min >= 60*24 - intervalSize + broadTime & traffic$country == broadCountry))
   }
@@ -38,7 +38,7 @@ for (index in 1:BroadCountAmount) { #nBroad
   broadCountry <- broad$country[[index]]
   extraViewsDirect <- 0
   extraViewsSearch <- 0
-  if(broadTime > 60*24 - intervalSize){
+  if(broadTime > 60*24 - intervalSize){ # include views from next day if close to midnight
     extraViewsDirect <- length(which( (traffic$visit_source == "direct" | traffic$visit_source == "other") & traffic$date == as.Date(broadDate) + 1 & traffic$country == broadCountry & traffic$time_min <= intervalSize - broadTime & traffic$country == broadCountry))
     extraViewsSearch <- length(which( (traffic$visit_source == "paid search" | traffic$visit_source == "search") & traffic$date == as.Date(broadDate) + 1 & traffic$country == broadCountry & traffic$time_min <= intervalSize - broadTime & traffic$country == broadCountry))
   }
@@ -48,20 +48,27 @@ for (index in 1:BroadCountAmount) { #nBroad
   if(index %% 1000 == 0) {print(Sys.time() - start)}
 }
 
-mean(broad$postVisitors[1:500] - broad$preVisitors[1:500])
-data = cbind(broad$postVisitors[1:500], broad$preVisitors[1:500])
+# first analysis pre- and post-visitors
+broad['preVisitors'] <- broad$preVisitorsDirect + broad$preVisitorsSearch
+broad['postVisitors'] <- broad$postVisitorsDirect + broad$postVisitorsSearch
+mean(broad$postVisitors[1:BroadCountAmount] - broad$preVisitors[1:BroadCountAmount])
+dataInterval = cbind(broad$preVisitors[1:BroadCountAmount], broad$postVisitors[1:BroadCountAmount])
 #data = cbind(log(broad$postVisitors[1:500]), log(broad$preVisitors[1:500]))
-data <- as.data.frame(data)
-colnames(data) <- c("postVisitors", "preVisitors")
+dataInterval <- as.data.frame(dataInterval)
+colnames(dataInterval) <- c("preVisitors", "postVisitors") #@Len I think it would make more sense to first display "pre" and than "post"
 
-data_split = sample.split(data$postVisitors, SplitRatio = 0.8)
-train <- subset(data, data_split == TRUE)
-test <-subset(data, data_split == FALSE)
-plot(data$preVisitors, data$postVisitors)
+# data plotting
+plot(dataInterval$preVisitors, dataInterval$postVisitors)
 lines(cbind(0,10000), cbind(0,10000))
 
-model <- lm(postVisitors[1:100] ~ 0 + preVisitors[1:100], data = broad) #DataFlair
-summary(model)
-coefficients(model)
-hist(broad$postVisitors[1:500])
-hist(broad$preVisitors[1:500])
+# simple regression model
+modelVisitors <- lm(postVisitors[1:BroadCountAmount] ~ 0 + preVisitors[1:BroadCountAmount], data = broad) #DataFlair
+summary(modelVisitors)
+coefficients(modelVisitors)
+hist(broad$postVisitors[1:BroadCountAmount])
+hist(broad$preVisitors[1:BroadCountAmount])
+
+# split data in training and test
+data_split = sample.split(dataInterval$postVisitors, SplitRatio = 0.8)
+train <- subset(dataInterval, data_split == TRUE)
+test <-subset(dataInterval, data_split == FALSE)

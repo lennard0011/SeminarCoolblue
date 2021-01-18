@@ -16,9 +16,9 @@ library("fastDummies")
 library("zoo")
 library("CausalImpact")
 
-#Inladen van de twee tabellen
-traffic <- read.csv(file.choose(), header = T)
-broad <- read.csv(file.choose(), header = T)
+#loading the data
+traffic = read.csv(file.choose(), header = T)
+broad = read.csv(file.choose(), header = T)
 
 nTraffic = nrow(traffic)
 nBroad = nrow(broad)
@@ -95,50 +95,50 @@ nBroad = nrow(broad)
 ## Adding (time series) dummy to the data
   
   #national holidays
-  holidaysNames <- c("Nieuwjaarsdag", "Goede Vrijdag", "Eerste Paasdag", 
+  holidaysNames = c("Nieuwjaarsdag", "Goede Vrijdag", "Eerste Paasdag", 
                      "Tweede Paasdag", "Koningsdag", "Bevrijdingsdag", 
                      "Hemelvaartsdag", "Eerste Pinksterdag", 
                      "Tweede Pinksterdag")
-  holidaysDates <- c("2019-01-01", "2019-04-19", "2019-04-21", "2019-04-22", 
+  holidaysDates = c("2019-01-01", "2019-04-19", "2019-04-21", "2019-04-22", 
                      "2019-04-27", "2019-05-05", "2019-05-30", "2019-06-09",
                      "2019-06-10")
-  dummyHolidays <- matrix(rep(0), nrow = amountDays)
+  dummyHolidays = matrix(rep(0), nrow = amountDays)
   for (i in 1:length(holidaysDates)) {
-    index <- yday(holidaysDates[i])
-    dummyHolidays[index] <- 1
+    index = yday(holidaysDates[i])
+    dummyHolidays[index] = 1
   }
-  dummyHemelvaartsdag <- matrix(rep(0), nrow = amountDays)
-  dummyHemelvaartsdag[150] <- 1
+  dummyHemelvaartsdag = matrix(rep(0), nrow = amountDays)
+  dummyHemelvaartsdag[150] = 1
   #weekday and week dummies
-  allDates <- sort(unique(traffic$date))
-  allweekdays <- weekdays(as.Date(allDates))
+  allDates = sort(unique(traffic$date))
+  allweekdays = weekdays(as.Date(allDates))
   
-  dummyWeekdays <- dummy_cols(allweekdays) # column 2 = monday, 8 = sunday
-  dummyWeekdays <- cbind(allDates, dummyWeekdays[, c(4, 2, 6, 3, 5, 7, 8)])
-  colnames(dummyWeekdays) <- c("data", "mondag", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
-
+  dummyWeekdays = dummy_cols(allweekdays) # column 2 = monday, 8 = sunday
+  dummyWeekdays = cbind(allDates, dummyWeekdays[, c(4, 2, 6, 3, 5, 7, 8)])
+  colnames(dummyWeekdays) = c("data", "mondag", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
+  
   #month dummies
-  dummyMonths <- dummy_cols(month(allDates))
-  dummyMonths <- cbind(allDates, dummyMonths[, 2:7]) # column 2 = Jan, 7 = Jun
-  colnames(dummyMonths) <- c("data", "January", "February", "March", "April", "May", "June")
+  dummyMonths = dummy_cols(month(allDates))
+  dummyMonths = cbind(allDates, dummyMonths[, 2:7]) # column 2 = Jan, 7 = Jun
+  colnames(dummyMonths) = c("data", "January", "February", "March", "April", "May", "June")
   
   #ads dummies
-  dummyAdsTot <- matrix(rep(0), nrow = amountDays)
+  dummyAdsTot = matrix(rep(0), nrow = amountDays)
   for (i in 1:length(uniqueDates)) {
-    index <- yday(uniqueDates[i])
-    dummyAdsTot[index] <- 1
+    index = yday(uniqueDates[i])
+    dummyAdsTot[index] = 1
   }
-  dummyAdsNet <- matrix(rep(0), nrow = amountDays)
+  dummyAdsNet = matrix(rep(0), nrow = amountDays)
   for (i in 1:length(uniqueDatesNet)) {
-    index <- yday(uniqueDatesNet[i])
-    dummyAdsNet[index] <- 1
+    index = yday(uniqueDatesNet[i])
+    dummyAdsNet[index] = 1
   }
-  dummyAdsBel <- matrix(rep(0), nrow = amountDays)
+  dummyAdsBel = matrix(rep(0), nrow = amountDays)
   for (i in 1:length(uniqueDatesBel)) {
-    index <- yday(uniqueDatesBel[i])
-    dummyAdsBel[index] <- 1
+    index = yday(uniqueDatesBel[i])
+    dummyAdsBel[index] = 1
   }
-  dummyAds <- cbind(dummyAdsTot, dummyAdsNet, dummyAdsBel) #1=Tot, 2=NL, 3=BE
-  colnames(dummyAds) <- c("Ads Total","Ads Netherlands","Ads Belgium")
+  dummyAds = cbind(dummyAdsTot, dummyAdsNet, dummyAdsBel) #1=Tot, 2=NL, 3=BE
+  colnames(dummyAds) = c("Ads Total","Ads Netherlands","Ads Belgium")
   rm(dummyAdsTot); rm(dummyAdsNet); rm(dummyAdsBel)
 
