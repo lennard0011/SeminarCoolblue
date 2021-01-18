@@ -6,47 +6,87 @@ library(caTools)
 #For the direct effects model we calculate the amount of traffic in an interval before the broadcast and after the broadcast
 #Results are stored in the column preVisitors and postVisitors in the dataframe broad
 #BEWARE IT TAKES A LONG TIME TO RUN
-BroadCountAmount <- 100
+BroadCountAmount <- 500
 
 #count visits pre-commercial
-broad['preVisitorsDirect'] <- 0
-broad['preVisitorsSearch'] <- 0
+broad['preVisitorsDirect'] = 0
+broad['preVisitorsOther'] = 0
+broad['preVisitorsPaidSearch'] = 0
+broad['preVisitorsFreeSearch'] = 0
+
 intervalSize <- 2
 start <- Sys.time()
 for (index in 1:BroadCountAmount) { #nBroad
-  broadDate <- broad$date[[index]]
-  broadTime <- broad$time_min[[index]]
-  broadCountry <- broad$country[[index]]
-  extraViewsDirect <- 0
-  extraViewsSearch <- 0
+  broadDate = broad$date[[index]]
+  broadTime = broad$time_min[[index]]
+  broadCountry = broad$country[[index]]
+  extraViews = 0 
+  extraViewsDirect = 0
+  extraViewsOther = 0
+  extraViewsPaidSearch = 0
+  extraViewsFreeSearch = 0
+  
   if(intervalSize > broadTime){ # include views from prev. day if close to midnight
-    extraViewsDirect <- length(which( (traffic$visit_source == "direct" | traffic$visit_source == "other") & traffic$date == as.Date(broadDate) - 1 & traffic$time_min >= 60*24 - intervalSize + broadTime & traffic$country == broadCountry))
-    extraViewsSearch <- length(which( (traffic$visit_source == "paid search" | traffic$visit_source == "search") & traffic$date == as.Date(broadDate) - 1 & traffic$time_min >= 60*24 - intervalSize + broadTime & traffic$country == broadCountry))
+    extraViews = subset(traffic, traffic$date == as.Date(broadDate) - 1 & traffic$time_min >= 60*24 - intervalSize + broadTime & traffic$country == broadCountry)
+    extraViewsDirect = length(which(extraViews$visit_source == "direct"))
+    extraViewsOther = length(which(extraViews$visit_source == "other"))
+    extraViewsPaidSearch = length(which(extraViews$visit_source == "paid search"))
+    extraViewsFreeSearch = length(which(extraViews$visit_source == "search"))
   }
-  broad$preVisitorsDirect[[index]] <- length(which( (traffic$visit_source == "direct" | traffic$visit_source == "other") & traffic$date == broadDate & traffic$country == broadCountry & traffic$time_min < broadTime & traffic$time_min >= broadTime - intervalSize)) + extraViewsDirect
-  broad$preVisitorsSearch[[index]] <- length(which( (traffic$visit_source == "paid search" | traffic$visit_source == "search") & traffic$date == broadDate & traffic$country == broadCountry & traffic$time_min < broadTime & traffic$time_min >= broadTime - intervalSize)) + extraViewsSearch
+  
+  preVisitors = subset(traffic, traffic$date == broadDate & traffic$country == broadCountry & traffic$time_min < broadTime & traffic$time_min >= broadTime - intervalSize)
+  
+  broad$preVisitorsDirect[[index]] = length(which(preVisitors$visit_source == "direct")) + extraViewsDirect
+  broad$preVisitorsOther[[index]] = length(which(preVisitors$visit_source == "other")) + extraViewsOther
+  broad$preVisitorsPaidSearch[[index]] = length(which(preVisitors$visit_source == "paid search")) + extraViewsPaidSearch
+  broad$preVisitorsFreeSearch[[index]] = length(which(preVisitors$visit_source == "search")) + extraViewsFreeSearch
   
   if(index %% 1000 == 0) {print(Sys.time() - start)}
 }
 #count visits post-commercial
 broad['postVisitorsDirect'] <- 0
-broad['postVisitorsSearch'] <- 0
+broad['postVisitorsOther'] <- 0
+broad['postVisitorsPaidSearch'] <- 0
+broad['postVisitorsFreeSearch'] <- 0
 start <- Sys.time()
-for (index in 1:BroadCountAmount) { #nBroad
+test = TRUE
+BroadCountAmount = 1292 + 1
+for (index in 3185:3185) { #nBroad
   broadDate <- broad$date[[index]]
   broadTime <- broad$time_min[[index]]
   broadCountry <- broad$country[[index]]
-  extraViewsDirect <- 0
-  extraViewsSearch <- 0
+  extraViews = 0 
+  extraViewsDirect = 0
+  extraViewsOther = 0
+  extraViewsPaidSearch = 0
+  extraViewsFreeSearch = 0
+  
   if(broadTime > 60*24 - intervalSize){ # include views from next day if close to midnight
-    extraViewsDirect <- length(which( (traffic$visit_source == "direct" | traffic$visit_source == "other") & traffic$date == as.Date(broadDate) + 1 & traffic$country == broadCountry & traffic$time_min <= intervalSize - broadTime & traffic$country == broadCountry))
-    extraViewsSearch <- length(which( (traffic$visit_source == "paid search" | traffic$visit_source == "search") & traffic$date == as.Date(broadDate) + 1 & traffic$country == broadCountry & traffic$time_min <= intervalSize - broadTime & traffic$country == broadCountry))
+    extraViews = subset(traffic, traffic$date == as.Date(broadDate) + 1 & traffic$country == broadCountry & traffic$time_min <= intervalSize - broadTime)
+    print("Works")
+    if(test == TRUE){
+      #test = FALSE
+      print(extraViews)
+      print(broadTime)
+      print(broadCountry)
+    }
+    extraViewsDirect = length(which(extraViews$visit_source == "direct"))
+    extraViewsOther = length(which(extraViews$visit_source == "other"))
+    extraViewsPaidSearch = length(which(extraViews$visit_source == "paid search"))
+    extraViewsFreeSearch = length(which(extraViews$visit_source == "search"))  
   }
-  broad$postVisitorsDirect[[index]] <- length(which( (traffic$visit_source == "direct" | traffic$visit_source == "other") & traffic$date == broadDate & traffic$country == broadCountry & traffic$time_min >= broadTime & traffic$time_min < broadTime + intervalSize)) + extraViewsDirect
-  broad$postVisitorsSearch[[index]] <- length(which( (traffic$visit_source == "paid search" | traffic$visit_source == "search") & traffic$date == broadDate & traffic$country == broadCountry & traffic$time_min >= broadTime & traffic$time_min < broadTime + intervalSize)) + extraViewsSearch
+  
+  postVisitors = subset(traffic, traffic$date == broadDate & traffic$country == broadCountry & traffic$time_min >= broadTime & traffic$time_min < broadTime + intervalSize)
+  
+  broad$postVisitorsDirect[[index]] = length(which(postVisitors$visit_source == "direct")) + extraViewsDirect
+  broad$postVisitorsOther[[index]] = length(which(postVisitors$visit_source == "other")) + extraViewsOther
+  broad$postVisitorsPaidSearch[[index]] = length(which(postVisitors$visit_source == "paid search")) + extraViewsPaidSearch
+  broad$postVisitorsFreeSearch[[index]] = length(which(postVisitors$visit_source == "search")) + extraViewsFreeSearch
   
   if(index %% 1000 == 0) {print(Sys.time() - start)}
 }
+
+
 
 # first analysis pre- and post-visitors
 broad['preVisitors'] <- broad$preVisitorsDirect + broad$preVisitorsSearch
