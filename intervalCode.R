@@ -115,6 +115,7 @@ train = subset(dataInterval, data_split == TRUE)
 test = subset(dataInterval, data_split == FALSE)
 
 #more advanced regression
+indexHemelvaart = yday("2019-05-30")
 broad$hemelvaart = 0
 broad$monday = 0
 for (i in 1:nBroad){
@@ -127,7 +128,7 @@ for (i in 1:nBroad){
 }
 regData = cbind(broad$hemelvaart, broad$monday)
 modelVisitorsAdv = lm(broad$postVisitors[1:broadCountAmount] ~ broad$preVisitors[1:broadCountAmount] + regData)
-summary(modelVisitorsAdv)
+  summary(modelVisitorsAdv)
 coefficients(modelVisitorsAdv)
 
 #REGRESSION MODELS 2-minute model
