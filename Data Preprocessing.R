@@ -5,6 +5,7 @@ install.packages("lubridate")
 install.packages("fastDummies")
 install.packages("zoo")
 install.packages("CausalImpact")
+install.packages("factoextra")
 
 #Adding packages
 library("chron")
@@ -15,6 +16,7 @@ library("caTools")
 library("fastDummies")
 library("zoo")
 library("CausalImpact")
+library("factoextra")
 
 #loading the data
 traffic = read.csv(file.choose(), header = T)
