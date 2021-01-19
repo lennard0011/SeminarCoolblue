@@ -151,13 +151,6 @@ rm(dummyAdsTot); rm(dummyAdsNet); rm(dummyAdsBel)
 ## ADDING DUMMIES FOR COMMERCIALS (direct effects)
 
 ## K-MEANS dummies for different channel categories
-#program categories
-cat_before = unique(broad$program_category_before)
-cat_after = unique(broad$program_category_after)
-categories = union(cat_before, cat_after)
-rm(cat_before)
-rm(cat_after)
-#channel
 channel = unique(broad$channel)
 channel = as.data.frame(channel)
 nChan = nrow(channel)
@@ -174,10 +167,6 @@ for (i in 1:nChan){
     }
   }
 }
-#public or private
-channel$private = 0
-channel$private[1:9] = 1
-channel$private[13:51] = 1
 #gender
 channel$women = 0
 channel$men = 0
@@ -211,13 +200,9 @@ channel$youth[12] = 1
 channel$youth[18] = 1
 #kmeans
 # Elbow method
-scaled_channel = scale(channel[2:9])
-elbow = fviz_nbclust(scaled_channel, kmeans, method = "wss") +
-  geom_vline(xintercept = 4, linetype = 2)+
-  labs(subtitle = "Elbow method")
-plot(elbow)
-set.seed(11)
-kmean = kmeans(scaled_channel, 7)
+scaled_channel = scale(channel[2:7])
+set.seed(21)
+kmean = kmeans(scaled_channel, 6)
 cluster_1 = channel[,1][kmean$cluster == 1]
 cluster_2 = channel[,1][kmean$cluster == 2]
 cluster_3 = channel[,1][kmean$cluster == 3]
@@ -245,13 +230,10 @@ for (i in 1:nBroad){
   if (broad$channel[i] %in% cluster_6){
     broad$cluster[i] = 6
   }
-  if (broad$channel[i] %in% cluster_7){
-    broad$cluster[i] = 7
-  }
 }
 
 # Begin, middle and end for position in break
-broad['position_in_break_3option'] = NA
+broad['position_in_break_3option'] = 0
 for (i in 1:nBroad) {
   if(broad$position_in_break[i] == "0" || broad$position_in_break[i] == "1" || broad$position_in_break[i] == "2" ||
      broad$position_in_break[i] == "First Position" || broad$position_in_break[i] == "Second Position") {

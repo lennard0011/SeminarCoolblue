@@ -3,9 +3,9 @@
 #BEWARE IT TAKES A LONG TIME TO RUN
 
 #count visits pre-commercial
-intervalSize <- 2
-start <- Sys.time()
-BroadCountAmount <- nBroad
+intervalSize = 2
+start = Sys.time()
+BroadCountAmount = nBroad
 
 #count visits pre-commercial
 broad['preVisitorsDirect'] = 0
@@ -44,21 +44,15 @@ for (index in 1:nBroad) { #nBroad
 }
   
 #count visits post-commercial
-country <- broad$country[[index]]
-
 broad['postVisitorsDirect'] = 0
 broad['postVisitorsOther'] = 0
 broad['postVisitorsPaidSearch'] = 0
 broad['postVisitorsFreeSearch'] = 0
-
 start = Sys.time()
-test = TRUE
-BroadCountAmount = 1292 + 1
-for (index in 1:3185) { #nBroad
+for (index in 1:nBroad) { #nBroad
   broadDate = broad$date[[index]]
   broadTime = broad$time_min[[index]]
   broadCountry = broad$country[[index]]
-
   extraViews = 0 
   extraViewsDirect = 0
   extraViewsOther = 0
@@ -67,7 +61,6 @@ for (index in 1:3185) { #nBroad
   
   if(broadTime > 60*24 - intervalSize){ # include views from next day if close to midnight
     extraViews = subset(traffic, traffic$date == as.Date(broadDate) + 1 & traffic$country == broadCountry & traffic$time_min <= intervalSize - broadTime)
-    
     extraViewsDirect = length(which(extraViews$visit_source == "direct"))
     extraViewsOther = length(which(extraViews$visit_source == "other"))
     extraViewsPaidSearch = length(which(extraViews$visit_source == "paid search"))
@@ -94,8 +87,6 @@ broad['postVisitors'] = broad$postVisitorsDirectOther + broad$postVisitorsReferr
 
 # first analysis
 mean(broad$postVisitors - broad$preVisitors)
-max(broad$postVisitors - broad$preVisitors)
-min(broad$postVisitors - broad$preVisitors)
 dataInterval = cbind(broad$preVisitors, broad$postVisitors)
 #data = cbind(log(broad$postVisitors[1:nBroad]), log(broad$preVisitors[1:nBroad]))
 dataInterval = as.data.frame(dataInterval)
@@ -124,6 +115,7 @@ train = subset(dataInterval, data_split == TRUE)
 test = subset(dataInterval, data_split == FALSE)
 
 #more advanced regression
+indexHemelvaart = yday("2019-05-30")
 broad$hemelvaart = 0
 broad$monday = 0
 for (i in 1:nBroad){
@@ -136,12 +128,16 @@ for (i in 1:nBroad){
 }
 regData = cbind(broad$hemelvaart, broad$monday)
 modelVisitorsAdv = lm(broad$postVisitors[1:broadCountAmount] ~ broad$preVisitors[1:broadCountAmount] + regData)
-summary(modelVisitorsAdv)
+  summary(modelVisitorsAdv)
 coefficients(modelVisitorsAdv)
 
+<<<<<<< HEAD
 ##REGRESSION MODELS 2-minute model
 
 # baseline models
+=======
+#REGRESSION MODELS 2-minute model
+>>>>>>> ccc0a5363eb45a5488180c8417269ddff405e8fa
 baselineModelTotal = lm(postVisitors ~ preVisitors, data = broad)
 summary(baselineModelTotal)
 baselineModelSearchOther = lm(postVisitorsDirectOther ~ preVisitorsDirectOther, data = broad)
@@ -149,8 +145,17 @@ summary(baselineModelSearchOther)
 baselineModelReferrals = lm(postVisitorsReferrals ~ broad$preVisitorsReferrals, data = broad)
 summary(baselineModelReferrals)
 
+<<<<<<< HEAD
 # full models
 fullModelTotal = lm(broad$postVisitors ~ broad$preVisitors + ., data = dummiesDirectModelNeeded)
 summary(fullModelTotal)
 fullModelTotalNoChannel = lm(broad$postVisitors ~ broad$preVisitors + ., data = dummiesDirectModelNoChannel)
 summary(fullModelTotalNoChannel)
+=======
+#DUMMIES
+#1. Product: Wasmachines, television, laptop
+#2. Broadcast category: 7 
+#3. TV channel: 51?
+#4. Commercial length: 30, 30+10, 30+10+5
+#5. Position in break: beginning (1-3), middle (4-15), last (15-25??)
+>>>>>>> ccc0a5363eb45a5488180c8417269ddff405e8fa
