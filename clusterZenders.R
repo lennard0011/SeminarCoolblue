@@ -103,3 +103,31 @@ cluster_4 = channel[,1][kmean$cluster == 4]
 cluster_5 = channel[,1][kmean$cluster == 5]
 cluster_6 = channel[,1][kmean$cluster == 6]
 cluster_7 = channel[,1][kmean$cluster == 7]
+
+
+broad$cluster2 = 0
+broad$cluster3 = 0
+broad$cluster4 = 0
+broad$cluster5 = 0
+broad$cluster6 = 0
+broad$cluster7 = 0
+for (i in 1:nBroad){
+  if (broad$channel[i] %in% cluster_2){
+    broad$cluster2[i] = 1
+  }
+  if (broad$channel[i] %in% cluster_3){
+    broad$cluster3[i] = 1
+  }
+  if (broad$channel[i] %in% cluster_4){
+    broad$cluster4[i] = 1
+  }
+  if (broad$channel[i] %in% cluster_5){
+    broad$cluster5[i] = 1
+  }
+  if (broad$channel[i] %in% cluster_6){
+    broad$cluster6[i] = 1
+  }
+  if (broad$channel[i] %in% cluster_7){
+    broad$cluster7[i] = 1
+  }
+}
