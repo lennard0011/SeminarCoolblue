@@ -151,13 +151,6 @@ rm(dummyAdsTot); rm(dummyAdsNet); rm(dummyAdsBel)
 ## ADDING DUMMIES FOR COMMERCIALS (direct effects)
 
 ## K-MEANS dummies for different channel categories
-#program categories
-cat_before = unique(broad$program_category_before)
-cat_after = unique(broad$program_category_after)
-categories = union(cat_before, cat_after)
-rm(cat_before)
-rm(cat_after)
-#channel
 channel = unique(broad$channel)
 channel = as.data.frame(channel)
 nChan = nrow(channel)
@@ -211,12 +204,8 @@ channel$youth[12] = 1
 channel$youth[18] = 1
 #kmeans
 # Elbow method
-scaled_channel = scale(channel[2:9])
-elbow = fviz_nbclust(scaled_channel, kmeans, method = "wss") +
-  geom_vline(xintercept = 4, linetype = 2)+
-  labs(subtitle = "Elbow method")
-plot(elbow)
-set.seed(11)
+scaled_channel = scale(channel[2:8])
+set.seed(20)
 kmean = kmeans(scaled_channel, 7)
 cluster_1 = channel[,1][kmean$cluster == 1]
 cluster_2 = channel[,1][kmean$cluster == 2]

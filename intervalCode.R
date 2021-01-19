@@ -3,9 +3,9 @@
 #BEWARE IT TAKES A LONG TIME TO RUN
 
 #count visits pre-commercial
-intervalSize <- 2
-start <- Sys.time()
-BroadCountAmount <- nBroad
+intervalSize = 2
+start = Sys.time()
+BroadCountAmount = nBroad
 
 #count visits pre-commercial
 broad['preVisitorsDirect'] = 0
@@ -48,11 +48,11 @@ broad['postVisitorsDirect'] = 0
 broad['postVisitorsOther'] = 0
 broad['postVisitorsPaidSearch'] = 0
 broad['postVisitorsFreeSearch'] = 0
-start <- Sys.time()
+start = Sys.time()
 for (index in 1:nBroad) { #nBroad
-  broadDate <- broad$date[[index]]
-  broadTime <- broad$time_min[[index]]
-  broadCountry <- broad$country[[index]]
+  broadDate = broad$date[[index]]
+  broadTime = broad$time_min[[index]]
+  broadCountry = broad$country[[index]]
   extraViews = 0 
   extraViewsDirect = 0
   extraViewsOther = 0
