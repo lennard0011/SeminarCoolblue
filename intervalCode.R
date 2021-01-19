@@ -94,6 +94,8 @@ broad['postVisitors'] = broad$postVisitorsDirectOther + broad$postVisitorsReferr
 
 # first analysis
 mean(broad$postVisitors - broad$preVisitors)
+max(broad$postVisitors - broad$preVisitors)
+min(broad$postVisitors - broad$preVisitors)
 dataInterval = cbind(broad$preVisitors, broad$postVisitors)
 #data = cbind(log(broad$postVisitors[1:nBroad]), log(broad$preVisitors[1:nBroad]))
 dataInterval = as.data.frame(dataInterval)
@@ -137,9 +139,17 @@ modelVisitorsAdv = lm(broad$postVisitors[1:broadCountAmount] ~ broad$preVisitors
 summary(modelVisitorsAdv)
 coefficients(modelVisitorsAdv)
 
+<<<<<<< HEAD
+#REGRESSION MODELS 2-minute model
+baselineModelTotal = lm(postVisitors ~ preVisitors, data = broad)
+baselineModelSearchOther = lm(postVisitorsSearchOther ~ preVisitorsSearchOther, data = broad)
+baselineModelReferrals = lm(postVisitorsReferrals ~ broad$preVisitorsReferrals, data = broad)
+
+=======
 #DUMMIES
 #1. Product: Wasmachines, television, laptop
 #2. Broadcast category: 7 
 #3. TV channel: 51?
 #4. Commercial length: 30, 30+10, 30+10+5
 #5. Position in break: beginning (1-3), middle (4-15), last (15-25??)
+>>>>>>> e8dbf76e57414685028379f9f8c25aa3918583c4

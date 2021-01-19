@@ -6,6 +6,7 @@ install.packages("fastDummies")
 install.packages("zoo")
 install.packages("CausalImpact")
 install.packages("factoextra")
+install.packages("fastDummies")
 
 #Adding packages
 library("chron")
@@ -17,6 +18,7 @@ library("fastDummies")
 library("zoo")
 library("CausalImpact")
 library("factoextra")
+library("fastDummies")
 
 #loading the data
 traffic = read.csv(file.choose(), header = T)
@@ -94,7 +96,7 @@ trafAmountBel = as.matrix(table(traffic_bel$date))
 #NOTE: you can only run this if you have run both Net and Bel
 trafAmount = trafAmountNet + trafAmountBel
 
-## Adding (time series) dummy to the data
+## ADDING DUMMIES FOR DAILY TRAFFIC (time series)
 
 #national holidays
 holidaysNames = c("Nieuwjaarsdag", "Goede Vrijdag", "Eerste Paasdag", 
@@ -165,6 +167,41 @@ dummyAds = cbind(dummyAdsTot, dummyAdsNet, dummyAdsBel) #1=Tot, 2=NL, 3=BE
 colnames(dummyAds) = c("Ads Total","Ads Netherlands","Ads Belgium")
 rm(dummyAdsTot); rm(dummyAdsNet); rm(dummyAdsBel)
 
+<<<<<<< HEAD
+## ADDING DUMMIES FOR COMMERCIALS (direct effects)
+
+#1. Product: Wasmachines, television, laptop
+dummyTest = dummy_cols(.data = broad, select_columns = "product_category", 
+                        remove_most_frequent_dummy = T) 
+rm(dummyTest)
+#2. Broadcast category: 7 
+#3. TV channel: 51?
+#4. Commercial length: 30, 30+10, 30+10+5
+#5. Position in break: beginning (1-3), middle (4-15), last (15-25??)
+broad['position_in_break_3option'] = NA
+for (i in 1:nBroad) {
+  if(broad$position_in_break[i] == "0" || broad$position_in_break[i] == "1" || broad$position_in_break[i] == "2" ||
+     broad$position_in_break[i] == "First Position" || broad$position_in_break[i] == "Second Position") {
+    broad$position_in_break_3option[i] <- "begin"
+  } else if (broad$position_in_break[i] == "3" || broad$position_in_break[i] == "4" || broad$position_in_break[i] == "5" ||
+             broad$position_in_break[i] == "6" || broad$position_in_break[i] == "7" || broad$position_in_break[i] == "8" ||
+             broad$position_in_break[i] == "9" || broad$position_in_break[i] == "10" || broad$position_in_break[i] == "11" ||
+             broad$position_in_break[i] == "12" || broad$position_in_break[i] == "13" || broad$position_in_break[i] == "14" ||
+             broad$position_in_break[i] == "15" || broad$position_in_break[i] == "16" || broad$position_in_break[i] == "17" ||
+             broad$position_in_break[i] == "18" || broad$position_in_break[i] == "19" || broad$position_in_break[i] == "20" ||
+             broad$position_in_break[i] == "Any Other Position") {
+    broad$position_in_break_3option[i] <- "middle"
+  } else if (broad$position_in_break[i] == "21" || broad$position_in_break[i] == "22" || broad$position_in_break[i] == "23" ||
+             broad$position_in_break[i] == "24" || broad$position_in_break[i] == "25" || broad$position_in_break[i] == "98" ||
+             broad$position_in_break[i] == "99" || broad$position_in_break[i] == "Before Last Position" || 
+             broad$position_in_break[i] == "Last Position") {
+    broad$position_in_break_3option[i] = "end"
+  }
+}
+dummyPosition = dummy_cols(.data = broad, select_columns = c("product_category", "genre_7option", "channel", 
+                                                             "length_of_spot", "position_in_break_3option", remove_most_frequent_dummy = T))
+#broad = dummyPosition # I am afraid to press this BUT this should include the dummy
+=======
 <<<<<<< HEAD
 #dummies for different channel categories
 #program categories
@@ -311,3 +348,4 @@ for (i in 1:nrow(broad)) {
 channelsDummies = dummy_cols(broad, select_columns = "channel")[31:81]
 
 >>>>>>> 0f7dcb9abdd743e7adf7e9bb1379e287a8e11f5a
+>>>>>>> e8dbf76e57414685028379f9f8c25aa3918583c4
