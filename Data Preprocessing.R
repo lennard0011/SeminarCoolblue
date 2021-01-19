@@ -146,3 +146,5 @@ dummyAds = cbind(dummyAdsTot, dummyAdsNet, dummyAdsBel) #1=Tot, 2=NL, 3=BE
 colnames(dummyAds) = c("Ads Total","Ads Netherlands","Ads Belgium")
 rm(dummyAdsTot); rm(dummyAdsNet); rm(dummyAdsBel)
 
+#dummies for channels
+channelsDummies = dummy_cols(broad, select_columns = "channel")[31:81]
