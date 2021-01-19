@@ -51,9 +51,8 @@ broad['postVisitorsOther'] <- 0
 broad['postVisitorsPaidSearch'] <- 0
 broad['postVisitorsFreeSearch'] <- 0
 start <- Sys.time()
-test = TRUE
-BroadCountAmount = 1292 + 1
-for (index in 3185:3185) { #nBroad
+#BroadCountAmount = 1292 + 1
+for (index in 1:nBroad) { #nBroad
   broadDate <- broad$date[[index]]
   broadTime <- broad$time_min[[index]]
   broadCountry <- broad$country[[index]]
@@ -65,13 +64,6 @@ for (index in 3185:3185) { #nBroad
   
   if(broadTime > 60*24 - intervalSize){ # include views from next day if close to midnight
     extraViews = subset(traffic, traffic$date == as.Date(broadDate) + 1 & traffic$country == broadCountry & traffic$time_min <= intervalSize - broadTime)
-    print("Works")
-    if(test == TRUE){
-      #test = FALSE
-      print(extraViews)
-      print(broadTime)
-      print(broadCountry)
-    }
     extraViewsDirect = length(which(extraViews$visit_source == "direct"))
     extraViewsOther = length(which(extraViews$visit_source == "other"))
     extraViewsPaidSearch = length(which(extraViews$visit_source == "paid search"))
