@@ -144,10 +144,30 @@ for (i in 1:length(uniqueDatesBel)) {
   index = yday(uniqueDatesBel[i])
   dummyAdsBel[index] = 1
 }
+
+#product category dummy
+dummyProducts = dummy_cols(broad$product_category)
+colnames(dummyProducts) = c("product_category", "dummyWasmachines", "dummyTelevisies", "dummyLaptops")
+
+#channels dummy
+dummyChannels = dummy_cols(broad$channel)
+colnames(dummyChannels) = c("channels", "dummy24kitchen", "dummyBBCFirst","dummyCAZ",
+                            "dummyComedyCentral", "dummyCOMEDYCENTRAL", "dummyDISCOVERY",
+                            "dummyDiscovery", "dummyBOBBITTV", "dummyEurosport", "dummyEvenaar",
+                            "dummyFox", "dummyFOX", "dummyFoxSport1", "dummyFoxSports2",
+                            "dummyFoxSports3", "dummyHISTORYCHANNEL", "dummyID", "dummyKANAALZ(NL)",
+                            "dummyMENTTVNL","dummyMTV","dummyMTV(NL)", "dummyNationalGeographicChannel",
+                            "dummyNATIONALGEOGRAPHICNL", "dummyNet5", "dummyNPO1", "dummyNPO2","dummyNPO3",
+                            "dummyPLATTELANDSTV", "dummyQ2", "dummyRTL4", "dummyRTL5", "dummyRTL7","dummyRTL8",
+                            "dummyRTLCrime", "dummyRTLZ", "dummySBS6", "dummySBS9", "dummySLAM!TV", "dummySpike",
+                            "dummySPIKE", "dummyTLC", "dummyTV538", "dummyVeronica", "dummyViceland",
+                            "dummyVICELANDVL", "dummyVIER", "dummyVIJF", "dummyVITAYA", "dummyVTM")
+
 dummyAds = cbind(dummyAdsTot, dummyAdsNet, dummyAdsBel) #1=Tot, 2=NL, 3=BE
 colnames(dummyAds) = c("Ads Total","Ads Netherlands","Ads Belgium")
 rm(dummyAdsTot); rm(dummyAdsNet); rm(dummyAdsBel)
 
+<<<<<<< HEAD
 ## ADDING DUMMIES FOR COMMERCIALS (direct effects)
 
 #1. Product: Wasmachines, television, laptop
@@ -181,3 +201,151 @@ for (i in 1:nBroad) {
 dummyPosition = dummy_cols(.data = broad, select_columns = c("product_category", "genre_7option", "channel", 
                                                              "length_of_spot", "position_in_break_3option", remove_most_frequent_dummy = T))
 #broad = dummyPosition # I am afraid to press this BUT this should include the dummy
+=======
+<<<<<<< HEAD
+#dummies for different channel categories
+#program categories
+cat_before = unique(broad$program_category_before)
+cat_after = unique(broad$program_category_after)
+categories = union(cat_before, cat_after)
+rm(cat_before)
+rm(cat_after)
+
+#channel
+channel = unique(broad$channel)
+channel = as.data.frame(channel)
+nChan = nrow(channel)
+
+#majority product
+majorityProduct = function(channelName){
+  channelSubset = broad[broad$channel == channelName,]
+  uniqueProduct = unique(channelSubset$product_category)
+  tab = tabulate(match(channelSubset$product_category, uniqueProduct))
+  majority_product = uniqueProduct[tab == max(tab)]
+  return(majority_product)
+}
+
+#channel country
+channel$country = 0
+for (i in 1:nChan){
+  print(i)
+  for (j in 1:nBroad){
+    if (channel[i, 1] == broad[j, ]$channel){
+      if (broad[j, ]$country == "Netherlands"){
+        channel$country[i] = 1
+      }
+      break
+    }
+  }
+}
+
+#majority for adverts
+channel$washingmachine = 0
+channel$television = 0
+for (i in 1:nChan){
+  print(i)
+  if (majorityProduct(channel[i, 1]) == "wasmachines"){
+    channel$washingmachine[i] = 1
+  }
+  if (majorityProduct(channel[i, 1]) == "televisies"){
+    channel$television[i] = 1
+  }
+}
+
+#public or private
+channel$private = 0
+channel$private[1:9] = 1
+channel$private[13:51] = 1
+
+#gender
+channel$women = 0
+channel$men = 0
+channel$men[3] = 1
+channel$women[7] = 1
+channel$women[13] = 1
+channel$women[15] = 1
+channel$men[19] = 1
+channel$women[20] = 1
+channel$men[24] = 1
+channel$men[25] = 1
+channel$women[27] = 1
+channel$women[33] = 1
+channel$men[35] = 1
+
+#music
+channel$music = 0
+channel$music[16] = 1
+channel$music[26] = 1
+channel$music[29] = 1
+channel$music[38] = 1
+
+#sport
+channel$sport = 0
+channel$sport[36] = 1
+channel$sport[40] = 1
+channel$sport[41] = 1
+channel$sport[42] = 1
+
+#age
+channel$youth = 0
+channel$youth[6] = 1
+channel$youth[12] = 1
+channel$youth[18] = 1
+
+#kmeans
+# Elbow method
+scaled_channel = scale(channel[2:10])
+elbow = fviz_nbclust(scaled_channel, kmeans, method = "wss") +
+  geom_vline(xintercept = 4, linetype = 2)+
+  labs(subtitle = "Elbow method")
+plot(elbow)
+
+set.seed(11)
+kmean = kmeans(scaled_channel, 7)
+cluster_1 = channel[,1][kmean$cluster == 1]
+cluster_2 = channel[,1][kmean$cluster == 2]
+cluster_3 = channel[,1][kmean$cluster == 3]
+cluster_4 = channel[,1][kmean$cluster == 4]
+cluster_5 = channel[,1][kmean$cluster == 5]
+cluster_6 = channel[,1][kmean$cluster == 6]
+cluster_7 = channel[,1][kmean$cluster == 7]
+
+
+broad$cluster = 0
+for (i in 1:nBroad){
+  if (broad$channel[i] %in% cluster_1){
+    broad$cluster[i] = 1
+  }
+  if (broad$channel[i] %in% cluster_2){
+    broad$cluster[i] = 2
+  }
+  if (broad$channel[i] %in% cluster_3){
+    broad$cluster[i] = 3
+  }
+  if (broad$channel[i] %in% cluster_4){
+    broad$cluster[i] = 4
+  }
+  if (broad$channel[i] %in% cluster_5){
+    broad$cluster[i] = 5
+  }
+  if (broad$channel[i] %in% cluster_6){
+    broad$cluster[i] = 6
+  }
+  if (broad$channel[i] %in% cluster_7){
+    broad$cluster[i] = 7
+  }
+}
+=======
+
+spotLengthDummies = matrix(rep(0),ncol = 3, nrow = nrow(broad), )
+for (i in 1:nrow(broad)) {
+  if(broad$length_of_spot[i] == "30"){spotLengthDummies[i,] = c(1,0,0) }
+  if(broad$length_of_spot[i] == "30 + 10"){spotLengthDummies[i,] = c(0,1,0) }
+  if(broad$length_of_spot[i] == "30 + 10 + 5"){spotLengthDummies[i,] = c(0,0,1) }
+}
+
+#dummies for channels
+channelsDummies = dummy_cols(broad, select_columns = "channel")[31:81]
+
+>>>>>>> 0f7dcb9abdd743e7adf7e9bb1379e287a8e11f5a
+>>>>>>> e8dbf76e57414685028379f9f8c25aa3918583c4

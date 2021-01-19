@@ -10,7 +10,8 @@ BroadCountAmount <- nBroad
 
 #count visits pre-commercial
 =======
->>>>>>> b44bd08aba93989cdbdc4d76a451953dd5a6bf64
+
+>>>>>>> 0f7dcb9abdd743e7adf7e9bb1379e287a8e11f5a
 broad['preVisitorsDirect'] = 0
 broad['preVisitorsOther'] = 0
 broad['preVisitorsPaidSearch'] = 0
@@ -18,11 +19,7 @@ broad['preVisitorsFreeSearch'] = 0
 intervalSize = 2
 start = Sys.time()
 
-<<<<<<< HEAD
-for (index in 1:nBroad) { 
-=======
 for (index in 1:nBroad) { #nBroad
->>>>>>> b44bd08aba93989cdbdc4d76a451953dd5a6bf64
   broadDate = broad$date[[index]]
   broadTime = broad$time_min[[index]]
   broadCountry = broad$country[[index]]
@@ -49,17 +46,23 @@ for (index in 1:nBroad) { #nBroad
   
   if(index %% 100 == 0) {print(Sys.time() - start)}
 }
-
+  
 #count visits post-commercial
+country <- broad$country[[index]]
+
 broad['postVisitorsDirect'] = 0
 broad['postVisitorsOther'] = 0
 broad['postVisitorsPaidSearch'] = 0
 broad['postVisitorsFreeSearch'] = 0
-start <- Sys.time()
-for (index in 1:nBroad) { #nBroad
-  broadDate <- broad$date[[index]]
-  broadTime <- broad$time_min[[index]]
-  broadCountry <- broad$country[[index]]
+
+start = Sys.time()
+test = TRUE
+BroadCountAmount = 1292 + 1
+for (index in 1:3185) { #nBroad
+  broadDate = broad$date[[index]]
+  broadTime = broad$time_min[[index]]
+  broadCountry = broad$country[[index]]
+
   extraViews = 0 
   extraViewsDirect = 0
   extraViewsOther = 0
@@ -70,8 +73,8 @@ for (index in 1:nBroad) { #nBroad
     extraViews = subset(traffic, traffic$date == as.Date(broadDate) + 1 & traffic$country == broadCountry & traffic$time_min <= intervalSize - broadTime)
 <<<<<<< HEAD
 =======
-  
->>>>>>> b44bd08aba93989cdbdc4d76a451953dd5a6bf64
+
+>>>>>>> 0f7dcb9abdd743e7adf7e9bb1379e287a8e11f5a
     extraViewsDirect = length(which(extraViews$visit_source == "direct"))
     extraViewsOther = length(which(extraViews$visit_source == "other"))
     extraViewsPaidSearch = length(which(extraViews$visit_source == "paid search"))
@@ -88,7 +91,7 @@ for (index in 1:nBroad) { #nBroad
   if(index %% 100 == 0) {print(Sys.time() - start)}
 }
 
-# aggregate pre- and post-visitors (d, r, total)
+#aggregate pre- and post-visitors (d, r, total)
 broad['preVisitorsDirectOther'] = broad$preVisitorsDirect + broad$preVisitorsOther
 broad['preVisitorsReferrals'] = broad$preVisitorsPaidSearch + broad$preVisitorsFreeSearch
 broad['preVisitors'] = broad$preVisitorsDirectOther + broad$preVisitorsReferrals
@@ -110,6 +113,12 @@ plot(dataInterval$preVisitors, dataInterval$postVisitors)
 lines(cbind(0,10000), cbind(0,10000))
 
 # simple regression model
+modelVisitors = lm(postVisitors[1:broadCountAmount] ~ 0 + preVisitors[1:broadCountAmount], data = broad) #DataFlair
+summary(modelVisitors)
+coefficients(modelVisitors)
+hist(broad$postVisitors[1:broadCountAmount])
+hist(broad$preVisitors[1:broadCountAmount])
+
 modelVisitors = lm(postVisitors ~ 0 + preVisitors, data = broad) #DataFlair
 summary(modelVisitors)
 coefficients(modelVisitors)
@@ -133,12 +142,21 @@ for (i in 1:nBroad){
   }
 }
 regData = cbind(broad$hemelvaart, broad$monday)
-modelVisitorsAdv = lm(broad$postVisitors[1:BroadCountAmount] ~ broad$preVisitors[1:BroadCountAmount] + regData)
+modelVisitorsAdv = lm(broad$postVisitors[1:broadCountAmount] ~ broad$preVisitors[1:broadCountAmount] + regData)
 summary(modelVisitorsAdv)
 coefficients(modelVisitorsAdv)
 
+<<<<<<< HEAD
 #REGRESSION MODELS 2-minute model
 baselineModelTotal = lm(postVisitors ~ preVisitors, data = broad)
 baselineModelSearchOther = lm(postVisitorsSearchOther ~ preVisitorsSearchOther, data = broad)
 baselineModelReferrals = lm(postVisitorsReferrals ~ broad$preVisitorsReferrals, data = broad)
 
+=======
+#DUMMIES
+#1. Product: Wasmachines, television, laptop
+#2. Broadcast category: 7 
+#3. TV channel: 51?
+#4. Commercial length: 30, 30+10, 30+10+5
+#5. Position in break: beginning (1-3), middle (4-15), last (15-25??)
+>>>>>>> e8dbf76e57414685028379f9f8c25aa3918583c4
