@@ -96,10 +96,20 @@ broad['postVisitorsDirectOther'] = broad$postVisitorsDirect + broad$postVisitors
 broad['postVisitorsReferrals'] = broad$postVisitorsPaidSearch + broad$postVisitorsFreeSearch
 broad['postVisitors'] = broad$postVisitorsDirectOther + broad$postVisitorsReferrals
 
+<<<<<<< HEAD
+
+# first analysis pre- and post-visitors
+broad['preVisitors'] = broad$preVisitorsDirect + broad$preVisitorsOther + broad$preVisitorsPaidSearch + broad$preVisitorsFreeSearch
+broad['postVisitors'] = broad$postVisitorsDirect + broad$postVisitorsOther + broad$postVisitorsPaidSearch + broad$postVisitorsFreeSearch
+mean(broad$postVisitors[1:broadCountAmount] - broad$preVisitors[1:broadCountAmount])
+dataInterval = cbind(broad$preVisitors[1:broadCountAmount], broad$postVisitors[1:broadCountAmount])
+#data = cbind(log(broad$postVisitors[1:500]), log(broad$preVisitors[1:500]))
+=======
 # first analysis
 mean(broad$postVisitors - broad$preVisitors)
 dataInterval = cbind(broad$preVisitors, broad$postVisitors)
 #data = cbind(log(broad$postVisitors[1:nBroad]), log(broad$preVisitors[1:nBroad]))
+>>>>>>> 5ca7abff95625ccd478c12ce34b220ea956d7e4f
 dataInterval = as.data.frame(dataInterval)
 colnames(dataInterval) = c("preVisitors", "postVisitors")
 
@@ -108,11 +118,19 @@ plot(dataInterval$preVisitors, dataInterval$postVisitors)
 lines(cbind(0,10000), cbind(0,10000))
 
 # simple regression model
+<<<<<<< HEAD
+modelVisitors = lm(postVisitors[1:broadCountAmount] ~ 0 + preVisitors[1:broadCountAmount], data = broad) #DataFlair
+summary(modelVisitors)
+coefficients(modelVisitors)
+hist(broad$postVisitors[1:broadCountAmount])
+hist(broad$preVisitors[1:broadCountAmount])
+=======
 modelVisitors = lm(postVisitors ~ 0 + preVisitors, data = broad) #DataFlair
 summary(modelVisitors)
 coefficients(modelVisitors)
 hist(broad$postVisitors)
 hist(broad$preVisitors)
+>>>>>>> 5ca7abff95625ccd478c12ce34b220ea956d7e4f
 
 # split data in training and test
 data_split = sample.split(dataInterval$postVisitors, SplitRatio = 0.8)
@@ -131,7 +149,7 @@ for (i in 1:nBroad){
   }
 }
 regData = cbind(broad$hemelvaart, broad$monday)
-modelVisitorsAdv = lm(broad$postVisitors[1:BroadCountAmount] ~ broad$preVisitors[1:BroadCountAmount] + regData)
+modelVisitorsAdv = lm(broad$postVisitors[1:broadCountAmount] ~ broad$preVisitors[1:broadCountAmount] + regData)
 summary(modelVisitorsAdv)
 coefficients(modelVisitorsAdv)
 
