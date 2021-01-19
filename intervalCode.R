@@ -98,6 +98,8 @@ broad['postVisitors'] = broad$postVisitorsDirectOther + broad$postVisitorsReferr
 
 # first analysis
 mean(broad$postVisitors - broad$preVisitors)
+max(broad$postVisitors - broad$preVisitors)
+min(broad$postVisitors - broad$preVisitors)
 dataInterval = cbind(broad$preVisitors, broad$postVisitors)
 #data = cbind(log(broad$postVisitors[1:nBroad]), log(broad$preVisitors[1:nBroad]))
 dataInterval = as.data.frame(dataInterval)
@@ -136,4 +138,7 @@ summary(modelVisitorsAdv)
 coefficients(modelVisitorsAdv)
 
 #REGRESSION MODELS 2-minute model
-baselineModel <- 
+baselineModelTotal = lm(postVisitors ~ preVisitors, data = broad)
+baselineModelSearchOther = lm(postVisitorsSearchOther ~ preVisitorsSearchOther, data = broad)
+baselineModelReferrals = lm(postVisitorsReferrals ~ broad$preVisitorsReferrals, data = broad)
+
