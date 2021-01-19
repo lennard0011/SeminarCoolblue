@@ -142,6 +142,25 @@ for (i in 1:length(uniqueDatesBel)) {
   index = yday(uniqueDatesBel[i])
   dummyAdsBel[index] = 1
 }
+
+#product category dummy
+dummyProducts = dummy_cols(broad$product_category)
+colnames(dummyProducts) = c("product_category", "dummyWasmachines", "dummyTelevisies", "dummyLaptops")
+
+#channels dummy
+dummyChannels = dummy_cols(broad$channel)
+colnames(dummyChannels) = c("channels", "dummy24kitchen", "dummyBBCFirst","dummyCAZ",
+                            "dummyComedyCentral", "dummyCOMEDYCENTRAL", "dummyDISCOVERY",
+                            "dummyDiscovery", "dummyBOBBITTV", "dummyEurosport", "dummyEvenaar",
+                            "dummyFox", "dummyFOX", "dummyFoxSport1", "dummyFoxSports2",
+                            "dummyFoxSports3", "dummyHISTORYCHANNEL", "dummyID", "dummyKANAALZ(NL)",
+                            "dummyMENTTVNL","dummyMTV","dummyMTV(NL)", "dummyNationalGeographicChannel",
+                            "dummyNATIONALGEOGRAPHICNL", "dummyNet5", "dummyNPO1", "dummyNPO2","dummyNPO3",
+                            "dummyPLATTELANDSTV", "dummyQ2", "dummyRTL4", "dummyRTL5", "dummyRTL7","dummyRTL8",
+                            "dummyRTLCrime", "dummyRTLZ", "dummySBS6", "dummySBS9", "dummySLAM!TV", "dummySpike",
+                            "dummySPIKE", "dummyTLC", "dummyTV538", "dummyVeronica", "dummyViceland",
+                            "dummyVICELANDVL", "dummyVIER", "dummyVIJF", "dummyVITAYA", "dummyVTM")
+
 dummyAds = cbind(dummyAdsTot, dummyAdsNet, dummyAdsBel) #1=Tot, 2=NL, 3=BE
 colnames(dummyAds) = c("Ads Total","Ads Netherlands","Ads Belgium")
 rm(dummyAdsTot); rm(dummyAdsNet); rm(dummyAdsBel)

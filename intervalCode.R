@@ -4,12 +4,6 @@
 
 #count visits pre-commercial
 
-
-intervalSize = 2
-start = Sys.time()
-broadCountAmount = nBroad
-
-#count visits pre-commercial
 broad['preVisitorsDirect'] = 0
 broad['preVisitorsOther'] = 0
 broad['preVisitorsPaidSearch'] = 0
@@ -17,7 +11,7 @@ broad['preVisitorsFreeSearch'] = 0
 intervalSize = 2
 start = Sys.time()
 
-for (index in 1:BroadCountAmount) { #nBroad
+for (index in 1:nBroad) { #nBroad
   broadDate = broad$date[[index]]
   broadTime = broad$time_min[[index]]
   broadCountry = broad$country[[index]]
@@ -52,6 +46,7 @@ broad['postVisitorsDirect'] = 0
 broad['postVisitorsOther'] = 0
 broad['postVisitorsPaidSearch'] = 0
 broad['postVisitorsFreeSearch'] = 0
+
 start = Sys.time()
 test = TRUE
 BroadCountAmount = 1292 + 1
@@ -68,6 +63,7 @@ for (index in 1:3185) { #nBroad
   
   if(broadTime > 60*24 - intervalSize){ # include views from next day if close to midnight
     extraViews = subset(traffic, traffic$date == as.Date(broadDate) + 1 & traffic$country == broadCountry & traffic$time_min <= intervalSize - broadTime)
+
     extraViewsDirect = length(which(extraViews$visit_source == "direct"))
     extraViewsOther = length(which(extraViews$visit_source == "other"))
     extraViewsPaidSearch = length(which(extraViews$visit_source == "paid search"))
@@ -84,27 +80,31 @@ for (index in 1:3185) { #nBroad
   if(index %% 100 == 0) {print(Sys.time() - start)}
 }
 
+# aggregate pre- and post-visitors (d, r, total)
+broad['preVisitorsDirectOther'] = broad$preVisitorsDirect + broad$preVisitorsOther
+broad['preVisitorsReferrals'] = broad$preVisitorsPaidSearch + broad$preVisitorsFreeSearch
+broad['preVisitors'] = broad$preVisitorsDirectOther + broad$preVisitorsReferrals
+broad['postVisitorsDirectOther'] = broad$postVisitorsDirect + broad$postVisitorsOther
+broad['postVisitorsReferrals'] = broad$postVisitorsPaidSearch + broad$postVisitorsFreeSearch
+broad['postVisitors'] = broad$postVisitorsDirectOther + broad$postVisitorsReferrals
 
-
-# first analysis pre- and post-visitors
-broad['preVisitors'] = broad$preVisitorsDirect + broad$preVisitorsSearch
-broad['postVisitors'] = broad$postVisitorsDirect + broad$postVisitorsSearch
-mean(broad$postVisitors[1:BroadCountAmount] - broad$preVisitors[1:BroadCountAmount])
-dataInterval = cbind(broad$preVisitors[1:BroadCountAmount], broad$postVisitors[1:BroadCountAmount])
-#data = cbind(log(broad$postVisitors[1:500]), log(broad$preVisitors[1:500]))
+# first analysis
+mean(broad$postVisitors - broad$preVisitors)
+dataInterval = cbind(broad$preVisitors, broad$postVisitors)
+#data = cbind(log(broad$postVisitors[1:nBroad]), log(broad$preVisitors[1:nBroad]))
 dataInterval = as.data.frame(dataInterval)
-colnames(dataInterval) = c("preVisitors", "postVisitors") #@Len I think it would make more sense to first display "pre" and than "post"
+colnames(dataInterval) = c("preVisitors", "postVisitors")
 
 # data plotting
 plot(dataInterval$preVisitors, dataInterval$postVisitors)
 lines(cbind(0,10000), cbind(0,10000))
 
 # simple regression model
-modelVisitors = lm(postVisitors[1:BroadCountAmount] ~ 0 + preVisitors[1:BroadCountAmount], data = broad) #DataFlair
+modelVisitors = lm(postVisitors ~ 0 + preVisitors, data = broad) #DataFlair
 summary(modelVisitors)
 coefficients(modelVisitors)
-hist(broad$postVisitors[1:BroadCountAmount])
-hist(broad$preVisitors[1:BroadCountAmount])
+hist(broad$postVisitors)
+hist(broad$preVisitors)
 
 # split data in training and test
 data_split = sample.split(dataInterval$postVisitors, SplitRatio = 0.8)
@@ -122,8 +122,14 @@ for (i in 1:nBroad){
     broad$monday[[i]] = 1
   }
 }
-
 regData = cbind(broad$hemelvaart, broad$monday)
 modelVisitorsAdv = lm(broad$postVisitors[1:BroadCountAmount] ~ broad$preVisitors[1:BroadCountAmount] + regData)
 summary(modelVisitorsAdv)
 coefficients(modelVisitorsAdv)
+
+#DUMMIES
+#1. Product: Wasmachines, television, laptop
+#2. Broadcast category: 7 
+#3. TV channel: 51?
+#4. Commercial length: 30, 30+10, 30+10+5
+#5. Position in break: beginning (1-3), middle (4-15), last (15-25??)
