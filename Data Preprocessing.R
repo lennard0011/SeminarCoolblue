@@ -142,10 +142,30 @@ for (i in 1:length(uniqueDatesBel)) {
   index = yday(uniqueDatesBel[i])
   dummyAdsBel[index] = 1
 }
+
+#product category dummy
+dummyProducts = dummy_cols(broad$product_category)
+colnames(dummyProducts) = c("product_category", "dummyWasmachines", "dummyTelevisies", "dummyLaptops")
+
+#channels dummy
+dummyChannels = dummy_cols(broad$channel)
+colnames(dummyChannels) = c("channels", "dummy24kitchen", "dummyBBCFirst","dummyCAZ",
+                            "dummyComedyCentral", "dummyCOMEDYCENTRAL", "dummyDISCOVERY",
+                            "dummyDiscovery", "dummyBOBBITTV", "dummyEurosport", "dummyEvenaar",
+                            "dummyFox", "dummyFOX", "dummyFoxSport1", "dummyFoxSports2",
+                            "dummyFoxSports3", "dummyHISTORYCHANNEL", "dummyID", "dummyKANAALZ(NL)",
+                            "dummyMENTTVNL","dummyMTV","dummyMTV(NL)", "dummyNationalGeographicChannel",
+                            "dummyNATIONALGEOGRAPHICNL", "dummyNet5", "dummyNPO1", "dummyNPO2","dummyNPO3",
+                            "dummyPLATTELANDSTV", "dummyQ2", "dummyRTL4", "dummyRTL5", "dummyRTL7","dummyRTL8",
+                            "dummyRTLCrime", "dummyRTLZ", "dummySBS6", "dummySBS9", "dummySLAM!TV", "dummySpike",
+                            "dummySPIKE", "dummyTLC", "dummyTV538", "dummyVeronica", "dummyViceland",
+                            "dummyVICELANDVL", "dummyVIER", "dummyVIJF", "dummyVITAYA", "dummyVTM")
+
 dummyAds = cbind(dummyAdsTot, dummyAdsNet, dummyAdsBel) #1=Tot, 2=NL, 3=BE
 colnames(dummyAds) = c("Ads Total","Ads Netherlands","Ads Belgium")
 rm(dummyAdsTot); rm(dummyAdsNet); rm(dummyAdsBel)
 
+<<<<<<< HEAD
 #dummies for different channel categories
 #program categories
 cat_before = unique(broad$program_category_before)
@@ -278,3 +298,16 @@ for (i in 1:nBroad){
     broad$cluster[i] = 7
   }
 }
+=======
+
+spotLengthDummies = matrix(rep(0),ncol = 3, nrow = nrow(broad), )
+for (i in 1:nrow(broad)) {
+  if(broad$length_of_spot[i] == "30"){spotLengthDummies[i,] = c(1,0,0) }
+  if(broad$length_of_spot[i] == "30 + 10"){spotLengthDummies[i,] = c(0,1,0) }
+  if(broad$length_of_spot[i] == "30 + 10 + 5"){spotLengthDummies[i,] = c(0,0,1) }
+}
+
+#dummies for channels
+channelsDummies = dummy_cols(broad, select_columns = "channel")[31:81]
+
+>>>>>>> 0f7dcb9abdd743e7adf7e9bb1379e287a8e11f5a
