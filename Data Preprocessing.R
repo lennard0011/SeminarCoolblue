@@ -31,23 +31,23 @@ nBroad = nrow(broad)
 #Also we add the column date to traffic
 
 #add time_min to every broadcast
-broad['time_min'] <- 0
+broad['time_min'] = 0
 for (index in 1:nBroad) { #nBroad
-  time <- broad$time[[index]]
-  timeMinute <- 60 * 24 * as.numeric(times(time))
-  broad$time_min[[index]] <- timeMinute
+  time = broad$time[[index]]
+  timeMinute = 60 * 24 * as.numeric(times(time))
+  broad$time_min[[index]] = timeMinute
 }
 rm(timeMinute)
 rm(time)
 rm(index)
 #add time_min and date to every travel
-traffic['time_min'] <- 0
-traffic$date_time <- as.character(traffic$date_time)
-trafficDateSplitWhole <- strsplit(traffic$date_time, "\\s+")
-trafficDateSplitUnlist <- unlist(trafficDateSplitWhole)
-traffictime <- trafficDateSplitUnlist[seq(2, length(trafficDateSplitUnlist), 2)]
-traffic$date <- trafficDateSplitUnlist[seq(1, length(trafficDateSplitUnlist), 2)]
-traffic$time_min <- 60 * 24 * as.numeric(times(traffictime))
+traffic['time_min'] = 0
+traffic$date_time = as.character(traffic$date_time)
+trafficDateSplitWhole = strsplit(traffic$date_time, "\\s+")
+trafficDateSplitUnlist = unlist(trafficDateSplitWhole)
+traffictime = trafficDateSplitUnlist[seq(2, length(trafficDateSplitUnlist), 2)]
+traffic$date = trafficDateSplitUnlist[seq(1, length(trafficDateSplitUnlist), 2)]
+traffic$time_min = 60 * 24 * as.numeric(times(traffictime))
 rm(trafficDateSplitWhole)
 rm(trafficDateSplitUnlist)
 rm(traffictime)
@@ -82,13 +82,13 @@ for (i in 1:scopeDays){
 adAmountNet = as.matrix(table(broad_net$date))
 
 #amount of advertisements per day -- Belgium
-adAmountBel <- as.matrix(table(broad_bel$date))
+adAmountBel = as.matrix(table(broad_bel$date))
 
 #amount of traffic per day -- Netherlands (approx. running time 5 seconds)
-trafAmountNet <- as.matrix(table(traffic_net$date)) #how much traffic per day
+trafAmountNet = as.matrix(table(traffic_net$date)) #how much traffic per day
 
 #amount of traffic per day -- Belgium (approx. running time 5 seconds)
-trafAmountBel <- as.matrix(table(traffic_bel$date))
+trafAmountBel = as.matrix(table(traffic_bel$date))
 
 #amount of traffic per day -- Total
 #NOTE: you can only run this if you have run both Net and Bel
