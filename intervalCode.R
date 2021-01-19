@@ -76,10 +76,10 @@ for (index in 1:nBroad) { #nBroad
 
 
 # first analysis pre- and post-visitors
-broad['preVisitors'] = broad$preVisitorsDirect + broad$preVisitorsSearch
-broad['postVisitors'] = broad$postVisitorsDirect + broad$postVisitorsSearch
-mean(broad$postVisitors[1:BroadCountAmount] - broad$preVisitors[1:BroadCountAmount])
-dataInterval = cbind(broad$preVisitors[1:BroadCountAmount], broad$postVisitors[1:BroadCountAmount])
+broad['preVisitors'] = broad$preVisitorsDirect + broad$preVisitorsOther + broad$preVisitorsPaidSearch + broad$preVisitorsFreeSearch
+broad['postVisitors'] = broad$postVisitorsDirect + broad$postVisitorsOther + broad$postVisitorsPaidSearch + broad$postVisitorsFreeSearch
+mean(broad$postVisitors[1:broadCountAmount] - broad$preVisitors[1:broadCountAmount])
+dataInterval = cbind(broad$preVisitors[1:broadCountAmount], broad$postVisitors[1:broadCountAmount])
 #data = cbind(log(broad$postVisitors[1:500]), log(broad$preVisitors[1:500]))
 dataInterval = as.data.frame(dataInterval)
 colnames(dataInterval) = c("preVisitors", "postVisitors") #@Len I think it would make more sense to first display "pre" and than "post"
@@ -89,11 +89,11 @@ plot(dataInterval$preVisitors, dataInterval$postVisitors)
 lines(cbind(0,10000), cbind(0,10000))
 
 # simple regression model
-modelVisitors = lm(postVisitors[1:BroadCountAmount] ~ 0 + preVisitors[1:BroadCountAmount], data = broad) #DataFlair
+modelVisitors = lm(postVisitors[1:broadCountAmount] ~ 0 + preVisitors[1:broadCountAmount], data = broad) #DataFlair
 summary(modelVisitors)
 coefficients(modelVisitors)
-hist(broad$postVisitors[1:BroadCountAmount])
-hist(broad$preVisitors[1:BroadCountAmount])
+hist(broad$postVisitors[1:broadCountAmount])
+hist(broad$preVisitors[1:broadCountAmount])
 
 # split data in training and test
 data_split = sample.split(dataInterval$postVisitors, SplitRatio = 0.8)
@@ -113,6 +113,6 @@ for (i in 1:nBroad){
 }
 
 regData = cbind(broad$hemelvaart, broad$monday)
-modelVisitorsAdv = lm(broad$postVisitors[1:BroadCountAmount] ~ broad$preVisitors[1:BroadCountAmount] + regData)
+modelVisitorsAdv = lm(broad$postVisitors[1:broadCountAmount] ~ broad$preVisitors[1:broadCountAmount] + regData)
 summary(modelVisitorsAdv)
 coefficients(modelVisitorsAdv)
