@@ -44,21 +44,15 @@ for (index in 1:nBroad) { #nBroad
 }
   
 #count visits post-commercial
-country <- broad$country[[index]]
-
 broad['postVisitorsDirect'] = 0
 broad['postVisitorsOther'] = 0
 broad['postVisitorsPaidSearch'] = 0
 broad['postVisitorsFreeSearch'] = 0
-
-start = Sys.time()
-test = TRUE
-BroadCountAmount = 1292 + 1
-for (index in 1:3185) { #nBroad
-  broadDate = broad$date[[index]]
-  broadTime = broad$time_min[[index]]
-  broadCountry = broad$country[[index]]
-
+start <- Sys.time()
+for (index in 1:nBroad) { #nBroad
+  broadDate <- broad$date[[index]]
+  broadTime <- broad$time_min[[index]]
+  broadCountry <- broad$country[[index]]
   extraViews = 0 
   extraViewsDirect = 0
   extraViewsOther = 0
@@ -67,7 +61,6 @@ for (index in 1:3185) { #nBroad
   
   if(broadTime > 60*24 - intervalSize){ # include views from next day if close to midnight
     extraViews = subset(traffic, traffic$date == as.Date(broadDate) + 1 & traffic$country == broadCountry & traffic$time_min <= intervalSize - broadTime)
-    
     extraViewsDirect = length(which(extraViews$visit_source == "direct"))
     extraViewsOther = length(which(extraViews$visit_source == "other"))
     extraViewsPaidSearch = length(which(extraViews$visit_source == "paid search"))
@@ -94,8 +87,6 @@ broad['postVisitors'] = broad$postVisitorsDirectOther + broad$postVisitorsReferr
 
 # first analysis
 mean(broad$postVisitors - broad$preVisitors)
-max(broad$postVisitors - broad$preVisitors)
-min(broad$postVisitors - broad$preVisitors)
 dataInterval = cbind(broad$preVisitors, broad$postVisitors)
 #data = cbind(log(broad$postVisitors[1:nBroad]), log(broad$preVisitors[1:nBroad]))
 dataInterval = as.data.frame(dataInterval)
@@ -139,17 +130,14 @@ modelVisitorsAdv = lm(broad$postVisitors[1:broadCountAmount] ~ broad$preVisitors
 summary(modelVisitorsAdv)
 coefficients(modelVisitorsAdv)
 
-<<<<<<< HEAD
 #REGRESSION MODELS 2-minute model
 baselineModelTotal = lm(postVisitors ~ preVisitors, data = broad)
 baselineModelSearchOther = lm(postVisitorsSearchOther ~ preVisitorsSearchOther, data = broad)
 baselineModelReferrals = lm(postVisitorsReferrals ~ broad$preVisitorsReferrals, data = broad)
 
-=======
 #DUMMIES
 #1. Product: Wasmachines, television, laptop
 #2. Broadcast category: 7 
 #3. TV channel: 51?
 #4. Commercial length: 30, 30+10, 30+10+5
 #5. Position in break: beginning (1-3), middle (4-15), last (15-25??)
->>>>>>> e8dbf76e57414685028379f9f8c25aa3918583c4
