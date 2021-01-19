@@ -135,9 +135,5 @@ modelVisitorsAdv = lm(broad$postVisitors[1:BroadCountAmount] ~ broad$preVisitors
 summary(modelVisitorsAdv)
 coefficients(modelVisitorsAdv)
 
-#DUMMIES
-#1. Product: Wasmachines, television, laptop
-#2. Broadcast category: 7 
-#3. TV channel: 51?
-#4. Commercial length: 30, 30+10, 30+10+5
-#5. Position in break: beginning (1-3), middle (4-15), last (15-25??)
+#REGRESSION MODELS 2-minute model
+baselineModel <- 
