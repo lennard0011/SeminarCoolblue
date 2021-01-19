@@ -165,5 +165,14 @@ dummyAds = cbind(dummyAdsTot, dummyAdsNet, dummyAdsBel) #1=Tot, 2=NL, 3=BE
 colnames(dummyAds) = c("Ads Total","Ads Netherlands","Ads Belgium")
 rm(dummyAdsTot); rm(dummyAdsNet); rm(dummyAdsBel)
 
+
+spotLengthDummies = matrix(rep(0),ncol = 3, nrow = nrow(broad), )
+for (i in 1:nrow(broad)) {
+  if(broad$length_of_spot[i] == "30"){spotLengthDummies[i,] = c(1,0,0) }
+  if(broad$length_of_spot[i] == "30 + 10"){spotLengthDummies[i,] = c(0,1,0) }
+  if(broad$length_of_spot[i] == "30 + 10 + 5"){spotLengthDummies[i,] = c(0,0,1) }
+}
+
 #dummies for channels
 channelsDummies = dummy_cols(broad, select_columns = "channel")[31:81]
+
