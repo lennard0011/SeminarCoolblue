@@ -3,6 +3,14 @@
 #BEWARE IT TAKES A LONG TIME TO RUN
 
 #count visits pre-commercial
+<<<<<<< HEAD
+intervalSize <- 2
+start <- Sys.time()
+BroadCountAmount <- nBroad
+
+#count visits pre-commercial
+=======
+>>>>>>> b44bd08aba93989cdbdc4d76a451953dd5a6bf64
 broad['preVisitorsDirect'] = 0
 broad['preVisitorsOther'] = 0
 broad['preVisitorsPaidSearch'] = 0
@@ -10,7 +18,11 @@ broad['preVisitorsFreeSearch'] = 0
 intervalSize = 2
 start = Sys.time()
 
+<<<<<<< HEAD
+for (index in 1:nBroad) { 
+=======
 for (index in 1:nBroad) { #nBroad
+>>>>>>> b44bd08aba93989cdbdc4d76a451953dd5a6bf64
   broadDate = broad$date[[index]]
   broadTime = broad$time_min[[index]]
   broadCountry = broad$country[[index]]
@@ -56,7 +68,10 @@ for (index in 1:nBroad) { #nBroad
   
   if(broadTime > 60*24 - intervalSize){ # include views from next day if close to midnight
     extraViews = subset(traffic, traffic$date == as.Date(broadDate) + 1 & traffic$country == broadCountry & traffic$time_min <= intervalSize - broadTime)
+<<<<<<< HEAD
+=======
   
+>>>>>>> b44bd08aba93989cdbdc4d76a451953dd5a6bf64
     extraViewsDirect = length(which(extraViews$visit_source == "direct"))
     extraViewsOther = length(which(extraViews$visit_source == "other"))
     extraViewsPaidSearch = length(which(extraViews$visit_source == "paid search"))
@@ -73,7 +88,15 @@ for (index in 1:nBroad) { #nBroad
   if(index %% 100 == 0) {print(Sys.time() - start)}
 }
 
+# aggregate pre- and post-visitors (d, r, total)
+broad['preVisitorsDirectOther'] = broad$preVisitorsDirect + broad$preVisitorsOther
+broad['preVisitorsReferrals'] = broad$preVisitorsPaidSearch + broad$preVisitorsFreeSearch
+broad['preVisitors'] = broad$preVisitorsDirectOther + broad$preVisitorsReferrals
+broad['postVisitorsDirectOther'] = broad$postVisitorsDirect + broad$postVisitorsOther
+broad['postVisitorsReferrals'] = broad$postVisitorsPaidSearch + broad$postVisitorsFreeSearch
+broad['postVisitors'] = broad$postVisitorsDirectOther + broad$postVisitorsReferrals
 
+<<<<<<< HEAD
 
 # first analysis pre- and post-visitors
 broad['preVisitors'] = broad$preVisitorsDirect + broad$preVisitorsOther + broad$preVisitorsPaidSearch + broad$preVisitorsFreeSearch
@@ -81,19 +104,33 @@ broad['postVisitors'] = broad$postVisitorsDirect + broad$postVisitorsOther + bro
 mean(broad$postVisitors[1:broadCountAmount] - broad$preVisitors[1:broadCountAmount])
 dataInterval = cbind(broad$preVisitors[1:broadCountAmount], broad$postVisitors[1:broadCountAmount])
 #data = cbind(log(broad$postVisitors[1:500]), log(broad$preVisitors[1:500]))
+=======
+# first analysis
+mean(broad$postVisitors - broad$preVisitors)
+dataInterval = cbind(broad$preVisitors, broad$postVisitors)
+#data = cbind(log(broad$postVisitors[1:nBroad]), log(broad$preVisitors[1:nBroad]))
+>>>>>>> 5ca7abff95625ccd478c12ce34b220ea956d7e4f
 dataInterval = as.data.frame(dataInterval)
-colnames(dataInterval) = c("preVisitors", "postVisitors") #@Len I think it would make more sense to first display "pre" and than "post"
+colnames(dataInterval) = c("preVisitors", "postVisitors")
 
 # data plotting
 plot(dataInterval$preVisitors, dataInterval$postVisitors)
 lines(cbind(0,10000), cbind(0,10000))
 
 # simple regression model
+<<<<<<< HEAD
 modelVisitors = lm(postVisitors[1:broadCountAmount] ~ 0 + preVisitors[1:broadCountAmount], data = broad) #DataFlair
 summary(modelVisitors)
 coefficients(modelVisitors)
 hist(broad$postVisitors[1:broadCountAmount])
 hist(broad$preVisitors[1:broadCountAmount])
+=======
+modelVisitors = lm(postVisitors ~ 0 + preVisitors, data = broad) #DataFlair
+summary(modelVisitors)
+coefficients(modelVisitors)
+hist(broad$postVisitors)
+hist(broad$preVisitors)
+>>>>>>> 5ca7abff95625ccd478c12ce34b220ea956d7e4f
 
 # split data in training and test
 data_split = sample.split(dataInterval$postVisitors, SplitRatio = 0.8)
@@ -111,8 +148,14 @@ for (i in 1:nBroad){
     broad$monday[[i]] = 1
   }
 }
-
 regData = cbind(broad$hemelvaart, broad$monday)
 modelVisitorsAdv = lm(broad$postVisitors[1:broadCountAmount] ~ broad$preVisitors[1:broadCountAmount] + regData)
 summary(modelVisitorsAdv)
 coefficients(modelVisitorsAdv)
+
+#DUMMIES
+#1. Product: Wasmachines, television, laptop
+#2. Broadcast category: 7 
+#3. TV channel: 51?
+#4. Commercial length: 30, 30+10, 30+10+5
+#5. Position in break: beginning (1-3), middle (4-15), last (15-25??)
