@@ -3,6 +3,16 @@
 #BEWARE IT TAKES A LONG TIME TO RUN
 
 #count visits pre-commercial
+<<<<<<< HEAD
+=======
+
+
+intervalSize = 2
+start = Sys.time()
+broadCountAmount = nBroad
+
+#count visits pre-commercial
+>>>>>>> 13467b0d98664b32458592de24c14d42b60b5266
 broad['preVisitorsDirect'] = 0
 broad['preVisitorsOther'] = 0
 broad['preVisitorsPaidSearch'] = 0
