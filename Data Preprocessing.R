@@ -127,6 +127,12 @@ dummyWeekdays = dummy_cols(allweekdays) # column 2 = monday, 8 = sunday
 dummyWeekdays = cbind(allDates, dummyWeekdays[, c(4, 2, 6, 3, 5, 7, 8)])
 colnames(dummyWeekdays) = c("data", "mondag", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
 
+broad$weekdays = 0
+for (i in 1:nBroad){
+  yearDay = yday(broad$date[i])
+  broad$weekdays[i] = weekdays(as.Date(yearDay))
+}
+
 #month dummies
 dummyMonths = dummy_cols(month(allDates))
 dummyMonths = cbind(allDates, dummyMonths[, 2:7]) # column 2 = Jan, 7 = Jun
@@ -258,14 +264,6 @@ for (i in 1:nBroad) {
   }
 }
 
-#1. Product: Wasmachines, television, laptop
-#2. Broadcast category: 7 
-#3. TV channel: 51
-#4. Commercial length: 30, 30+10, 30+10+5
-#5. Position in break: beginning (1-3), middle (4-15), last (15-25??)
-dummyPosition = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "channel", "length_of_spot", "position_in_break_3option"), remove_most_frequent_dummy = T)
-#broad = dummyPosition # I am afraid to press this BUT this should include the dummy
-
 #overlap dummy
 intervalSize = 4
 broad = broad[order(broad$date_time),]
@@ -292,3 +290,20 @@ for (i in 1:nBroad){
   }
 }
 broad = broad[order(as.numeric(row.names(broad))),]
+broad = subset(broad, select = -date_time)
+
+#1. Product: Wasmachines, television, laptop
+#2. Broadcast category: 7 
+#3. TV channel: 51
+#4. Commercial length: 30, 30+10, 30+10+5
+#5. Position in break: beginning (1-3), middle (4-15), last (15-25??)
+dummiesDirectModel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "channel", "length_of_spot", "position_in_break_3option"), remove_most_frequent_dummy = T)
+dummiesDirectModelNeeded = dummiesDirectModel[,35:95]
+dummiesDirectModelNeeded = as.data.frame(dummiesDirectModelNeeded)
+#broad = dummiesDirectModel # I am afraid to press this BUT this should include the dummy
+dummiesDirectModelNoChannel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option"), remove_most_frequent_dummy = T)
+dummiesDirectModelNoChannel = dummiesDirectModelNoChannel[,35:45]
+dummyPosition = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "channel", "length_of_spot", "position_in_break_3option"), remove_most_frequent_dummy = T)
+#broad = dummyPosition # I am afraid to press this BUT this should include the dummy
+dummiesDirectModelTime = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option", "weekdays"), remove_most_frequent_dummy = T)
+dummiesDirectModelTime = dummiesDirectModelTime[,35:51]
