@@ -126,7 +126,9 @@ modelVisitorsAdv = lm(postVisitors ~ ., data = broad)
 summary(modelVisitorsAdv)
 coefficients(modelVisitorsAdv)
 
+
 ##REGRESSION MODELS 2-minute model
+
 
 # TODO include option to regress on positive GRP obsv. only
 # TODO delete NA dummies `channel_MTV (NL)` `channel_RTL 5` channel_SPIKE  channel_Viceland  channel_VIER channel_ZES  
@@ -159,9 +161,6 @@ summary(treatmentOnlyModelReferrals) # low R^2!!
 # Full models
 #all visitors
 
-#REGRESSION MODELS 2-minute model
-
-#baseline models
 baselineModelTotal = lm(postVisitors ~ preVisitors, data = broad)
 summary(baselineModelTotal)
 
@@ -182,7 +181,6 @@ fullModelTotalNoChannel = lm(broad$postVisitors ~ broad$preVisitors + ., data = 
 coeftest(fullModelTotalNoChannel, vcov = vcovHC(fullModelTotalNoChannel, type="HC1")) # robust se
 summary(fullModelTotalNoChannel)
 
-fullModelTime = lm(broad$postVisitors ~ broad$preVisitors +., data = dummiesDirectModelTime)
 
 #all visitors -- no channel dummies, no prod. category
 fullModelTotalNoChannelNoProduct = lm(broad$postVisitors ~ broad$preVisitors + ., data = dummiesDirectModelNoChannelNoProduct)
@@ -204,6 +202,7 @@ colnames(R2_AIC_BICmodels) = c("Baseline only", "Treatment only", "Full model")
 rownames(R2_AIC_BICmodels) = c("R2", "AIC", "BIC")
 format(R2_AIC_BICmodels, scientific = FALSE, digits = 2)
 
+
 fullModelTime = lm(broad$postVisitors ~broad$preVisitors +., data = dummiesDirectModelTime)
 summary(fullModelTime)
 
@@ -215,6 +214,7 @@ summary(fullModelTime)
 #4. Commercial length: 30, 30+10, 30+10+5
 #5. Position in break: beginning (1-3), middle (4-15), last (15-25??)
 
+
 #polynomial test
 polynomial = 6
 baselineModelTotal = lm(postVisitors ~ preVisitors + poly(time_min, polynomial), data = broad)
@@ -225,3 +225,4 @@ x = poly(xseq, polynomial)
 #y = x %*% coef(baselineModelTotal)[3:(polynomial+2)]
 y = x %*% coef(baselineModelTotal)[2:(polynomial+1)]
 plot(xseq, y)
+
