@@ -1,7 +1,3 @@
-#install packages
-install.packages("ggplot2")
-install.packages("lubridate")
-
 #load packages
 library("ggplot2")
 library("lubridate")

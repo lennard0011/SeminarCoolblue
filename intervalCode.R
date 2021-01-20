@@ -131,13 +131,11 @@ modelVisitorsAdv = lm(broad$postVisitors[1:broadCountAmount] ~ broad$preVisitors
   summary(modelVisitorsAdv)
 coefficients(modelVisitorsAdv)
 
-<<<<<<< HEAD
+
 ##REGRESSION MODELS 2-minute model
 
 # baseline models
-=======
-#REGRESSION MODELS 2-minute model
->>>>>>> ccc0a5363eb45a5488180c8417269ddff405e8fa
+
 baselineModelTotal = lm(postVisitors ~ preVisitors, data = broad)
 summary(baselineModelTotal)
 baselineModelSearchOther = lm(postVisitorsDirectOther ~ preVisitorsDirectOther, data = broad)
@@ -145,17 +143,9 @@ summary(baselineModelSearchOther)
 baselineModelReferrals = lm(postVisitorsReferrals ~ broad$preVisitorsReferrals, data = broad)
 summary(baselineModelReferrals)
 
-<<<<<<< HEAD
 # full models
 fullModelTotal = lm(broad$postVisitors ~ broad$preVisitors + ., data = dummiesDirectModelNeeded)
 summary(fullModelTotal)
 fullModelTotalNoChannel = lm(broad$postVisitors ~ broad$preVisitors + ., data = dummiesDirectModelNoChannel)
 summary(fullModelTotalNoChannel)
-=======
-#DUMMIES
-#1. Product: Wasmachines, television, laptop
-#2. Broadcast category: 7 
-#3. TV channel: 51?
-#4. Commercial length: 30, 30+10, 30+10+5
-#5. Position in break: beginning (1-3), middle (4-15), last (15-25??)
->>>>>>> ccc0a5363eb45a5488180c8417269ddff405e8fa
+
