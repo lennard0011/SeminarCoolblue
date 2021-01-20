@@ -87,6 +87,8 @@ broad['postVisitors'] = broad$postVisitorsDirectOther + broad$postVisitorsReferr
 
 # first analysis
 mean(broad$postVisitors - broad$preVisitors)
+min(broad$postVisitors - broad$preVisitors)
+max(broad$postVisitors - broad$preVisitors)
 dataInterval = cbind(broad$preVisitors, broad$postVisitors)
 #data = cbind(log(broad$postVisitors[1:nBroad]), log(broad$preVisitors[1:nBroad]))
 dataInterval = as.data.frame(dataInterval)
@@ -95,19 +97,12 @@ colnames(dataInterval) = c("preVisitors", "postVisitors")
 # data plotting
 plot(dataInterval$preVisitors, dataInterval$postVisitors)
 lines(cbind(0,10000), cbind(0,10000))
-
-# simple regression model
-modelVisitors = lm(postVisitors[1:broadCountAmount] ~ 0 + preVisitors[1:broadCountAmount], data = broad) #DataFlair
-summary(modelVisitors)
-coefficients(modelVisitors)
-hist(broad$postVisitors[1:broadCountAmount])
-hist(broad$preVisitors[1:broadCountAmount])
-
-modelVisitors = lm(postVisitors ~ 0 + preVisitors, data = broad) #DataFlair
-summary(modelVisitors)
-coefficients(modelVisitors)
 hist(broad$postVisitors)
 hist(broad$preVisitors)
+
+# which ads show the biggest direct increase?
+biggestAds = subset(broad, preVisitors - postVisitors > 30, 
+                    select = -c(program_category_after, program_after))
 
 # split data in training and test
 data_split = sample.split(dataInterval$postVisitors, SplitRatio = 0.8)
@@ -131,31 +126,63 @@ modelVisitorsAdv = lm(broad$postVisitors[1:broadCountAmount] ~ broad$preVisitors
   summary(modelVisitorsAdv)
 coefficients(modelVisitorsAdv)
 
-<<<<<<< HEAD
 ##REGRESSION MODELS 2-minute model
 
-# baseline models
-=======
-#REGRESSION MODELS 2-minute model
->>>>>>> ccc0a5363eb45a5488180c8417269ddff405e8fa
-baselineModelTotal = lm(postVisitors ~ preVisitors, data = broad)
-summary(baselineModelTotal)
-baselineModelSearchOther = lm(postVisitorsDirectOther ~ preVisitorsDirectOther, data = broad)
-summary(baselineModelSearchOther)
-baselineModelReferrals = lm(postVisitorsReferrals ~ broad$preVisitorsReferrals, data = broad)
-summary(baselineModelReferrals)
+# TODO include option to regress on positive GRP obsv. only
+# TODO delete NA dummies `channel_MTV (NL)` `channel_RTL 5` channel_SPIKE  channel_Viceland  channel_VIER channel_ZES  
 
-<<<<<<< HEAD
-# full models
+# Baseline models
+#all visitors
+baselineModelTotal = lm(postVisitors ~ preVisitors, data = broad)
+coeftest(baselineModelTotal, vcov = vcovHC(baselineModelTotal, type="HC1")) # robust se
+summary(baselineModelTotal) # to get R^2
+hist(baselineModelTotal$residuals)
+#direct+other visitors
+baselineModelDirectOther = lm(postVisitorsDirectOther ~ preVisitorsDirectOther + preVisitorsReferrals, data = broad)
+summary(baselineModelDirectOther)
+#paid+search visitors
+baselineModelReferrals = lm(postVisitorsReferrals ~ preVisitorsDirectOther + preVisitorsReferrals, data = broad)
+summary(baselineModelReferrals) # lower R^2 then DirectOther. Why?
+
+# Treatment effect only models
+#all visitors
+treatmentOnlyModelTotal = lm(broad$postVisitors ~ ., data = dummiesDirectModelNeeded)
+summary(treatmentOnlyModelTotal)
+hist(baselineModelTotal$residuals)
+#direct+other visitors
+treatmentOnlyModelDirectOther = lm(broad$postVisitorsDirectOther ~ ., data = dummiesDirectModelNeeded)
+summary(treatmentOnlyModelDirectOther)
+#paid+search visitors
+treatmentOnlyModelReferrals = lm(broad$postVisitorsReferrals ~ ., data = dummiesDirectModelNeeded)
+summary(treatmentOnlyModelReferrals) # low R^2!!
+
+# Full models
+#all visitors
 fullModelTotal = lm(broad$postVisitors ~ broad$preVisitors + ., data = dummiesDirectModelNeeded)
+coeftest(fullModelTotal, vcov = vcovHC(fullModelTotal, type="HC1")) # robust se
 summary(fullModelTotal)
+hist(fullModelTotal$residuals)
+#all visitors -- no channel dummies
 fullModelTotalNoChannel = lm(broad$postVisitors ~ broad$preVisitors + ., data = dummiesDirectModelNoChannel)
+coeftest(fullModelTotalNoChannel, vcov = vcovHC(fullModelTotalNoChannel, type="HC1")) # robust se
 summary(fullModelTotalNoChannel)
-=======
-#DUMMIES
-#1. Product: Wasmachines, television, laptop
-#2. Broadcast category: 7 
-#3. TV channel: 51?
-#4. Commercial length: 30, 30+10, 30+10+5
-#5. Position in break: beginning (1-3), middle (4-15), last (15-25??)
->>>>>>> ccc0a5363eb45a5488180c8417269ddff405e8fa
+#all visitors -- no channel dummies, no prod. category
+fullModelTotalNoChannelNoProduct = lm(broad$postVisitors ~ broad$preVisitors + ., data = dummiesDirectModelNoChannelNoProduct)
+coeftest(fullModelTotalNoChannelNoProduct, vcov = vcovHC(fullModelTotalNoChannelNoProduct, type="HC1")) # robust se
+summary(fullModelTotalNoChannelNoProduct) # makes clusters somewhat more sign. but not too many
+#direct+other visitors
+fullModelDirectOther = lm(broad$postVisitorsDirectOther ~ broad$preVisitorsDirectOther + broad$preVisitorsReferrals + ., data = dummiesDirectModelNeeded)
+summary(fullModelDirectOther)
+#paid+search visitors
+fullModelReferrals = lm(broad$postVisitorsReferrals ~ broad$preVisitorsDirectOther + broad$preVisitorsReferrals + ., data = dummiesDirectModelNeeded)
+summary(fullModelReferrals)
+
+# Evaluation (for now on FULL models)
+R2models = cbind(summary(baselineModelTotal)$r.squared, summary(treatmentOnlyModelTotal)$r.squared, summary(fullModelTotal)$r.squared)
+AICmodels = cbind(AIC(baselineModelTotal), AIC(treatmentOnlyModelTotal), AIC(fullModelTotal))
+BICmodels = cbind(BIC(baselineModelTotal), BIC(treatmentOnlyModelTotal), BIC(fullModelTotal))
+R2_AIC_BICmodels = rbind(R2models, AICmodels, BICmodels)
+colnames(R2_AIC_BICmodels) = c("Baseline only", "Treatment only", "Full model") 
+rownames(R2_AIC_BICmodels) = c("R2", "AIC", "BIC")
+format(R2_AIC_BICmodels, scientific = FALSE, digits = 2)
+
