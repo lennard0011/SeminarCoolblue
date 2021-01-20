@@ -126,7 +126,9 @@ modelVisitorsAdv = lm(postVisitors ~ ., data = broad)
 summary(modelVisitorsAdv)
 coefficients(modelVisitorsAdv)
 
+
 ##REGRESSION MODELS 2-minute model
+
 
 # TODO include option to regress on positive GRP obsv. only
 # TODO delete NA dummies `channel_MTV (NL)` `channel_RTL 5` channel_SPIKE  channel_Viceland  channel_VIER channel_ZES  
@@ -147,8 +149,13 @@ hist(baselineModelTotal$residuals)
 # Full models
 #all visitors
 
+<<<<<<< HEAD
 #REGRESSION MODELS 2-minute model
 
+=======
+baselineModelTotal = lm(postVisitors ~ preVisitors, data = broad)
+summary(baselineModelTotal)
+>>>>>>> 2d9e60f840de443652507b53edff0adcf5cf4cac
 
 
 # full models
@@ -178,5 +185,31 @@ colnames(R2_AIC_BICmodels) = c("Baseline only", "Treatment only", "Full model")
 rownames(R2_AIC_BICmodels) = c("R2", "AIC", "BIC")
 format(R2_AIC_BICmodels, scientific = FALSE, digits = 2)
 
+
 fullModelTime = lm(broad$postVisitors ~broad$preVisitors +., data = dummiesDirectModelTime)
+<<<<<<< HEAD
 summary(fullModelTime)
+=======
+summary(fullModelTime)
+
+
+#DUMMIES
+#1. Product: Wasmachines, television, laptop
+#2. Broadcast category: 7 
+#3. TV channel: 51?
+#4. Commercial length: 30, 30+10, 30+10+5
+#5. Position in break: beginning (1-3), middle (4-15), last (15-25??)
+
+
+#polynomial test
+polynomial = 6
+baselineModelTotal = lm(postVisitors ~ preVisitors + poly(time_min, polynomial), data = broad)
+summary(baselineModelTotal)
+
+xseq = seq(0,60*24)
+x = poly(xseq, polynomial)
+#y = x %*% coef(baselineModelTotal)[3:(polynomial+2)]
+y = x %*% coef(baselineModelTotal)[2:(polynomial+1)]
+plot(xseq, y)
+
+>>>>>>> 2d9e60f840de443652507b53edff0adcf5cf4cac

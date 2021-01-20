@@ -9,9 +9,9 @@ install.packages("dplyr")
 library("dplyr")
 
 # Load data
-broad = read.csv(file.choose(), header = T)
-broad = broad[order(broad$date, broad$time),]
-traffic = read.csv(file.choose(), header = T)
+broad <- read.csv(file.choose(), header = T)
+broad <- broad[order(broad$date, broad$time),]
+traffic <- read.csv(file.choose(), header = T)
 
 # Descriptive of TRAFFIC 
 head(traffic)
@@ -33,8 +33,9 @@ sum(traffic$page_category == "other")
 sum(traffic$page_category == "product")
 summary(traffic$avg_session_quality)
 summary(traffic$bounces)
+unique(traffic$bounces)
 count_bounces <- traffic$bounces
-sum(na.omit(count_bounces) == 0)
+sum(na.omit(count_bounces) == "NA")
 unique(traffic$country)
 sum(traffic$country == "Netherlands")
 sum(traffic$country == "Belgium")
@@ -57,13 +58,13 @@ unique(broad$product_category)
 unique(broad$country)
 
 # Select one day from data (Wednesday May 1, 2019):
-traffic_day = subset(traffic, grepl("2019-05-01", traffic$date_time) == TRUE)
-traffic_day = traffic_day[order(traffic_day$date_time),]
+traffic_day <- subset(traffic, grepl("2019-05-01", traffic$date_time) == TRUE)
+traffic_day <- traffic_day[order(traffic_day$date_time),]
 
 # Aggregate visits for every minute of the day 
 # assumption: there is at least 1 visit every minute of the day
 minute_counter = 1 # will go up to 1440
-visit_density = vector(mode="integer", length=1440)
+visit_density <- vector(mode="integer", length=1440)
 # small neglection: the first obsv. is not counted
 for (i in 2:nrow(traffic_day)) {
   if (traffic_day$date_time[i] == traffic_day$date_time[i-1]) {
@@ -73,14 +74,11 @@ for (i in 2:nrow(traffic_day)) {
   }
 }
 
-plot(visit_density, main = "Number of Visitors on May 1, 2019", type = "l",
-     xlab = "Time (hours)", ylab = "Number of clicks", xaxt='n')
-axis(side =1, at=c(0,60,120,180,240,300,360,420,480,540,600,660,720,780,840,900,
-                   960,1020,1080,1140,1200,1260,1320,1380,1440), labels= 0:24)
+plot(visit_density, main = "Number of Visitors on May 1, 2019", type = "l")
 
 # Create "indicators" for commercials (given there are on this day)
-broad_day = subset(broad, date == "2019-05-01")
-broad_day = broad_day[order(broad_day$time),]
+broad_day <- subset(broad, date == "2019-05-01")
+broad_day <- broad_day[order(broad_day$time),]
 
 # Plotting
 time_interval = 1:1400 # standard is 1:1400
@@ -111,14 +109,10 @@ for (i in 1:length(holidaysDates)) {
 }
 
 #plot daily traffic Net (partly copied from Marjolein)
-plot(trafAmountNet/1000, type = "l", xaxt='n', yaxt = 'n', ann=FALSE)
-for (i in 1:length(uniqueDatesNet)){
-  abline(v = yday(uniqueDatesNet[i]), col = '#DCDCDC', lwd = 3) # ads
+plot(trafAmountNet)
+for (i in 1:length(uniqueDatesNet)){ 
+  abline(v = yday(uniqueDatesNet[i]), col = 'blue') # ads
 }
-par(new=TRUE)
-plot(trafAmountNet/1000, las=1, type = "l", xaxt='n', xlab = "Time (months)", 
-     ylab = "Daily visits (x1000)", main = "Website traffic Netherlands Jan-Jun 2019")
-axis(side =1, at=c(0, 31, 59, 90, 120, 151, 181), labels= c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'))
 for (i in 1:length(holidaysDates)) {
   abline(v = yday(holidaysDates[i]), col = 'orange') # holidays
 } # global spike on Hemelvaartsdag in Net
@@ -129,66 +123,54 @@ for (i in 1:length(trafAmountNet)) {
 }
 
 #plot daily traffic Bel (partly copied from Marjolein)
-plot(trafAmountBel/1000, type = "l", xaxt='n', yaxt = 'n', ann=FALSE)
+plot(trafAmountBel)
 for (i in 1:length(uniqueDatesBel)){
-  abline(v = yday(uniqueDatesBel[i]), col = '#DCDCDC', lwd = 3) # ads
+  abline(v = yday(uniqueDatesBel[i]), col = 'red') # ads
 }
-par(new=TRUE)
-plot(trafAmountBel/1000, las=1, type = "l", xaxt='n', xlab = "Time (months)", 
-     ylab = "Daily visits (x1000)", main = "Website traffic Belgium Jan-Jun 2019")
-axis(side =1, at=c(0, 31, 59, 90, 120, 151, 181), labels= c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'))
-#for (i in 1:length(holidaysDates)) {
-#  abline(v = yday(holidaysDates[i]), col = 'orange') # holidays
-#} # local spike on Hemvelvaartsdag in Bel
+for (i in 1:length(holidaysDates)) {
+  abline(v = yday(holidaysDates[i]), col = 'orange') # holidays
+} # local spike on Hemvelvaartsdag in Bel
 
 # Simple regressions for Netherlands
 
 #simple AR(1)
-regrAR1 = lm(trafAmountNet ~ lag(trafAmountNet, 1))
+regrAR1 <- lm(trafAmountNet ~ lag(trafAmountNet, 1))
 summary(regrAR1) # AR(1) is 0.001 significant
 
 #on a trend
-regrTrend = lm(trafAmountNet ~ c(1:181))
+regrTrend <- lm(trafAmountNet ~ c(1:181))
 summary(regrTrend) # Trend is 0.05 significant
-trafAmountNetDiff = c(NA, diff(trafAmountNet)) # first difference
-regrTrend2 = lm(trafAmountNetDiff ~ 1) # should be the same
+trafAmountNetDiff <- c(NA, diff(trafAmountNet)) # first difference
+regrTrend2 <- lm(trafAmountNetDiff ~ 1) # should be the same
 summary(regrTrend2) # now there is no significant trend
 
 #on weekdays
-regrDays = lm(trafAmountNetDiff ~ 0 + dummyWeekdays[,2] + dummyWeekdays[,3] +
-                 dummyWeekdays[,4] + dummyWeekdays[,5] + dummyWeekdays[,6] +
-                 dummyWeekdays[,7] + dummyWeekdays[,8])
-names(regrDays$coefficients) <- c('monday','tuesday','wednesday','thursday',
-                                  'friday','saturday','sunday')
+regrDays <- lm(trafAmountNetDiff ~ 0 + dummyMonday + dummyTuesday + 
+                 dummyWednesday + dummyThursday + dummyFriday + 
+                 dummySaturday + dummySunday)
 summary(regrDays) # Tuesday 0.01, Thursday 0.01, Friday 0.01, Saturday 0.05,
                   # Sunday 0.01 significant (so mostly weekends)
-# TODO: F-test on whether weekends significantly differ from weekdays.
 
 #on months
-regrMonths = lm(trafAmountNetDiff ~ 0 + dummyMonths[,2] + dummyMonths[,3] + 
-                   dummyMonths[,4] + dummyMonths[,5] + dummyMonths[,6] + 
-                   dummyMonths[,7])
-names(regrMonths$coefficients) <- c('january','february','march','april','may',
-                                    'june')
+regrMonths <- lm(trafAmountNetDiff ~ 0 + dummyJanuary + dummyFebruary + 
+                 dummyMarch + dummyApril + dummyMay + dummyJune)
 summary(regrMonths) # none of them are significant
 
-## NOTE: IF YOU RUN REGR WITH LAG(), THEN YOU NEED TO RELOAD DPLYR
-library("dplyr")
 #on holidays
-regrHolidays = lm(trafAmountNet ~ lag(trafAmountNet, 1) + dummyHolidays)
+regrHolidays <- lm(trafAmountNet ~ lag(trafAmountNet, 1) + dummyHolidays)
 summary(regrHolidays) # 0.05 sign without lag, not significant with lag
 
 #on Hemelvaartsdag (aberrant observation)
-regrHemelvaartsdag = lm(trafAmountNet ~ lag(trafAmountNet, 1) + 
+regrHemelvaartsdag <- lm(trafAmountNet ~ lag(trafAmountNet, 1) + 
                            dummyHemelvaartsdag)
 summary(regrHemelvaartsdag) # Hemelvaart is 0.05 significant, of which type?
 
 #on ads
-regrAdsNet <- lm(trafAmountNet ~ lag(trafAmountNet, 1) + dummyAds)
+regrAdsNet <- lm(trafAmountNet ~ lag(trafAmountNet, 1) + dummyAdsNet)
 summary(regrAdsNet) # not significant
 
 #on lagged ads
-regrAdsNetLag = lm(trafAmountNet ~ lag(trafAmountNet, 1) + dummyAdsNet 
+regrAdsNetLag <- lm(trafAmountNet ~ lag(trafAmountNet, 1) + dummyAdsNet 
                  + lag(dummyAdsNet, 1))
 summary(regrAdsNetLag) # not significant as well
 
@@ -197,49 +179,3 @@ summary(regrAdsNetLag) # not significant as well
   #create best ARMA(p,q) model: lowest AIC&SIC, plot autocorrelations (AR1=to0)
   #inclusion of level and/or trend  
   #misspecification tests (slide 21-23 BasicConc2 TRA / Ectrie 2)
-  #we might have a 2-regime threshold model?
-
-# Plot which time is most common for a commercial
-timesMatrix = matrix(0, nrow = 1, ncol = 24)
-for (i in 1:nBroad) {
-  hour = ceiling(broad$time_min[i]/60)
-  timesMatrix[hour] <- timesMatrix[hour] + 1
-}
-plot(1:24, timesMatrix, type = "l", xaxt='n')
-axis(side=1, at=1:24, labels= 1:24)
-
-# Plot which day of the week are the most commercials
-weekMatrix = matrix(0, nrow = 1, ncol = 7)
-for (i in 1:nBroad) {
-  day = weekdays(as.Date(broad$date[i]))
-  dayNr = 0
-  if (day == "maandag") { dayNr = 1}
-  if (day == "dinsdag") { dayNr = 2}
-  if (day == "woensdag") { dayNr = 3}
-  if (day == "donderdag") { dayNr = 4}
-  if (day == "vrijdag") { dayNr = 5}
-  if (day == "zaterdag") { dayNr = 6}
-  if (day == "zondag") { dayNr = 7}
-  weekMatrix[dayNr] = weekMatrix[dayNr] + 1
-}
-plot(1:7, weekMatrix, type = "l", xaxt='n')
-axis(side=1, at=1:7, labels=c('Mo','Tu','We','Th','Fr','Sa','Su'))
-
-# Try the same for traffic
-weekMatrix = matrix(0, nrow = 1, ncol = 7)
-for (i in 1:nTraffic) {
-  day = weekdays(as.Date(traffic$date[i]))
-  dayNr = 0
-  if (day == "maandag") { dayNr = 1}
-  if (day == "dinsdag") { dayNr = 2}
-  if (day == "woensdag") { dayNr = 3}
-  if (day == "donderdag") { dayNr = 4}
-  if (day == "vrijdag") { dayNr = 5}
-  if (day == "zaterdag") { dayNr = 6}
-  if (day == "zondag") { dayNr = 7}
-  weekMatrix[dayNr] = weekMatrix[dayNr] + 1
-  if(i%%1000 == 0) { print(i) }
-}
-plot(1:7, weekMatrix, type = "l", xaxt='n')
-axis(side=1, at=1:7, labels=c('Mo','Tu','We','Th','Fr','Sa','Su'))
-trafficWeekMatrix = weekMatrix

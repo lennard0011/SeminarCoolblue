@@ -22,14 +22,13 @@ traffic = read.csv(file.choose())
 #subset data
 traffic_netherlands = subset(traffic, country == 'Netherlands')
 traffic_belgium = subset(traffic, country == 'Belgium')
-broadcast_netherlands = subset(broadcasting, country == 'Netherlands')
-broadcast_belgium = subset(broadcasting, country == 'Belgium')
-
+broadcast_netherlands = subset(broad, country == 'Netherlands')
+broadcast_belgium = subset(broad, country == 'Belgium')
 
 #plot broadcasts nl-be
 amountDays = 31 + 28 + 31 + 30 + 31 + 30
 scopeDays = amountDays
-uniqueDates = unique(broadcasting)
+uniqueDates = unique(broad)
 uniqueDatesBel = unique(broadcast_belgium$date)
 uniqueDatesNet = unique(broadcast_netherlands$date)
 uniqueDatesBoth = base::intersect(uniqueDatesBel, uniqueDatesNet) #adverts in both on certain day
@@ -38,7 +37,25 @@ uniqueDatesNet = base::setdiff(uniqueDatesNet, uniqueDatesBoth) #adverts only in
 adAmount = matrix(0, scopeDays)
 for (i in 1:scopeDays){
   iDate = as.Date(i - 1, origin = "2019-01-01")
-  adsIDate = sum(broadcasting$date == iDate)
+  adsIDate = sum(broad$date == iDate)
+  adAmount[i] = adsIDate
+}
+plot(adAmount)
+
+
+#plot traffic nl-be
+amountDays = 31 + 28 + 31 + 30 + 31 + 30
+scopeDays = amountDays
+uniqueDates = unique(traffic)
+uniqueDatesBel = unique(traffic_belgium$date)
+uniqueDatesNet = unique(traffic_netherlands$date)
+uniqueDatesBoth = base::intersect(uniqueDatesBel, uniqueDatesNet) #adverts in both on certain day
+uniqueDatesBel = base::setdiff(uniqueDatesBel, uniqueDatesBoth) #adverts only in Belgium on certain day
+uniqueDatesNet = base::setdiff(uniqueDatesNet, uniqueDatesBoth) #adverts only in Netherlands on certain day
+adAmount = matrix(0, scopeDays)
+for (i in 1:scopeDays){
+  iDate = as.Date(i - 1, origin = "2019-01-01")
+  adsIDate = sum(traffic$date == iDate)
   adAmount[i] = adsIDate
 }
 plot(adAmount)
