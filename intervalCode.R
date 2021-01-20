@@ -147,7 +147,7 @@ fullModelTotal = lm(broad$postVisitors ~ broad$preVisitors + ., data = dummiesDi
 summary(fullModelTotal)
 fullModelTotalNoChannel = lm(broad$postVisitors ~ broad$preVisitors + ., data = dummiesDirectModelNoChannel)
 summary(fullModelTotalNoChannel)
-fullModelTime = lm(broad$postVisitors ~broad$preVisitors +., data = dummiesDirectModelTime)
+fullModelTime = lm(broad$postVisitors ~ broad$preVisitors +., data = dummiesDirectModelTime)
 summary(fullModelTime)
 
 #DUMMIES
