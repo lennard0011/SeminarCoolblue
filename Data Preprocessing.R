@@ -298,12 +298,12 @@ broad = subset(broad, select = -date_time)
 #4. Commercial length: 30, 30+10, 30+10+5
 #5. Position in break: beginning (1-3), middle (4-15), last (15-25??)
 dummiesDirectModel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "channel", "length_of_spot", "position_in_break_3option"), remove_most_frequent_dummy = T)
-dummiesDirectModelNeeded = dummiesDirectModel[,35:95]
+dummiesDirectModelNeeded = dummiesDirectModel[,31:92]
 dummiesDirectModelNeeded = as.data.frame(dummiesDirectModelNeeded)
 #broad = dummiesDirectModel # I am afraid to press this BUT this should include the dummy
 dummiesDirectModelNoChannel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option"), remove_most_frequent_dummy = T)
-dummiesDirectModelNoChannel = dummiesDirectModelNoChannel[,35:45]
+dummiesDirectModelNoChannel = dummiesDirectModelNoChannel[,31:42]
 dummyPosition = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "channel", "length_of_spot", "position_in_break_3option"), remove_most_frequent_dummy = T)
 #broad = dummyPosition # I am afraid to press this BUT this should include the dummy
 dummiesDirectModelTime = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option", "weekdays"), remove_most_frequent_dummy = T)
-dummiesDirectModelTime = dummiesDirectModelTime[,35:51]
+dummiesDirectModelTime = dummiesDirectModelTime[,32:49]
