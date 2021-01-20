@@ -32,16 +32,21 @@ nBroad = nrow(broad)
 #First we add the column time_min to traffic and broad, which is the time in a scale of minutes (from 0 to 24*60= 1440)
 #Also we add the column date to traffic
 
+#add date+time to every broadcast
+broad$date_time = 0
+for (i in 1:nBroad){
+  broad$date_time[i] = paste(broad$date[i], broad$time[i], sep = " ")
+}
+
 #add time_min to every broadcast
 broad['time_min'] = 0
-for (index in 1:nBroad) { #nBroad
-  time = broad$time[[index]]
+for (i in 1:nBroad) { #nBroad
+  time = broad$time[[i]]
   timeMinute = 60 * 24 * as.numeric(times(time))
-  broad$time_min[[index]] = timeMinute
+  broad$time_min[[i]] = timeMinute
 }
 rm(timeMinute)
 rm(time)
-rm(index)
 #add time_min and date to every travel
 traffic['time_min'] = 0
 traffic$date_time = as.character(traffic$date_time)
@@ -55,7 +60,6 @@ rm(trafficDateSplitUnlist)
 rm(traffictime)
 
 #Further country specific variables + Aggregate clicks no a day
-
 traffic_net = subset(traffic, country == 'Netherlands')
 traffic_bel = subset(traffic, country == 'Belgium')
 broad_net = subset(broad, country == 'Netherlands')
@@ -259,9 +263,32 @@ for (i in 1:nBroad) {
 #3. TV channel: 51
 #4. Commercial length: 30, 30+10, 30+10+5
 #5. Position in break: beginning (1-3), middle (4-15), last (15-25??)
-dummiesDirectModel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "channel", "length_of_spot", "position_in_break_3option"), remove_most_frequent_dummy = T)
-dummiesDirectModelNeeded = dummiesDirectModel[,33:94]
-dummiesDirectModelNeeded = as.data.frame(dummiesDirectModelNeeded)
-#broad = dummiesDirectModel # I am afraid to press this BUT this should include the dummy
-dummiesDirectModelNoChannel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option"), remove_most_frequent_dummy = T)
-dummiesDirectModelNoChannel = dummiesDirectModelNoChannel[,33:44]
+dummyPosition = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "channel", "length_of_spot", "position_in_break_3option"), remove_most_frequent_dummy = T)
+#broad = dummyPosition # I am afraid to press this BUT this should include the dummy
+
+#overlap dummy
+intervalSize = 4
+broad = broad[order(broad$date_time),]
+broad$overlap = 0
+for (i in 1:nBroad){
+  if (i %% 100 == 0){
+    print(i)
+  }
+  datetime = broad$date_time[i]
+  datetime = as.POSIXct(datetime)
+  four_earlier = datetime - intervalSize * 60
+  four_later = datetime + intervalSize * 60
+  #4 minutes before
+  if (i > 1){
+    if (four_earlier <= broad$date_time[i - 1] && broad$date_time[i - 1] <= datetime){
+      broad$overlap[i] = 1
+    }
+  }
+  #4 minutes after
+  if (i < nBroad){
+    if (datetime <= broad$date_time[i + 1] && broad$date_time[i + 1] <= four_later){
+      broad$overlap[i] = 1
+    }
+  }
+}
+broad = broad[order(as.numeric(row.names(broad))),]

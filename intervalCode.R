@@ -15,10 +15,10 @@ broad['preVisitorsFreeSearch'] = 0
 intervalSize = 2
 start = Sys.time()
 
-for (index in 1:nBroad) { #nBroad
-  broadDate = broad$date[[index]]
-  broadTime = broad$time_min[[index]]
-  broadCountry = broad$country[[index]]
+for (i in 1:nBroad) { #nBroad
+  broadDate = broad$date[[i]]
+  broadTime = broad$time_min[[i]]
+  broadCountry = broad$country[[i]]
   extraViews = 0 
   extraViewsDirect = 0
   extraViewsOther = 0
