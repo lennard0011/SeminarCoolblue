@@ -15,10 +15,10 @@ broad['preVisitorsFreeSearch'] = 0
 intervalSize = 2
 start = Sys.time()
 
-for (index in 1:nBroad) { #nBroad
-  broadDate = broad$date[[index]]
-  broadTime = broad$time_min[[index]]
-  broadCountry = broad$country[[index]]
+for (i in 1:nBroad) { #nBroad
+  broadDate = broad$date[[i]]
+  broadTime = broad$time_min[[i]]
+  broadCountry = broad$country[[i]]
   extraViews = 0 
   extraViewsDirect = 0
   extraViewsOther = 0
@@ -126,6 +126,7 @@ modelVisitorsAdv = lm(broad$postVisitors[1:broadCountAmount] ~ broad$preVisitors
   summary(modelVisitorsAdv)
 coefficients(modelVisitorsAdv)
 
+<<<<<<< HEAD
 ##REGRESSION MODELS 2-minute model
 
 # TODO include option to regress on positive GRP obsv. only
@@ -158,6 +159,20 @@ summary(treatmentOnlyModelReferrals) # low R^2!!
 
 # Full models
 #all visitors
+=======
+
+#REGRESSION MODELS 2-minute model
+
+#baseline models
+baselineModelTotal = lm(postVisitors ~ preVisitors, data = broad)
+summary(baselineModelTotal)
+baselineModelSearchOther = lm(postVisitorsDirectOther ~ preVisitorsDirectOther, data = broad)
+summary(baselineModelSearchOther)
+baselineModelReferrals = lm(postVisitorsReferrals ~ broad$preVisitorsReferrals, data = broad)
+summary(baselineModelReferrals)
+
+# full models
+>>>>>>> 6e9e775ecea21373758f779bb563816d8ee7b4c5
 fullModelTotal = lm(broad$postVisitors ~ broad$preVisitors + ., data = dummiesDirectModelNeeded)
 coeftest(fullModelTotal, vcov = vcovHC(fullModelTotal, type="HC1")) # robust se
 summary(fullModelTotal)
@@ -166,6 +181,7 @@ hist(fullModelTotal$residuals)
 fullModelTotalNoChannel = lm(broad$postVisitors ~ broad$preVisitors + ., data = dummiesDirectModelNoChannel)
 coeftest(fullModelTotalNoChannel, vcov = vcovHC(fullModelTotalNoChannel, type="HC1")) # robust se
 summary(fullModelTotalNoChannel)
+<<<<<<< HEAD
 #all visitors -- no channel dummies, no prod. category
 fullModelTotalNoChannelNoProduct = lm(broad$postVisitors ~ broad$preVisitors + ., data = dummiesDirectModelNoChannelNoProduct)
 coeftest(fullModelTotalNoChannelNoProduct, vcov = vcovHC(fullModelTotalNoChannelNoProduct, type="HC1")) # robust se
@@ -186,3 +202,14 @@ colnames(R2_AIC_BICmodels) = c("Baseline only", "Treatment only", "Full model")
 rownames(R2_AIC_BICmodels) = c("R2", "AIC", "BIC")
 format(R2_AIC_BICmodels, scientific = FALSE, digits = 2)
 
+=======
+fullModelTime = lm(broad$postVisitors ~broad$preVisitors +., data = dummiesDirectModelTime)
+summary(fullModelTime)
+
+#DUMMIES
+#1. Product: Wasmachines, television, laptop
+#2. Broadcast category: 7 
+#3. TV channel: 51?
+#4. Commercial length: 30, 30+10, 30+10+5
+#5. Position in break: beginning (1-3), middle (4-15), last (15-25??)
+>>>>>>> 6e9e775ecea21373758f779bb563816d8ee7b4c5
