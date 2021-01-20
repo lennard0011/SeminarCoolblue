@@ -15,10 +15,10 @@ broad['preVisitorsFreeSearch'] = 0
 intervalSize = 2
 start = Sys.time()
 
-for (index in 1:nBroad) { #nBroad
-  broadDate = broad$date[[index]]
-  broadTime = broad$time_min[[index]]
-  broadCountry = broad$country[[index]]
+for (i in 1:nBroad) { #nBroad
+  broadDate = broad$date[[i]]
+  broadTime = broad$time_min[[i]]
+  broadCountry = broad$country[[i]]
   extraViews = 0 
   extraViewsDirect = 0
   extraViewsOther = 0
@@ -132,10 +132,11 @@ summary(modelVisitorsAdv)
 coefficients(modelVisitorsAdv)
 
 
-
-# baseline models
-
 #REGRESSION MODELS 2-minute model
+
+#baseline models
+baselineModelTotal = lm(postVisitors ~ preVisitors, data = broad)
+summary(baselineModelTotal)
 
 baselineModelSearchOther = lm(postVisitorsDirectOther ~ preVisitorsDirectOther, data = broad)
 summary(baselineModelSearchOther)
@@ -147,6 +148,10 @@ fullModelTotal = lm(broad$postVisitors ~ broad$preVisitors + ., data = dummiesDi
 summary(fullModelTotal)
 fullModelTotalNoChannel = lm(broad$postVisitors ~ broad$preVisitors + ., data = dummiesDirectModelNoChannel)
 summary(fullModelTotalNoChannel)
+
+fullModelTime = lm(broad$postVisitors ~broad$preVisitors +., data = dummiesDirectModelTime)
+summary(fullModelTime)
+
 
 #DUMMIES
 #1. Product: Wasmachines, television, laptop
@@ -165,3 +170,4 @@ x = poly(xseq, polynomial)
 #y = x %*% coef(baselineModelTotal)[3:(polynomial+2)]
 y = x %*% coef(baselineModelTotal)[2:(polynomial+1)]
 plot(xseq, y)
+
