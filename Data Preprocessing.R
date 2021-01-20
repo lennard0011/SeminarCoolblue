@@ -213,6 +213,7 @@ channel$youth = 0
 channel$youth[6] = 1
 channel$youth[12] = 1
 channel$youth[18] = 1
+channel$youth[30] = 1
 #kmeans
 # Elbow method
 scaled_channel = scale(channel[2:7])
@@ -224,7 +225,6 @@ cluster_3 = channel[,1][kmean$cluster == 3]
 cluster_4 = channel[,1][kmean$cluster == 4]
 cluster_5 = channel[,1][kmean$cluster == 5]
 cluster_6 = channel[,1][kmean$cluster == 6]
-cluster_7 = channel[,1][kmean$cluster == 7]
 broad$cluster = 0
 for (i in 1:nBroad){
   if (broad$channel[i] %in% cluster_1){
