@@ -5,7 +5,7 @@
 #count visits pre-commercial
 intervalSize = 2
 start = Sys.time()
-BroadCountAmount = nBroad
+broadCountAmount = nBroad
 
 #count visits pre-commercial
 broad['preVisitorsDirect'] = 0
@@ -122,8 +122,8 @@ for (i in 1:nBroad){
   }
 }
 regData = cbind(broad$hemelvaart, broad$monday)
-modelVisitorsAdv = lm(broad$postVisitors[1:broadCountAmount] ~ broad$preVisitors[1:broadCountAmount] + regData)
-  summary(modelVisitorsAdv)
+modelVisitorsAdv = lm(postVisitors ~ ., data = broad)
+summary(modelVisitorsAdv)
 coefficients(modelVisitorsAdv)
 
 
@@ -163,6 +163,7 @@ summary(treatmentOnlyModelReferrals) # low R^2!!
 
 baselineModelTotal = lm(postVisitors ~ preVisitors, data = broad)
 summary(baselineModelTotal)
+
 baselineModelSearchOther = lm(postVisitorsDirectOther ~ preVisitorsDirectOther, data = broad)
 summary(baselineModelSearchOther)
 baselineModelReferrals = lm(postVisitorsReferrals ~ broad$preVisitorsReferrals, data = broad)
@@ -172,6 +173,7 @@ summary(baselineModelReferrals)
 
 fullModelTotal = lm(broad$postVisitors ~ broad$preVisitors + ., data = dummiesDirectModelNeeded)
 coeftest(fullModelTotal, vcov = vcovHC(fullModelTotal, type="HC1")) # robust se
+
 summary(fullModelTotal)
 hist(fullModelTotal$residuals)
 #all visitors -- no channel dummies
@@ -204,10 +206,23 @@ format(R2_AIC_BICmodels, scientific = FALSE, digits = 2)
 fullModelTime = lm(broad$postVisitors ~broad$preVisitors +., data = dummiesDirectModelTime)
 summary(fullModelTime)
 
+
 #DUMMIES
 #1. Product: Wasmachines, television, laptop
 #2. Broadcast category: 7 
 #3. TV channel: 51?
 #4. Commercial length: 30, 30+10, 30+10+5
 #5. Position in break: beginning (1-3), middle (4-15), last (15-25??)
+
+
+#polynomial test
+polynomial = 6
+baselineModelTotal = lm(postVisitors ~ preVisitors + poly(time_min, polynomial), data = broad)
+summary(baselineModelTotal)
+
+xseq = seq(0,60*24)
+x = poly(xseq, polynomial)
+#y = x %*% coef(baselineModelTotal)[3:(polynomial+2)]
+y = x %*% coef(baselineModelTotal)[2:(polynomial+1)]
+plot(xseq, y)
 
