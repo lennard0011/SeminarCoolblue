@@ -137,38 +137,19 @@ baselineModelTotal = lm(postVisitors ~ preVisitors, data = broad)
 coeftest(baselineModelTotal, vcov = vcovHC(baselineModelTotal, type="HC1")) # robust se
 summary(baselineModelTotal) # to get R^2
 hist(baselineModelTotal$residuals)
-#direct+other visitors
-baselineModelDirectOther = lm(postVisitorsDirectOther ~ preVisitorsDirectOther + preVisitorsReferrals, data = broad)
-summary(baselineModelDirectOther)
-#paid+search visitors
-baselineModelReferrals = lm(postVisitorsReferrals ~ preVisitorsDirectOther + preVisitorsReferrals, data = broad)
-summary(baselineModelReferrals) # lower R^2 then DirectOther. Why?
 
 # Treatment effect only models
 #all visitors
 treatmentOnlyModelTotal = lm(broad$postVisitors ~ ., data = dummiesDirectModelNeeded)
 summary(treatmentOnlyModelTotal)
 hist(baselineModelTotal$residuals)
-#direct+other visitors
-treatmentOnlyModelDirectOther = lm(broad$postVisitorsDirectOther ~ ., data = dummiesDirectModelNeeded)
-summary(treatmentOnlyModelDirectOther)
-#paid+search visitors
-treatmentOnlyModelReferrals = lm(broad$postVisitorsReferrals ~ ., data = dummiesDirectModelNeeded)
-summary(treatmentOnlyModelReferrals) # low R^2!!
 
 # Full models
 #all visitors
 
 #REGRESSION MODELS 2-minute model
 
-#baseline models
-baselineModelTotal = lm(postVisitors ~ preVisitors, data = broad)
-summary(baselineModelTotal)
 
-baselineModelSearchOther = lm(postVisitorsDirectOther ~ preVisitorsDirectOther, data = broad)
-summary(baselineModelSearchOther)
-baselineModelReferrals = lm(postVisitorsReferrals ~ broad$preVisitorsReferrals, data = broad)
-summary(baselineModelReferrals)
 
 # full models
 
@@ -187,12 +168,6 @@ summary(fullModelTotalNoChannel)
 fullModelTotalNoChannelNoProduct = lm(broad$postVisitors ~ broad$preVisitors + ., data = dummiesDirectModelNoChannelNoProduct)
 coeftest(fullModelTotalNoChannelNoProduct, vcov = vcovHC(fullModelTotalNoChannelNoProduct, type="HC1")) # robust se
 summary(fullModelTotalNoChannelNoProduct) # makes clusters somewhat more sign. but not too many
-#direct+other visitors
-fullModelDirectOther = lm(broad$postVisitorsDirectOther ~ broad$preVisitorsDirectOther + broad$preVisitorsReferrals + ., data = dummiesDirectModelNeeded)
-summary(fullModelDirectOther)
-#paid+search visitors
-fullModelReferrals = lm(broad$postVisitorsReferrals ~ broad$preVisitorsDirectOther + broad$preVisitorsReferrals + ., data = dummiesDirectModelNeeded)
-summary(fullModelReferrals)
 
 # Evaluation (for now on FULL models)
 R2models = cbind(summary(baselineModelTotal)$r.squared, summary(treatmentOnlyModelTotal)$r.squared, summary(fullModelTotal)$r.squared)
@@ -205,23 +180,3 @@ format(R2_AIC_BICmodels, scientific = FALSE, digits = 2)
 
 fullModelTime = lm(broad$postVisitors ~broad$preVisitors +., data = dummiesDirectModelTime)
 summary(fullModelTime)
-
-
-#DUMMIES
-#1. Product: Wasmachines, television, laptop
-#2. Broadcast category: 7 
-#3. TV channel: 51?
-#4. Commercial length: 30, 30+10, 30+10+5
-#5. Position in break: beginning (1-3), middle (4-15), last (15-25??)
-
-#polynomial test
-polynomial = 6
-baselineModelTotal = lm(postVisitors ~ preVisitors + poly(time_min, polynomial), data = broad)
-summary(baselineModelTotal)
-
-xseq = seq(0,60*24)
-x = poly(xseq, polynomial)
-#y = x %*% coef(baselineModelTotal)[3:(polynomial+2)]
-y = x %*% coef(baselineModelTotal)[2:(polynomial+1)]
-plot(xseq, y)
-
