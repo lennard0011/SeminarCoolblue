@@ -7,6 +7,8 @@ install.packages("zoo")
 install.packages("CausalImpact")
 install.packages("factoextra")
 install.packages("fastDummies")
+install.packages("AIC")
+install.packages("BIC")
 
 #Adding packages
 library("chron")
@@ -19,6 +21,9 @@ library("zoo")
 library("CausalImpact")
 library("factoextra")
 library("fastDummies")
+library("lmtest") # use the variance estimator in a linear model
+library("sandwich") # computes robust covariance matrix estimators
+library("stats") # AIC, BIC
 
 #loading the data
 traffic = read.csv(file.choose(), header = T)
@@ -300,10 +305,17 @@ broad = subset(broad, select = -date_time)
 dummiesDirectModel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "channel", "length_of_spot", "position_in_break_3option"), remove_most_frequent_dummy = T)
 dummiesDirectModelNeeded = dummiesDirectModel[,31:92]
 dummiesDirectModelNeeded = as.data.frame(dummiesDirectModelNeeded)
+dummiesDirectModelNeeded = subset(dummiesDirectModelNeeded, select = -c(`channel_MTV (NL)`, `channel_RTL 5`, channel_SPIKE, 
+                                                                        channel_Viceland, channel_VIER, channel_ZES)) # Exclude singularities
 #broad = dummiesDirectModel # I am afraid to press this BUT this should include the dummy
 dummiesDirectModelNoChannel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option"), remove_most_frequent_dummy = T)
+<<<<<<< HEAD
+dummiesDirectModelNoChannel = dummiesDirectModelNoChannel[,33:44]
+dummiesDirectModelNoChannelNoProduct = subset(dummiesDirectModelNoChannel, select = -c(product_category_laptops, product_category_televisies)) # Exclude prod. cat
+=======
 dummiesDirectModelNoChannel = dummiesDirectModelNoChannel[,31:42]
 dummyPosition = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "channel", "length_of_spot", "position_in_break_3option"), remove_most_frequent_dummy = T)
 #broad = dummyPosition # I am afraid to press this BUT this should include the dummy
 dummiesDirectModelTime = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option", "weekdays"), remove_most_frequent_dummy = T)
 dummiesDirectModelTime = dummiesDirectModelTime[,32:49]
+>>>>>>> 6e9e775ecea21373758f779bb563816d8ee7b4c5
