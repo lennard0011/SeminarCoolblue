@@ -81,6 +81,42 @@ uniqueDatesBoth = base::intersect(uniqueDatesBel, uniqueDatesNet) #adverts in bo
 uniqueDatesOnlyBel = base::setdiff(uniqueDatesBel, uniqueDatesBoth) #adverts only in Belgium on certain day
 uniqueDatesOnlyNet = base::setdiff(uniqueDatesNet, uniqueDatesBoth) #adverts only in Netherlands on certain day
 
+#calculate average per day for different searches -- Netherlands
+av_traffic_day_net = matrix(NA, 24)
+traffic_net = traffic_net[order(traffic_net$date),]
+for (i in 1:24){
+  print(i)
+  traffic_subset = subset(traffic_net, (time_min >= (i - 1) * 60) & (time_min < i * 60))
+  av_traffic_day_net[i] = nrow(traffic_subset)/amountDays
+}
+traffic_net = traffic_net[order(as.numeric(row.names(traffic_net))),]
+
+#calculate average per day for different searches -- Belgium
+av_traffic_day_bel = matrix(NA, 24)
+traffic_bel = traffic_bel[order(traffic_bel$date),]
+for (i in 1:24){
+  print(i)
+  traffic_subset = subset(traffic_bel, (time_min >= (i - 1) * 60) & (time_min < i * 60))
+  av_traffic_day_bel[i] = nrow(traffic_subset)/amountDays
+}
+traffic_bel = traffic_bel[order(as.numeric(row.names(traffic_bel))),]
+
+
+hours = c("00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00")
+cat_net = rep("Netherlands", 24)
+cat_bel = rep("Belgium", 24)
+categories = c(cat_net, cat_bel)
+value = c(av_traffic_day_net, av_traffic_day_bel)
+data = data.frame(categories, hours, value)
+hourly_traffic = ggplot(data, aes(fill=categories, y=value, x=hours)) + scale_fill_grey(start = 0.7, end = 0.4)  +  geom_bar(position="stack", stat="identity")
+print(hourly_traffic + 
+        labs(fill = "Countries", title = "Average amount of website visitors per hour", y = "Average amount of website visitors", x = "Hour of the day")) + 
+        theme(plot.title = element_text(hjust = 0.5)) +
+        theme(axis.title.x = element_text(vjust = -0.5)) + 
+        theme(axis.ticks = element_blank()) + 
+        theme(axis.text.x = element_text(color=c("black","transparent","transparent","transparent", "transparent","transparent", "black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent")))
+        
+
 #amount of advertisements per day -- Total
 adAmount = matrix(0, scopeDays)
 for (i in 1:scopeDays){
@@ -313,4 +349,3 @@ dummiesDirectModelNeeded = subset(dummiesDirectModelNeeded, select = -c(`channel
 dummiesDirectModelNoChannel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option"), remove_most_frequent_dummy = T)
 dummiesDirectModelNoChannel = dummiesDirectModelNoChannel[,33:44]
 dummiesDirectModelNoChannelNoProduct = subset(dummiesDirectModelNoChannel, select = -c(product_category_laptops, product_category_televisies)) # Exclude prod. cat
-
