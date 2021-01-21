@@ -313,15 +313,11 @@ dummiesDirectModelNeeded = subset(dummiesDirectModelNeeded, select = -c(`channel
 dummiesDirectModelNoChannel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option"), remove_most_frequent_dummy = T)
 dummiesDirectModelNoChannel = dummiesDirectModelNoChannel[,33:44]
 dummiesDirectModelNoChannelNoProduct = subset(dummiesDirectModelNoChannel, select = -c(product_category_laptops, product_category_televisies)) # Exclude prod. cat
-<<<<<<< HEAD
-=======
+
 dummiesDirectModelNoChannel = dummiesDirectModelNoChannel[,31:42]
 dummyPosition = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "channel", "length_of_spot", "position_in_break_3option"), remove_most_frequent_dummy = T)
 #broad = dummyPosition # I am afraid to press this BUT this should include the dummy
 dummiesDirectModelTime = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option", "weekdays"), remove_most_frequent_dummy = T)
 dummiesDirectModelTime = dummiesDirectModelTime[,32:49]
->>>>>>> 6e9e775ecea21373758f779bb563816d8ee7b4c5
 corTabel <- cor(dummiesDirectModelNeeded)
-=======
 
->>>>>>> 59ece3358bf84f39858c895bb43ba70820c2f220
