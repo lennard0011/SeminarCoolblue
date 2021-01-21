@@ -336,7 +336,7 @@ broad = broad[order(as.numeric(row.names(broad))),]
 broad = subset(broad, select = -date_time)
 
 #hourly dummies
-broad$hours = floor(24*as.numeric(times(broad$time)))
+broad$hours = factor(floor(24*as.numeric(times(broad$time))))
 
 #1. Product: Wasmachines, television, laptop
 #2. Broadcast category: 7 
@@ -353,9 +353,9 @@ dummiesDirectModelNeeded = as.data.frame(dummiesDirectModelNeeded)
 dummiesDirectModelNeeded = subset(dummiesDirectModelNeeded, select = -c(`channel_MTV (NL)`, `channel_RTL 5`, channel_SPIKE, 
                                                                         channel_Viceland, channel_VIER, channel_ZES)) # Exclude singularities
 #broad = dummiesDirectModel # I am afraid to press this BUT this should include the dummy
-dummiesDirectModelNoChannel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option", "hours"), remove_first_dummy = T)
+dummiesDirectModelNoChannel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option"), remove_first_dummy = T)
 dummiesDirectModelNoChannel = dummiesDirectModelNoChannel[,((ncol(broad)+1):ncol(dummiesDirectModelNoChannel))]
-dummiesDirectModelNoCluster = dummy_cols(.data = broad, select_columns = c("channel", "product_category", "length_of_spot", "position_in_break_3option", "hours", "program_category_before"), remove_most_frequent_dummy = T)
+dummiesDirectModelNoCluster = dummy_cols(.data = broad, select_columns = c("channel", "product_category", "length_of_spot", "position_in_break_3option", "program_category_before"), remove_most_frequent_dummy = T)
 dummiesDirectModelNoCluster = dummiesDirectModelNoCluster[,((ncol(broad)+1):ncol(dummiesDirectModelNoCluster))]
 dummiesDirectModelNoChannelNoProduct = subset(dummiesDirectModelNoChannel, select = -c(product_category_wasmachines, product_category_televisies)) # Exclude prod. cat
 
