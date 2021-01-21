@@ -9,6 +9,7 @@ install.packages("factoextra")
 install.packages("fastDummies")
 install.packages("AIC")
 install.packages("BIC")
+install.packages("Metrics")
 
 #Adding packages
 library("chron")
@@ -24,6 +25,7 @@ library("fastDummies")
 library("lmtest") # use the variance estimator in a linear model
 library("sandwich") # computes robust covariance matrix estimators
 library("stats") # AIC, BIC
+library("Metrics") #rmse calc
 
 #loading the data
 traffic = read.csv(file.choose(), header = T)
@@ -80,6 +82,42 @@ uniqueDatesNet = unique(broad_net$date)
 uniqueDatesBoth = base::intersect(uniqueDatesBel, uniqueDatesNet) #adverts in both on certain day
 uniqueDatesOnlyBel = base::setdiff(uniqueDatesBel, uniqueDatesBoth) #adverts only in Belgium on certain day
 uniqueDatesOnlyNet = base::setdiff(uniqueDatesNet, uniqueDatesBoth) #adverts only in Netherlands on certain day
+
+#calculate average per day for different searches -- Netherlands
+av_traffic_day_net = matrix(NA, 24)
+traffic_net = traffic_net[order(traffic_net$date),]
+for (i in 1:24){
+  print(i)
+  traffic_subset = subset(traffic_net, (time_min >= (i - 1) * 60) & (time_min < i * 60))
+  av_traffic_day_net[i] = nrow(traffic_subset)/amountDays
+}
+traffic_net = traffic_net[order(as.numeric(row.names(traffic_net))),]
+
+#calculate average per day for different searches -- Belgium
+av_traffic_day_bel = matrix(NA, 24)
+traffic_bel = traffic_bel[order(traffic_bel$date),]
+for (i in 1:24){
+  print(i)
+  traffic_subset = subset(traffic_bel, (time_min >= (i - 1) * 60) & (time_min < i * 60))
+  av_traffic_day_bel[i] = nrow(traffic_subset)/amountDays
+}
+traffic_bel = traffic_bel[order(as.numeric(row.names(traffic_bel))),]
+
+
+hours = c("00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00")
+cat_net = rep("Netherlands", 24)
+cat_bel = rep("Belgium", 24)
+categories = c(cat_net, cat_bel)
+value = c(av_traffic_day_net, av_traffic_day_bel)
+data = data.frame(categories, hours, value)
+hourly_traffic = ggplot(data, aes(fill=categories, y=value, x=hours)) + scale_fill_grey(start = 0.7, end = 0.4)  +  geom_bar(position="stack", stat="identity")
+print(hourly_traffic + 
+        labs(fill = "Countries", title = "Average amount of website visitors per hour", y = "Average amount of website visitors", x = "Hour of the day")) + 
+        theme(plot.title = element_text(hjust = 0.5)) +
+        theme(axis.title.x = element_text(vjust = -0.5)) + 
+        theme(axis.ticks = element_blank()) + 
+        theme(axis.text.x = element_text(color=c("black","transparent","transparent","transparent", "transparent","transparent", "black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent")))
+        
 
 #amount of advertisements per day -- Total
 adAmount = matrix(0, scopeDays)
@@ -297,27 +335,36 @@ for (i in 1:nBroad){
 broad = broad[order(as.numeric(row.names(broad))),]
 broad = subset(broad, select = -date_time)
 
+#hourly dummies
+broad$hours = floor(24*as.numeric(times(broad$time)))
+
 #1. Product: Wasmachines, television, laptop
 #2. Broadcast category: 7 
 #3. TV channel: 51
 #4. Commercial length: 30, 30+10, 30+10+5
 #5. Position in break: beginning (1-3), middle (4-15), last (15-25??)
-dummiesDirectModel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "channel", "length_of_spot", "position_in_break_3option"), remove_most_frequent_dummy = T)
+#6. Hour dummies
 
-dummiesDirectModelNeeded = dummiesDirectModel[,(33:94)]
+dummiesDirectModel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "channel", "length_of_spot", "position_in_break_3option", "hours"), remove_most_frequent_dummy = T)
+
+dummiesDirectModelNeeded = dummiesDirectModel[,((ncol(broad)+1):ncol(dummiesDirectModel))]
 
 dummiesDirectModelNeeded = as.data.frame(dummiesDirectModelNeeded)
 dummiesDirectModelNeeded = subset(dummiesDirectModelNeeded, select = -c(`channel_MTV (NL)`, `channel_RTL 5`, channel_SPIKE, 
                                                                         channel_Viceland, channel_VIER, channel_ZES)) # Exclude singularities
 #broad = dummiesDirectModel # I am afraid to press this BUT this should include the dummy
-dummiesDirectModelNoChannel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option"), remove_most_frequent_dummy = T)
-dummiesDirectModelNoChannel = dummiesDirectModelNoChannel[,33:44]
-dummiesDirectModelNoChannelNoProduct = subset(dummiesDirectModelNoChannel, select = -c(product_category_laptops, product_category_televisies)) # Exclude prod. cat
 
-dummiesDirectModelNoChannel = dummiesDirectModelNoChannel[,31:42]
-dummyPosition = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "channel", "length_of_spot", "position_in_break_3option"), remove_most_frequent_dummy = T)
-#broad = dummyPosition # I am afraid to press this BUT this should include the dummy
+dummiesDirectModelNoChannel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option", "hours"), remove_first_dummy = T)
+dummiesDirectModelNoChannel = dummiesDirectModelNoChannel[,((ncol(broad)+1):ncol(dummiesDirectModelNoChannel))]
+dummiesDirectModelNoCluster = dummy_cols(.data = broad, select_columns = c("channel", "product_category", "length_of_spot", "position_in_break_3option", "hours", "program_category_before"), remove_most_frequent_dummy = T)
+dummiesDirectModelNoCluster = dummiesDirectModelNoCluster[,((ncol(broad)+1):ncol(dummiesDirectModelNoCluster))]
+dummiesDirectModelNoChannelNoProduct = subset(dummiesDirectModelNoChannel, select = -c(product_category_wasmachines, product_category_televisies)) # Exclude prod. cat
+
+#broad data with broadcasts that have a gross rating higher than 0
+#broadNonZeroGross = broad[broad[, "gross_rating_point"] > 0,]
+
 dummiesDirectModelTime = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option", "weekdays"), remove_most_frequent_dummy = T)
 dummiesDirectModelTime = dummiesDirectModelTime[,32:49]
+
 corTabel <- cor(dummiesDirectModelNeeded)
 
