@@ -128,43 +128,79 @@ coefficients(modelVisitorsAdv)
 
 
 ##REGRESSION MODELS 2-minute model
-
+dummiesDirectModelNeeded
 
 # TODO include option to regress on positive GRP obsv. only
 # TODO delete NA dummies `channel_MTV (NL)` `channel_RTL 5` channel_SPIKE  channel_Viceland  channel_VIER channel_ZES  
 
 # Baseline models
 #all visitors
-baselineModelTotal = lm(postVisitors ~ preVisitors, data = broad)
+baselineModelTotal = lm(postVisitors ~ preVisitors + factor(hours), data = broadNonZeroGross)
 coeftest(baselineModelTotal, vcov = vcovHC(baselineModelTotal, type="HC1")) # robust se
 summary(baselineModelTotal) # to get R^2
 hist(baselineModelTotal$residuals)
+AIC(baselineModelTotal)
+BIC(baselineModelTotal)
 
 # Treatment effect only models
-#all visitors
-treatmentOnlyModelTotal = lm(broad$postVisitors ~ ., data = dummiesDirectModelNeeded)
+# all visitors
+treatmentOnlyModelTotal = lm(broadNonZeroGross$postVisitors ~ broadNonZeroGross$preVisitors + ., data = dummiesDirectModelNeeded)
+coeftest(treatmentOnlyModelTotal, vcov = vcovHC(treatmentOnlyModelTotal, type="HC1")) # robust se
 summary(treatmentOnlyModelTotal)
-hist(baselineModelTotal$residuals)
+hist(baselineModelTotal$residuals, breaks=100)
+AIC(treatmentOnlyModelTotal)
+BIC(treatmentOnlyModelTotal)
+# no channel
+treatmentOnlyModelTotal = lm(broadNonZeroGross$postVisitors ~ broadNonZeroGross$preVisitors + ., data = dummiesDirectModelNoChannel)
+coeftest(treatmentOnlyModelTotal, vcov = vcovHC(treatmentOnlyModelTotal, type="HC1")) # robust se
+summary(treatmentOnlyModelTotal)
+AIC(treatmentOnlyModelTotal)
+BIC(treatmentOnlyModelTotal)
+
+
+#Calculate Mean Squared Prediction Error
+trainIndex = floor(nrow(broad)*0.8)
+hourFacFull = factor(broad$hours)
+
+postVis = broad$postVisitors[1:trainIndex]
+preVis = broad$preVisitors[1:trainIndex]
+hourFac = hourFacFull[1:trainIndex]
+dumm = dummiesDirectModelNoCluster[1:trainIndex,]
+#dumm = dummiesDirectModelNoChannel[1:trainIndex,]
+
+trainData = as.data.frame(cbind(postVis, preVis, hourFac))
+trainDataTreat = as.data.frame(cbind(postVis, preVis, dumm))
+
+postVis = broad$postVisitors[(trainIndex+1):nrow(broad)] 
+preVis = broad$preVisitors[(trainIndex+1):nrow(broad)]
+hourFac = hourFacFull[(trainIndex+1):nrow(broad)]
+dumm = dummiesDirectModelNoCluster[(trainIndex+1):nrow(broad),]
+#dumm = dummiesDirectModelNoChannel[(trainIndex+1):nrow(broadNonZeroGross),]
+testData = as.data.frame(cbind(postVis, preVis, hourFac))
+testDataTreat = as.data.frame(cbind(postVis, preVis, dumm))
+
+# Baseline model
+baselineModelTotal = lm(postVis ~ preVis + factor(hourFac), data=trainData)
+summary(baselineModelTotal)
+rmse(testData$postVis, predict(baselineModelTotal, testData))
+
+# Full treatment model
+treatmentOnlyModelTotal = lm(postVis ~ preVis + ., data = trainDataTreat)
+summary(treatmentOnlyModelTotal)
+rmse(testDataTreat$postVis, predict(treatmentOnlyModelTotal, testDataTreat))
+
+
+
+
+#stop
+
+
+
+
 
 # Full models
 #all visitors
 
-<<<<<<< HEAD
-#REGRESSION MODELS 2-minute model
-
-=======
-baselineModelTotal = lm(postVisitors ~ preVisitors, data = broad)
-summary(baselineModelTotal)
->>>>>>> 2d9e60f840de443652507b53edff0adcf5cf4cac
-
-
-# full models
-
-fullModelTotal = lm(broad$postVisitors ~ broad$preVisitors + ., data = dummiesDirectModelNeeded)
-coeftest(fullModelTotal, vcov = vcovHC(fullModelTotal, type="HC1")) # robust se
-
-summary(fullModelTotal)
-hist(fullModelTotal$residuals)
 #all visitors -- no channel dummies
 fullModelTotalNoChannel = lm(broad$postVisitors ~ broad$preVisitors + ., data = dummiesDirectModelNoChannel)
 coeftest(fullModelTotalNoChannel, vcov = vcovHC(fullModelTotalNoChannel, type="HC1")) # robust se
@@ -187,9 +223,7 @@ format(R2_AIC_BICmodels, scientific = FALSE, digits = 2)
 
 
 fullModelTime = lm(broad$postVisitors ~broad$preVisitors +., data = dummiesDirectModelTime)
-<<<<<<< HEAD
-summary(fullModelTime)
-=======
+
 summary(fullModelTime)
 
 
@@ -211,5 +245,3 @@ x = poly(xseq, polynomial)
 #y = x %*% coef(baselineModelTotal)[3:(polynomial+2)]
 y = x %*% coef(baselineModelTotal)[2:(polynomial+1)]
 plot(xseq, y)
-
->>>>>>> 2d9e60f840de443652507b53edff0adcf5cf4cac

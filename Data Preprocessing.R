@@ -9,6 +9,7 @@ install.packages("factoextra")
 install.packages("fastDummies")
 install.packages("AIC")
 install.packages("BIC")
+install.packages("Metrics")
 
 #Adding packages
 library("chron")
@@ -24,6 +25,7 @@ library("fastDummies")
 library("lmtest") # use the variance estimator in a linear model
 library("sandwich") # computes robust covariance matrix estimators
 library("stats") # AIC, BIC
+library("Metrics") #rmse calc
 
 #loading the data
 traffic = read.csv(file.choose(), header = T)
@@ -297,20 +299,38 @@ for (i in 1:nBroad){
 broad = broad[order(as.numeric(row.names(broad))),]
 broad = subset(broad, select = -date_time)
 
+#hourly dummies
+broad$hours = floor(24*as.numeric(times(broad$time)))
+
 #1. Product: Wasmachines, television, laptop
 #2. Broadcast category: 7 
 #3. TV channel: 51
 #4. Commercial length: 30, 30+10, 30+10+5
 #5. Position in break: beginning (1-3), middle (4-15), last (15-25??)
-dummiesDirectModel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "channel", "length_of_spot", "position_in_break_3option"), remove_most_frequent_dummy = T)
+#6. Hour dummies
 
-dummiesDirectModelNeeded = dummiesDirectModel[,(33:94)]
+dummiesDirectModel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "channel", "length_of_spot", "position_in_break_3option", "hours"), remove_most_frequent_dummy = T)
+
+dummiesDirectModelNeeded = dummiesDirectModel[,((ncol(broad)+1):ncol(dummiesDirectModel))]
 
 dummiesDirectModelNeeded = as.data.frame(dummiesDirectModelNeeded)
 dummiesDirectModelNeeded = subset(dummiesDirectModelNeeded, select = -c(`channel_MTV (NL)`, `channel_RTL 5`, channel_SPIKE, 
                                                                         channel_Viceland, channel_VIER, channel_ZES)) # Exclude singularities
 #broad = dummiesDirectModel # I am afraid to press this BUT this should include the dummy
-dummiesDirectModelNoChannel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option"), remove_most_frequent_dummy = T)
-dummiesDirectModelNoChannel = dummiesDirectModelNoChannel[,33:44]
-dummiesDirectModelNoChannelNoProduct = subset(dummiesDirectModelNoChannel, select = -c(product_category_laptops, product_category_televisies)) # Exclude prod. cat
+dummiesDirectModelNoChannel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option", "hours"), remove_first_dummy = T)
+dummiesDirectModelNoChannel = dummiesDirectModelNoChannel[,((ncol(broad)+1):ncol(dummiesDirectModelNoChannel))]
+dummiesDirectModelNoCluster = dummy_cols(.data = broad, select_columns = c("channel", "product_category", "length_of_spot", "position_in_break_3option", "hours", "program_category_before"), remove_most_frequent_dummy = T)
+dummiesDirectModelNoCluster = dummiesDirectModelNoCluster[,((ncol(broad)+1):ncol(dummiesDirectModelNoCluster))]
+dummiesDirectModelNoChannelNoProduct = subset(dummiesDirectModelNoChannel, select = -c(product_category_wasmachines, product_category_televisies)) # Exclude prod. cat
 
+#broad data with broadcasts that have a gross rating higher than 0
+#broadNonZeroGross = broad[broad[, "gross_rating_point"] > 0,]
+broad = broad[order(broad$date),]
+dummiesDirectModel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "channel", "length_of_spot", "position_in_break_3option", "hours"), remove_most_frequent_dummy = T)
+
+dummiesDirectModelNeeded = dummiesDirectModel[,((ncol(broad)+1):ncol(dummiesDirectModel))]
+
+dummiesDirectModelNeeded = as.data.frame(dummiesDirectModelNeeded)
+dummiesDirectModelNeeded = subset(dummiesDirectModelNeeded, select = -c(`channel_MTV (NL)`, `channel_RTL 5`, channel_SPIKE, 
+                                                                        channel_Viceland, channel_VIER, channel_ZES, `channel_Fox Sports 3`,channel_VITAYA, 
+                                                                        channel_XITE, `channel_HISTORY CHANNEL NL`, `channel_BBC First Holland`,`channel_National Geographic Channel`, `channel_NATIONAL GEOGRAPHIC NL`)) # Exclude singularities
