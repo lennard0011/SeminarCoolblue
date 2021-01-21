@@ -128,7 +128,6 @@ coefficients(modelVisitorsAdv)
 
 
 ##REGRESSION MODELS 2-minute model
-dummiesDirectModelNeeded
 
 # TODO include option to regress on positive GRP obsv. only
 # TODO delete NA dummies `channel_MTV (NL)` `channel_RTL 5` channel_SPIKE  channel_Viceland  channel_VIER channel_ZES  
@@ -159,35 +158,24 @@ BIC(treatmentOnlyModelTotal)
 
 
 #Calculate Mean Squared Prediction Error
-trainIndex = floor(nrow(broad)*0.8)
-hourFacFull = factor(broad$hours)
+postVisitors = broad$postVisitors
+preVisitors = broad$preVisitors
+hours = broad$hours
+broadDumm = cbind(postVisitors, preVisitors, hours, dummiesDirectModelNoChannelNoProduct)
 
-postVis = broad$postVisitors[1:trainIndex]
-preVis = broad$preVisitors[1:trainIndex]
-hourFac = hourFacFull[1:trainIndex]
-dumm = dummiesDirectModelNoCluster[1:trainIndex,]
-#dumm = dummiesDirectModelNoChannel[1:trainIndex,]
-
-trainData = as.data.frame(cbind(postVis, preVis, hourFac))
-trainDataTreat = as.data.frame(cbind(postVis, preVis, dumm))
-
-postVis = broad$postVisitors[(trainIndex+1):nrow(broad)] 
-preVis = broad$preVisitors[(trainIndex+1):nrow(broad)]
-hourFac = hourFacFull[(trainIndex+1):nrow(broad)]
-dumm = dummiesDirectModelNoCluster[(trainIndex+1):nrow(broad),]
-#dumm = dummiesDirectModelNoChannel[(trainIndex+1):nrow(broadNonZeroGross),]
-testData = as.data.frame(cbind(postVis, preVis, hourFac))
-testDataTreat = as.data.frame(cbind(postVis, preVis, dumm))
+sampleSplit = sample.split(broadDumm$postVisitors, SplitRatio = 0.8)
+broadTrain = broadDumm[sampleSplit == TRUE,]
+broadTest = broadDumm[sampleSplit == FALSE,]
 
 # Baseline model
-baselineModelTotal = lm(postVis ~ preVis + factor(hourFac), data=trainData)
+baselineModelTotal = lm(postVisitors ~ preVisitors + hours, data=broadTrain)
 summary(baselineModelTotal)
-rmse(testData$postVis, predict(baselineModelTotal, testData))
+rmse(broadTest$postVisitors, predict(baselineModelTotal, broadTest))
 
 # Full treatment model
-treatmentOnlyModelTotal = lm(postVis ~ preVis + ., data = trainDataTreat)
+treatmentOnlyModelTotal = lm(postVisitors ~ ., data = broadTrain)
 summary(treatmentOnlyModelTotal)
-rmse(testDataTreat$postVis, predict(treatmentOnlyModelTotal, testDataTreat))
+rmse(broadTest$postVisitors, predict(treatmentOnlyModelTotal, broadTest))
 
 
 
