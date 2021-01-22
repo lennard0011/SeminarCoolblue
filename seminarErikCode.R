@@ -179,3 +179,13 @@ summary(regrAdsNetLag) # not significant as well
   #create best ARMA(p,q) model: lowest AIC&SIC, plot autocorrelations (AR1=to0)
   #inclusion of level and/or trend  
   #misspecification tests (slide 21-23 BasicConc2 TRA / Ectrie 2)
+
+# Bekijk nog eens de grootste 10 reclames
+broadMostViewed <- broad[order(broad$gross_rating_point, decreasing = T),]
+broadMostViewed <- subset(broadMostViewed, gross_rating_point > 1)
+nrow(broadMostViewed)
+
+broadMostViewed <- broadMostViewed[1:10,]
+
+# wat zijn de 10 grootste
+# 5 min prior, 5 min post
