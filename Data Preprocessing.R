@@ -103,11 +103,41 @@ for (i in 1:24){
 }
 traffic_bel = traffic_bel[order(as.numeric(row.names(traffic_bel))),]
 
+#calculate average amount of broadcasts per day -- Netherlands
+av_broad_day_net = matrix(NA, 24)
+broad_net = broad_net[order(broad_net$date),]
+for (i in 1:24){
+  print(i)
+  broad_subset = subset(broad_net, (time_min >= (i - 1) * 60) & (time_min < i * 60))
+  av_broad_day_net[i] = nrow(broad_subset)/amountDays
+}
+broad_net = broad_net[order(as.numeric(row.names(broad_net))),]
+
+#calculate average amount of broadcasts per day -- Belgium
+av_broad_day_bel = matrix(NA, 24)
+broad_bel = broad_bel[order(broad_bel$date),]
+for (i in 1:24){
+  print(i)
+  broad_subset = subset(broad_bel, (time_min >= (i - 1) * 60) & (time_min < i * 60))
+  av_broad_day_bel[i] = nrow(broad_subset)/amountDays
+}
+broad_bel = broad_bel[order(as.numeric(row.names(broad_bel))),]
 
 hours = c("00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00")
 cat_net = rep("Netherlands", 24)
 cat_bel = rep("Belgium", 24)
 categories = c(cat_net, cat_bel)
+value = c(av_broad_day_net, av_broad_day_bel)
+data = data.frame(categories, hours, value)
+hourly_traffic = ggplot(data, aes(fill=categories, y=value, x=hours)) + scale_fill_grey(start = 0.7, end = 0.4)  +  geom_bar(position="stack", stat="identity")
+print(hourly_traffic + 
+        labs(fill = "Countries", title = "Average amount of broadcasts per hour", y = "Average amount of broadcasts", x = "Hour of the day")) + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(axis.title.x = element_text(vjust = -0.5)) + 
+  theme(axis.ticks = element_blank()) + 
+  theme(axis.text.x = element_text(color=c("black","transparent","transparent","transparent", "transparent","transparent", "black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent"))) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"))
+
 value = c(av_traffic_day_net, av_traffic_day_bel)
 data = data.frame(categories, hours, value)
 hourly_traffic = ggplot(data, aes(fill=categories, y=value, x=hours)) + scale_fill_grey(start = 0.7, end = 0.4)  +  geom_bar(position="stack", stat="identity")
@@ -116,11 +146,11 @@ print(hourly_traffic +
         theme(plot.title = element_text(hjust = 0.5)) +
         theme(axis.title.x = element_text(vjust = -0.5)) + 
         theme(axis.ticks = element_blank()) + 
-        theme(axis.text.x = element_text(color=c("black","transparent","transparent","transparent", "transparent","transparent", "black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent")))
-        
+        theme(axis.text.x = element_text(color=c("black","transparent","transparent","transparent", "transparent","transparent", "black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent"))) +
+        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"))
 
 #amount of advertisements per day -- Total
-adAmount = matrix(0, scopeDays)
+adAmount = matrix(0, scopeDays) 
 for (i in 1:scopeDays){
   iDate = as.Date(i - 1, origin = "2019-01-01")
   adsIDate = sum(broad$date == iDate)
@@ -307,6 +337,123 @@ for (i in 1:nBroad) {
   }
 }
 
+#new program categories
+broad$program_category_before_2 = broad$program_category_before
+broad$program_category_after_2 = broad$program_category_after
+for (i in 1:nBroad){
+  #spanning
+  if (broad$program_category_before[i] %in% c('btl series: spanning', 'btl films: spanning', 'nld series: spanning', 'nld films: spanning')){
+    broad$program_category_before_2[i] = 'spanning'
+  }
+  if (broad$program_category_after[i] %in% c('btl series: spanning', 'btl films: spanning', 'nld series: spanning', 'nld films: spanning')){
+    broad$program_category_after_2[i] = 'spanning'
+  }
+  
+  #series/films: overig
+  if (broad$program_category_before[i] %in% c('btl series: overig', 'nld series: overig', 'btl films: overig', 'film', 'serie')){
+    broad$program_category_before_2[i] = 'films_series_overig'
+  }
+  if (broad$program_category_after[i] %in% c('btl series: overig', 'nld series: overig', 'btl films: overig', 'film', 'serie')){
+    broad$program_category_after_2[i] = 'films_series_overig'
+  }
+  
+  #drama
+  if (broad$program_category_before[i] %in% c('nld series: drama', 'btl series: drama', 'btl films: drama', 'nld films: drama')){
+    broad$program_category_before_2[i] = 'drama'
+  }
+  if (broad$program_category_after[i] %in% c('nld series: drama', 'btl series: drama', 'btl films: overig', 'nld films: drama')){
+    broad$program_category_after_2[i] = 'drama'
+  }
+  
+  #talent show
+  if (broad$program_category_before[i] %in% c('show', 'talentenjacht of auditieprogramma')){
+    broad$program_category_before_2[i] = 'talent_show'
+  }
+  if (broad$program_category_after[i] %in% c('show', 'talentenjacht of auditieprogramma')){
+    broad$program_category_after_2[i] = 'talent_show'
+  }
+  
+  #reality
+  if (broad$program_category_before[i] %in% c('reality structured', 'docusoap/reality serie', 'reality show')){
+    broad$program_category_before_2[i] = 'reality'
+  }
+  if (broad$program_category_after[i] %in% c('reality structured', 'docusoap/reality serie', 'reality show')){
+    broad$program_category_after_2[i] = 'reality'
+  }
+  
+  #comedy
+  if (broad$program_category_before[i] %in% c('on stage', 'nld series: (sit)comedy', 'btl series: (sit)comedy', 'nld films: comedy', 'btl films: comedy')){
+    broad$program_category_before_2[i] = 'comedy'
+  }
+  if (broad$program_category_after[i] %in% c('on stage', 'nld series: (sit)comedy', 'btl series: (sit)comedy', 'nld films: comedy', 'btl films: comedy')){
+    broad$program_category_after_2[i] = 'comedy'
+  }
+  
+  #sport
+  if (broad$program_category_before[i] %in% c('voetbalreportage', 'actuele sportinformatie', 'overige sportinformatie', 'overige sportreportage')){
+    broad$program_category_before_2[i] = 'sport'
+  }
+  if (broad$program_category_after[i] %in% c('voetbalreportage', 'actuele sportinformatie', 'overige sportinformatie', 'overige sportreportage')){
+    broad$program_category_after_2[i] = 'sport'
+  }
+  
+  #music
+  if (broad$program_category_before[i] %in% c('populaire muziek: videoclips', 'populaire muziek: programma', 'overige muziek: overig')){
+    broad$program_category_before_2[i] = 'music'
+  }
+  if (broad$program_category_after[i] %in% c('populaire muziek: videoclips', 'populaire muziek: programma', 'overige muziek: overig')){
+    broad$program_category_after_2[i] = 'music'
+  }
+  
+  #quiz
+  if (broad$program_category_before[i] %in% c('spel & quiz', 'game/quiz')){
+    broad$program_category_before_2[i] = 'quiz'
+  }
+  if (broad$program_category_after[i] %in% c('spel & quiz', 'game/quiz')){
+    broad$program_category_after_2[i] = 'quiz'
+  }
+  
+  #soap
+  if (broad$program_category_before[i] %in% c('btl series: soap', 'nld series: soap')){
+    broad$program_category_before_2[i] = 'soap'
+  }
+  if (broad$program_category_after[i] %in% c('btl series: soap', 'nld series: soap')){
+    broad$program_category_after_2[i] = 'soap'
+  }
+  
+  #news
+  if (broad$program_category_before[i] %in% c('weerbericht', 'actualiteiten', 'nieuws', 'news/flash')){
+    broad$program_category_before_2[i] = 'news'
+  }
+  if (broad$program_category_after[i] %in% c('weerbericht', 'actualiteiten', 'nieuws', 'news/flash')){
+    broad$program_category_after_2[i] = 'news'
+  }
+  
+  #children
+  if (broad$program_category_before[i] %in% c('animation serie/cartoon', 'animation film', 'kinderen: non fictie', 'kinderfilms: tekenfilm/animatie/poppen', 'kinderen: amusement')){
+    broad$program_category_before_2[i] = 'children'
+  }
+  if (broad$program_category_after[i] %in% c('animation serie/cartoon', 'animation film', 'kinderen: non fictie', 'kinderfilms: tekenfilm/animatie/poppen', 'kinderen: amusement')){
+    broad$program_category_after_2[i] = 'children'
+  }
+  
+  #documentary
+  if (broad$program_category_before[i] %in% c('documentary film', 'documentary series')){
+    broad$program_category_before_2[i] = 'documentary'
+  }
+  if (broad$program_category_after[i] %in% c('documentary film', 'documentary series')){
+    broad$program_category_after_2[i] = 'documentary'
+  }
+  
+  #not enough observations
+  if (broad$program_category_before[i] %in% c('debate/talk show', 'other studio/structured/show', 'tekstuele informatie', 'cabaret/kleinkunst', 'godsdienst/verkondiging', 'kunst', 'satirisch programma', 'reizen/vakantie/toerisme', 'storing', 'programme trailer', 'other advertising', 'algemene consumenten informatie')){
+    broad$program_category_before_2[i] = 'small'
+  }
+  if (broad$program_category_after[i] %in% c('debate/talk show', 'other studio/structured/show', 'tekstuele informatie', 'cabaret/kleinkunst', 'godsdienst/verkondiging', 'kunst', 'satirisch programma', 'reizen/vakantie/toerisme', 'storing', 'programme trailer', 'other advertising', 'algemene consumenten informatie')){
+    broad$program_category_after_2[i] = 'small'
+  }
+}
+
 #overlap dummy
 intervalSize = 4
 broad = broad[order(broad$date_time),]
@@ -336,7 +483,7 @@ broad = broad[order(as.numeric(row.names(broad))),]
 broad = subset(broad, select = -date_time)
 
 #hourly dummies
-broad$hours = floor(24*as.numeric(times(broad$time)))
+broad$hours = factor(floor(24*as.numeric(times(broad$time))))
 
 #1. Product: Wasmachines, television, laptop
 #2. Broadcast category: 7 
@@ -353,10 +500,9 @@ dummiesDirectModelNeeded = as.data.frame(dummiesDirectModelNeeded)
 dummiesDirectModelNeeded = subset(dummiesDirectModelNeeded, select = -c(`channel_MTV (NL)`, `channel_RTL 5`, channel_SPIKE, 
                                                                         channel_Viceland, channel_VIER, channel_ZES)) # Exclude singularities
 #broad = dummiesDirectModel # I am afraid to press this BUT this should include the dummy
-
-dummiesDirectModelNoChannel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option", "hours"), remove_first_dummy = T)
+dummiesDirectModelNoChannel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option"), remove_first_dummy = T)
 dummiesDirectModelNoChannel = dummiesDirectModelNoChannel[,((ncol(broad)+1):ncol(dummiesDirectModelNoChannel))]
-dummiesDirectModelNoCluster = dummy_cols(.data = broad, select_columns = c("channel", "product_category", "length_of_spot", "position_in_break_3option", "hours", "program_category_before"), remove_most_frequent_dummy = T)
+dummiesDirectModelNoCluster = dummy_cols(.data = broad, select_columns = c("channel", "product_category", "length_of_spot", "position_in_break_3option", "program_category_before"), remove_most_frequent_dummy = T)
 dummiesDirectModelNoCluster = dummiesDirectModelNoCluster[,((ncol(broad)+1):ncol(dummiesDirectModelNoCluster))]
 dummiesDirectModelNoChannelNoProduct = subset(dummiesDirectModelNoChannel, select = -c(product_category_wasmachines, product_category_televisies)) # Exclude prod. cat
 
@@ -367,4 +513,3 @@ dummiesDirectModelTime = dummy_cols(.data = broad, select_columns = c("cluster",
 dummiesDirectModelTime = dummiesDirectModelTime[,32:49]
 
 corTabel <- cor(dummiesDirectModelNeeded)
-
