@@ -73,19 +73,11 @@ visAppNet = traffic[traffic$medium == "app" & traffic$country == "Netherlands" &
 visWebBel = traffic[traffic$medium == "website" & traffic$country == "Belgium" & traffic$visit_source != "push notification", ]
 visAppBel = traffic[traffic$medium == "app" & traffic$country == "Belgium" & traffic$visit_source != "push notification", ]
 
-<<<<<<< HEAD
-visWebNetSum = aggregate(visits_index ~ date_time, data = visWebNet, FUN=sum, simplify = TRUE, drop = TRUE)
-names(visWebNetSum) = cbind("date_time", "visitsWebNet")
+visWebNetSum = aggregate(visits_index ~ date + time_min, data = visWebNet, FUN=sum, simplify = TRUE, drop = TRUE)
+names(visWebNetSum) = cbind("date", "time_min", "visitsWebNet")
 
-visAppNetSum = aggregate(visits_index ~ date_time, data = visAppNet, FUN=sum, simplify = TRUE, drop = TRUE)
-names(visAppNetSum) = cbind("date_time", "visitsAppNet")
-=======
-visWebNedSum = aggregate(visits_index ~ date + time_min, data = visWebNed, FUN=sum, simplify = TRUE, drop = TRUE)
-names(visWebNedSum) = cbind("date", "time_min", "visitsWebNed")
-
-visAppNedSum = aggregate(visits_index ~ date +  time_min + date, data = visAppNed, FUN=sum, simplify = TRUE, drop = TRUE)
-names(visAppNedSum) = cbind("date", "time_min", "visitsAppNed")
->>>>>>> 4c516bbf068229e1e6418f761c229aa285ce90b0
+visAppNetSum = aggregate(visits_index ~ date +  time_min + date, data = visAppNet, FUN=sum, simplify = TRUE, drop = TRUE)
+names(visAppNetSum) = cbind("date", "time_min", "visitsAppNet")
 
 visWebBelSum = aggregate(visits_index ~ date + time_min + date, data = visWebBel, FUN=sum, simplify = TRUE, drop = TRUE)
 names(visWebBelSum) = cbind("date", "time_min", "visitsWebBel")
@@ -93,15 +85,8 @@ names(visWebBelSum) = cbind("date", "time_min", "visitsWebBel")
 visAppBelSum = aggregate(visits_index ~ date + time_min + date, data = visAppBel, FUN=sum, simplify = TRUE, drop = TRUE)
 names(visAppBelSum) = cbind("date", "time_min", "visitsAppBel")
 
-
-<<<<<<< HEAD
 visitorsSum = merge(merge(visWebNetSum, visAppNetSum, all = TRUE), merge(visWebBelSum, visAppBelSum, all = TRUE), all = TRUE)
 visitorsSum[is.na(visitorsSum)] = 0
-=======
-visitorsSum = merge(merge(visWebNedSum, visAppNedSum, all = TRUE), merge(visWebBelSum, visAppBelSum, all = TRUE), all = TRUE)
-
-visitorsSum[is.na(visitorsSum)] <- 0
->>>>>>> 4c516bbf068229e1e6418f761c229aa285ce90b0
 
 #Further country specific variables + Aggregate clicks no a day
 traffic_net = subset(traffic, country == 'Netherlands')
@@ -392,7 +377,7 @@ broad['position_in_break_3option'] = 0
 for (i in 1:nBroad) {
   if(broad$position_in_break[i] == "0" || broad$position_in_break[i] == "1" || broad$position_in_break[i] == "2" ||
      broad$position_in_break[i] == "First Position" || broad$position_in_break[i] == "Second Position") {
-    broad$position_in_break_3option[i] <- "begin"
+    broad$position_in_break_3option[i] = "begin"
   } else if (broad$position_in_break[i] == "3" || broad$position_in_break[i] == "4" || broad$position_in_break[i] == "5" ||
              broad$position_in_break[i] == "6" || broad$position_in_break[i] == "7" || broad$position_in_break[i] == "8" ||
              broad$position_in_break[i] == "9" || broad$position_in_break[i] == "10" || broad$position_in_break[i] == "11" ||
@@ -400,7 +385,7 @@ for (i in 1:nBroad) {
              broad$position_in_break[i] == "15" || broad$position_in_break[i] == "16" || broad$position_in_break[i] == "17" ||
              broad$position_in_break[i] == "18" || broad$position_in_break[i] == "19" || broad$position_in_break[i] == "20" ||
              broad$position_in_break[i] == "Any Other Position") {
-    broad$position_in_break_3option[i] <- "middle"
+    broad$position_in_break_3option[i] = "middle"
   } else if (broad$position_in_break[i] == "21" || broad$position_in_break[i] == "22" || broad$position_in_break[i] == "23" ||
              broad$position_in_break[i] == "24" || broad$position_in_break[i] == "25" || broad$position_in_break[i] == "98" ||
              broad$position_in_break[i] == "99" || broad$position_in_break[i] == "Before Last Position" || 
@@ -585,8 +570,7 @@ dummiesDirectModelNoChannelNoProduct = subset(dummiesDirectModelNoChannel, selec
 dummiesDirectModelTime = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option", "weekdays"), remove_most_frequent_dummy = T)
 dummiesDirectModelTime = dummiesDirectModelTime[,32:49]
 
-corTabel <- cor(dummiesDirectModelNeeded)
-
+corTabel = cor(dummiesDirectModelNeeded)
 
 
 KingsDay = traffic[traffic$medium == "website" & traffic$country == "Netherlands" & traffic$date == "2019-04-30", ]
@@ -599,10 +583,3 @@ sapply(data, max, na.rm = TRUE)
 
 which(broad$gross_rating_point == max(broad$gross_rating_point))
 broad$time_min[which(broad$gross_rating_point == max(broad$gross_rating_point))]
-
-
-
-
-
-
-
