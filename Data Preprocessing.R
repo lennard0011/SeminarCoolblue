@@ -28,6 +28,7 @@ library("lmtest") # use the variance estimator in a linear model
 library("sandwich") # computes robust covariance matrix estimators
 library("stats") # AIC, BIC
 library("Metrics") #rmse calc
+library("plyr")
 
 #loading the data
 traffic = read.csv(file.choose(), header = T)
@@ -67,6 +68,27 @@ traffic$time_min = 60 * 24 * as.numeric(times(traffictime))
 rm(trafficDateSplitWhole)
 rm(trafficDateSplitUnlist)
 rm(traffictime)
+
+#Sommize visitor amount
+visWebNed = traffic[traffic$medium == "website" & traffic$country == "Netherlands" & traffic$visit_source != "push notification", ]
+visAppNed = traffic[traffic$medium == "app" & traffic$country == "Netherlands" & traffic$visit_source != "push notification", ]
+visWebBel = traffic[traffic$medium == "website" & traffic$country == "Belgium" & traffic$visit_source != "push notification", ]
+visAppBel = traffic[traffic$medium == "app" & traffic$country == "Belgium" & traffic$visit_source != "push notification", ]
+
+visWebNedSum = aggregate(visits_index ~ date_time, data = visWebNed, FUN=sum, simplify = TRUE, drop = TRUE)
+names(visWebNedSum) = cbind("date_time", "visitsWebNed")
+
+visAppNedSum = aggregate(visits_index ~ date_time, data = visAppNed, FUN=sum, simplify = TRUE, drop = TRUE)
+names(visAppNedSum) = cbind("date_time", "visitsAppNed")
+
+visWebBelSum = aggregate(visits_index ~ date_time, data = visWebBel, FUN=sum, simplify = TRUE, drop = TRUE)
+names(visWebBelSum) = cbind("date_time", "visitsWebBel")
+
+visAppBelSum = aggregate(visits_index ~ date_time, data = visAppBel, FUN=sum, simplify = TRUE, drop = TRUE)
+names(visAppBelSum) = cbind("date_time", "visitsAppBel")
+
+visitorsSum = merge(merge(visWebNedSum, visAppNedSum, all = TRUE), merge(visWebBelSum, visAppBelSum, all = TRUE), all = TRUE)
+visitorsSum[is.na(visitorsSum)] <- 0
 
 #Further country specific variables + Aggregate clicks no a day
 traffic_net = subset(traffic, country == 'Netherlands')
@@ -486,6 +508,7 @@ broad = subset(broad, select = -date_time)
 
 #hourly dummies
 broad$hours = factor(floor(24*as.numeric(times(broad$time))))
+broadNonZeroGross = broad[broad[, "gross_rating_point"] > 0,]
 
 #1. Product: Wasmachines, television, laptop
 #2. Broadcast category: 7 
@@ -494,7 +517,7 @@ broad$hours = factor(floor(24*as.numeric(times(broad$time))))
 #5. Position in break: beginning (1-3), middle (4-15), last (15-25??)
 #6. Hour dummies
 
-dummiesDirectModel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "channel", "length_of_spot", "position_in_break_3option", "hours"), remove_most_frequent_dummy = T)
+dummiesDirectModel = dummy_cols(.data = broadNonZeroGross, select_columns = c("cluster", "product_category", "channel", "length_of_spot", "position_in_break_3option", "weekdays"), remove_most_frequent_dummy = T)
 
 dummiesDirectModelNeeded = dummiesDirectModel[,((ncol(broad)+1):ncol(dummiesDirectModel))]
 
@@ -515,3 +538,23 @@ dummiesDirectModelTime = dummy_cols(.data = broad, select_columns = c("cluster",
 dummiesDirectModelTime = dummiesDirectModelTime[,32:49]
 
 corTabel <- cor(dummiesDirectModelNeeded)
+
+
+
+KingsDay = traffic[traffic$medium == "website" & traffic$country == "Netherlands" & traffic$date == "2019-04-30", ]
+SummedKingsDay = tapply(KingsDay$visits_index, KingsDay$time_min, FUN=sum)
+plot(SummedKingsDay, type="l")
+
+abline(v=1315, col="blue")
+
+sapply(data, max, na.rm = TRUE)
+
+which(broad$gross_rating_point == max(broad$gross_rating_point))
+broad$time_min[which(broad$gross_rating_point == max(broad$gross_rating_point))]
+
+
+
+
+
+
+
