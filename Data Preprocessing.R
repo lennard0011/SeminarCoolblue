@@ -1,3 +1,5 @@
+# Seminar Coolblue 2021 -- Data Preprocessing (variables, dummies)
+
 #Installing packages (only once)
 install.packages("chron")
 install.packages("ggplot2")

@@ -185,7 +185,5 @@ broadMostViewed <- broad[order(broad$gross_rating_point, decreasing = T),]
 broadMostViewed <- subset(broadMostViewed, gross_rating_point > 1)
 nrow(broadMostViewed)
 
+# 10 most viewed
 broadMostViewed <- broadMostViewed[1:10,]
-
-# wat zijn de 10 grootste
-# 5 min prior, 5 min post
