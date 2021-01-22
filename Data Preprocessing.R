@@ -73,20 +73,35 @@ visAppNet = traffic[traffic$medium == "app" & traffic$country == "Netherlands" &
 visWebBel = traffic[traffic$medium == "website" & traffic$country == "Belgium" & traffic$visit_source != "push notification", ]
 visAppBel = traffic[traffic$medium == "app" & traffic$country == "Belgium" & traffic$visit_source != "push notification", ]
 
+<<<<<<< HEAD
 visWebNetSum = aggregate(visits_index ~ date_time, data = visWebNet, FUN=sum, simplify = TRUE, drop = TRUE)
 names(visWebNetSum) = cbind("date_time", "visitsWebNet")
 
 visAppNetSum = aggregate(visits_index ~ date_time, data = visAppNet, FUN=sum, simplify = TRUE, drop = TRUE)
 names(visAppNetSum) = cbind("date_time", "visitsAppNet")
+=======
+visWebNedSum = aggregate(visits_index ~ date + time_min, data = visWebNed, FUN=sum, simplify = TRUE, drop = TRUE)
+names(visWebNedSum) = cbind("date", "time_min", "visitsWebNed")
 
-visWebBelSum = aggregate(visits_index ~ date_time, data = visWebBel, FUN=sum, simplify = TRUE, drop = TRUE)
-names(visWebBelSum) = cbind("date_time", "visitsWebBel")
+visAppNedSum = aggregate(visits_index ~ date +  time_min + date, data = visAppNed, FUN=sum, simplify = TRUE, drop = TRUE)
+names(visAppNedSum) = cbind("date", "time_min", "visitsAppNed")
+>>>>>>> 4c516bbf068229e1e6418f761c229aa285ce90b0
 
-visAppBelSum = aggregate(visits_index ~ date_time, data = visAppBel, FUN=sum, simplify = TRUE, drop = TRUE)
-names(visAppBelSum) = cbind("date_time", "visitsAppBel")
+visWebBelSum = aggregate(visits_index ~ date + time_min + date, data = visWebBel, FUN=sum, simplify = TRUE, drop = TRUE)
+names(visWebBelSum) = cbind("date", "time_min", "visitsWebBel")
 
+visAppBelSum = aggregate(visits_index ~ date + time_min + date, data = visAppBel, FUN=sum, simplify = TRUE, drop = TRUE)
+names(visAppBelSum) = cbind("date", "time_min", "visitsAppBel")
+
+
+<<<<<<< HEAD
 visitorsSum = merge(merge(visWebNetSum, visAppNetSum, all = TRUE), merge(visWebBelSum, visAppBelSum, all = TRUE), all = TRUE)
 visitorsSum[is.na(visitorsSum)] = 0
+=======
+visitorsSum = merge(merge(visWebNedSum, visAppNedSum, all = TRUE), merge(visWebBelSum, visAppBelSum, all = TRUE), all = TRUE)
+
+visitorsSum[is.na(visitorsSum)] <- 0
+>>>>>>> 4c516bbf068229e1e6418f761c229aa285ce90b0
 
 #Further country specific variables + Aggregate clicks no a day
 traffic_net = subset(traffic, country == 'Netherlands')

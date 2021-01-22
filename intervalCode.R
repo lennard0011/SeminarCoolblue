@@ -5,16 +5,17 @@
 #count visits pre-commercial
 intervalSize = 2
 start = Sys.time()
-broadCountAmount = nBroad
+nBroad = nrow(visitorsSum)
 
 #count visits pre-commercial
-broad['preVisitorsDirect'] = 0
-broad['preVisitorsOther'] = 0
-broad['preVisitorsPaidSearch'] = 0
-broad['preVisitorsFreeSearch'] = 0
-intervalSize = 2
-start = Sys.time()
+broad['preVisitorsAppNed'] = 0
+broad['preVisitorsWebNed'] = 0
+broad['preVisitorsAppBel'] = 0
+broad['preVisitorsWebBel'] = 0
 
+intervalSize = 2
+
+start = Sys.time()
 for (i in 1:nBroad) { #nBroad
   broadDate = broad$date[[i]]
   broadTime = broad$time_min[[i]]
