@@ -73,19 +73,21 @@ visAppNed = traffic[traffic$medium == "app" & traffic$country == "Netherlands" &
 visWebBel = traffic[traffic$medium == "website" & traffic$country == "Belgium" & traffic$visit_source != "push notification", ]
 visAppBel = traffic[traffic$medium == "app" & traffic$country == "Belgium" & traffic$visit_source != "push notification", ]
 
-visWebNedSum = aggregate(visits_index ~ date_time, data = visWebNed, FUN=sum, simplify = TRUE, drop = TRUE)
-names(visWebNedSum) = cbind("date_time", "visitsWebNed")
+visWebNedSum = aggregate(visits_index ~ date + time_min, data = visWebNed, FUN=sum, simplify = TRUE, drop = TRUE)
+names(visWebNedSum) = cbind("date", "time_min", "visitsWebNed")
 
-visAppNedSum = aggregate(visits_index ~ date_time, data = visAppNed, FUN=sum, simplify = TRUE, drop = TRUE)
-names(visAppNedSum) = cbind("date_time", "visitsAppNed")
+visAppNedSum = aggregate(visits_index ~ date +  time_min + date, data = visAppNed, FUN=sum, simplify = TRUE, drop = TRUE)
+names(visAppNedSum) = cbind("date", "time_min", "visitsAppNed")
 
-visWebBelSum = aggregate(visits_index ~ date_time, data = visWebBel, FUN=sum, simplify = TRUE, drop = TRUE)
-names(visWebBelSum) = cbind("date_time", "visitsWebBel")
+visWebBelSum = aggregate(visits_index ~ date + time_min + date, data = visWebBel, FUN=sum, simplify = TRUE, drop = TRUE)
+names(visWebBelSum) = cbind("date", "time_min", "visitsWebBel")
 
-visAppBelSum = aggregate(visits_index ~ date_time, data = visAppBel, FUN=sum, simplify = TRUE, drop = TRUE)
-names(visAppBelSum) = cbind("date_time", "visitsAppBel")
+visAppBelSum = aggregate(visits_index ~ date + time_min + date, data = visAppBel, FUN=sum, simplify = TRUE, drop = TRUE)
+names(visAppBelSum) = cbind("date", "time_min", "visitsAppBel")
+
 
 visitorsSum = merge(merge(visWebNedSum, visAppNedSum, all = TRUE), merge(visWebBelSum, visAppBelSum, all = TRUE), all = TRUE)
+
 visitorsSum[is.na(visitorsSum)] <- 0
 
 #Further country specific variables + Aggregate clicks no a day
