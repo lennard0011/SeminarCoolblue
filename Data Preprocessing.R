@@ -90,6 +90,16 @@ names(visAppBelSum) = cbind("date_time", "visitsAppBel")
 visitorsSum = merge(merge(visWebNedSum, visAppNedSum, all = TRUE), merge(visWebBelSum, visAppBelSum, all = TRUE), all = TRUE)
 visitorsSum[is.na(visitorsSum)] <- 0
 
+#aggregated over the days
+amountDays = 31 + 28 + 31 + 30 + 31 + 30
+visWebNedSumDays = matrix(NA, nrow = amountDays, ncol = 2)
+colnames(visWebNedSumDays) = cbind("date_time", "visitsWebNedSum")
+visWebNedSumDays[,1] = unique(sort(traffic$date))
+for (i in 1:amountDays) {
+  visWebNedSumDays[i, 2] = sum(visWebNedSum[(1440*(i-1)+1):(1440*i), 2])
+}
+
+
 #Further country specific variables + Aggregate clicks no a day
 traffic_net = subset(traffic, country == 'Netherlands')
 traffic_bel = subset(traffic, country == 'Belgium')
