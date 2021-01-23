@@ -4,94 +4,49 @@
 #Results are stored in the column preVisitors and postVisitors in the dataframe broad
 #BEWARE IT TAKES A LONG TIME TO RUN
 
-#count visits pre-commercial
-intervalSize = 2
-start = Sys.time()
-broadCountAmount = nBroad
 
 #count visits pre-commercial
-broad['preVisitorsDirect'] = 0
-broad['preVisitorsOther'] = 0
-broad['preVisitorsPaidSearch'] = 0
-broad['preVisitorsFreeSearch'] = 0
-intervalSize = 2
-start = Sys.time()
+broad['preVisitorsApp'] = 0
+broad['preVisitorsWeb'] = 0
 
+intervalSize = 2
+
+#count preVisitors and postvisitors for every broadcast
+start = Sys.time()
 for (i in 1:nBroad) { #nBroad
   broadDate = broad$date[[i]]
   broadTime = broad$time_min[[i]]
   broadCountry = broad$country[[i]]
-  extraViews = 0 
-  extraViewsDirect = 0
-  extraViewsOther = 0
-  extraViewsPaidSearch = 0
-  extraViewsFreeSearch = 0
   
-  if(intervalSize > broadTime){ # include views from prev. day if close to midnight
-    extraViews = subset(traffic, traffic$date == as.Date(broadDate) - 1 & traffic$time_min >= 60*24 - intervalSize + broadTime & traffic$country == broadCountry)
-    extraViewsDirect = length(which(extraViews$visit_source == "direct"))
-    extraViewsOther = length(which(extraViews$visit_source == "other"))
-    extraViewsPaidSearch = length(which(extraViews$visit_source == "paid search"))
-    extraViewsFreeSearch = length(which(extraViews$visit_source == "search"))
+  #TO-DO count extraViewers from day before or day after at midnight!
+  
+  if(broadCountry == "Belgium") {
+    broad$preVisitorsApp[[i]] = sum(subset(visitorsSum, date == broadDate & time_min < broadTime & time_min >= broadTime - intervalSize)$visitsAppBel)
+    broad$preVisitorsWeb[[i]] = sum(subset(visitorsSum, date == broadDate & time_min < broadTime & time_min >= broadTime - intervalSize)$visitsWebBel)
+    
+    broad$postVisitorsApp[[i]] = sum(subset(visitorsSum, date == broadDate & time_min >= broadTime & time_min < broadTime + intervalSize)$visitsAppBel)
+    broad$postVisitorsWeb[[i]] = sum(subset(visitorsSum, date == broadDate & time_min >= broadTime & time_min < broadTime + intervalSize)$visitsWebBel)
+    
+  } else if(broadCountry == "Netherlands") {
+    broad$preVisitorsApp[[i]] = sum(subset(visitorsSum, date == broadDate & time_min < broadTime & time_min >= broadTime - intervalSize)$visitsAppNed)
+    broad$preVisitorsWeb[[i]] = sum(subset(visitorsSum, date == broadDate & time_min < broadTime & time_min >= broadTime - intervalSize)$visitsWebNed)
+    
+    broad$postVisitorsApp[[i]] = sum(subset(visitorsSum, date == broadDate & time_min >= broadTime & time_min < broadTime + intervalSize)$visitsAppNed)
+    broad$postVisitorsWeb[[i]] = sum(subset(visitorsSum, date == broadDate & time_min >= broadTime & time_min < broadTime + intervalSize)$visitsWebNed)
   }
-  
-  preVisitors = subset(traffic, traffic$date == broadDate & traffic$country == broadCountry & traffic$time_min < broadTime & traffic$time_min >= broadTime - intervalSize)
-  
-  broad$preVisitorsDirect[[index]] = length(which(preVisitors$visit_source == "direct")) + extraViewsDirect
-  broad$preVisitorsOther[[index]] = length(which(preVisitors$visit_source == "other")) + extraViewsOther
-  broad$preVisitorsPaidSearch[[index]] = length(which(preVisitors$visit_source == "paid search")) + extraViewsPaidSearch
-  broad$preVisitorsFreeSearch[[index]] = length(which(preVisitors$visit_source == "search")) + extraViewsFreeSearch
-  
-  if(index %% 100 == 0) {print(Sys.time() - start)}
-}
-  
-#count visits post-commercial
-broad['postVisitorsDirect'] = 0
-broad['postVisitorsOther'] = 0
-broad['postVisitorsPaidSearch'] = 0
-broad['postVisitorsFreeSearch'] = 0
-start = Sys.time()
-for (index in 1:nBroad) { #nBroad
-  broadDate = broad$date[[index]]
-  broadTime = broad$time_min[[index]]
-  broadCountry = broad$country[[index]]
-  extraViews = 0 
-  extraViewsDirect = 0
-  extraViewsOther = 0
-  extraViewsPaidSearch = 0
-  extraViewsFreeSearch = 0
-  
-  if(broadTime > 60*24 - intervalSize){ # include views from next day if close to midnight
-    extraViews = subset(traffic, traffic$date == as.Date(broadDate) + 1 & traffic$country == broadCountry & traffic$time_min <= intervalSize - broadTime)
-    extraViewsDirect = length(which(extraViews$visit_source == "direct"))
-    extraViewsOther = length(which(extraViews$visit_source == "other"))
-    extraViewsPaidSearch = length(which(extraViews$visit_source == "paid search"))
-    extraViewsFreeSearch = length(which(extraViews$visit_source == "search"))  
-  }
-  
-  postVisitors = subset(traffic, traffic$date == broadDate & traffic$country == broadCountry & traffic$time_min >= broadTime & traffic$time_min < broadTime + intervalSize)
-  
-  broad$postVisitorsDirect[[index]] = length(which(postVisitors$visit_source == "direct")) + extraViewsDirect
-  broad$postVisitorsOther[[index]] = length(which(postVisitors$visit_source == "other")) + extraViewsOther
-  broad$postVisitorsPaidSearch[[index]] = length(which(postVisitors$visit_source == "paid search")) + extraViewsPaidSearch
-  broad$postVisitorsFreeSearch[[index]] = length(which(postVisitors$visit_source == "search")) + extraViewsFreeSearch
-  
-  if(index %% 100 == 0) {print(Sys.time() - start)}
+
+  if(i %% 100 == 0) {print(paste(i,Sys.time() - start))}
 }
 
 #aggregate pre- and post-visitors (d, r, total)
-broad['preVisitorsDirectOther'] = broad$preVisitorsDirect + broad$preVisitorsOther
-broad['preVisitorsReferrals'] = broad$preVisitorsPaidSearch + broad$preVisitorsFreeSearch
-broad['preVisitors'] = broad$preVisitorsDirectOther + broad$preVisitorsReferrals
-broad['postVisitorsDirectOther'] = broad$postVisitorsDirect + broad$postVisitorsOther
-broad['postVisitorsReferrals'] = broad$postVisitorsPaidSearch + broad$postVisitorsFreeSearch
-broad['postVisitors'] = broad$postVisitorsDirectOther + broad$postVisitorsReferrals
 
 # first analysis
-mean(broad$postVisitors - broad$preVisitors)
-min(broad$postVisitors - broad$preVisitors)
-max(broad$postVisitors - broad$preVisitors)
-dataInterval = cbind(broad$preVisitors, broad$postVisitors)
+mean(broad$postVisitorsWeb - broad$preVisitorsWeb)
+lm(broad$postVisitorsWeb ~ broad$preVisitorsWeb + 0)
+
+#min(broad$postVisitors - broad$preVisitors)
+#max(broad$postVisitors - broad$preVisitors)
+#dataInterval = cbind(broad$preVisitors, broad$postVisitors)
 #data = cbind(log(broad$postVisitors[1:nBroad]), log(broad$preVisitors[1:nBroad]))
 dataInterval = as.data.frame(dataInterval)
 colnames(dataInterval) = c("preVisitors", "postVisitors")
