@@ -67,17 +67,17 @@ rm(trafficDateSplitWhole)
 rm(trafficDateSplitUnlist)
 rm(traffictime)
 
-#Sommize visitor amount
-visWebNed = traffic[traffic$medium == "website" & traffic$country == "Netherlands" & traffic$visit_source != "push notification", ]
-visAppNed = traffic[traffic$medium == "app" & traffic$country == "Netherlands" & traffic$visit_source != "push notification", ]
+#Sum visitor amount
+visWebNet = traffic[traffic$medium == "website" & traffic$country == "Netherlands" & traffic$visit_source != "push notification", ]
+visAppNet = traffic[traffic$medium == "app" & traffic$country == "Netherlands" & traffic$visit_source != "push notification", ]
 visWebBel = traffic[traffic$medium == "website" & traffic$country == "Belgium" & traffic$visit_source != "push notification", ]
 visAppBel = traffic[traffic$medium == "app" & traffic$country == "Belgium" & traffic$visit_source != "push notification", ]
 
-visWebNedSum = aggregate(visits_index ~ date + time_min, data = visWebNed, FUN=sum, simplify = TRUE, drop = TRUE)
-names(visWebNedSum) = cbind("date", "time_min", "visitsWebNed")
+visWebNetSum = aggregate(visits_index ~ date + time_min, data = visWebNet, FUN=sum, simplify = TRUE, drop = TRUE)
+names(visWebNetSum) = cbind("date", "time_min", "visitsWebNet")
 
-visAppNedSum = aggregate(visits_index ~ date +  time_min + date, data = visAppNed, FUN=sum, simplify = TRUE, drop = TRUE)
-names(visAppNedSum) = cbind("date", "time_min", "visitsAppNed")
+visAppNetSum = aggregate(visits_index ~ date +  time_min + date, data = visAppNet, FUN=sum, simplify = TRUE, drop = TRUE)
+names(visAppNetSum) = cbind("date", "time_min", "visitsAppNet")
 
 visWebBelSum = aggregate(visits_index ~ date + time_min + date, data = visWebBel, FUN=sum, simplify = TRUE, drop = TRUE)
 names(visWebBelSum) = cbind("date", "time_min", "visitsWebBel")
@@ -85,10 +85,8 @@ names(visWebBelSum) = cbind("date", "time_min", "visitsWebBel")
 visAppBelSum = aggregate(visits_index ~ date + time_min + date, data = visAppBel, FUN=sum, simplify = TRUE, drop = TRUE)
 names(visAppBelSum) = cbind("date", "time_min", "visitsAppBel")
 
-
-visitorsSum = merge(merge(visWebNedSum, visAppNedSum, all = TRUE), merge(visWebBelSum, visAppBelSum, all = TRUE), all = TRUE)
-
-visitorsSum[is.na(visitorsSum)] <- 0
+visitorsSum = merge(merge(visWebNetSum, visAppNetSum, all = TRUE), merge(visWebBelSum, visAppBelSum, all = TRUE), all = TRUE)
+visitorsSum[is.na(visitorsSum)] = 0
 
 #Further country specific variables + Aggregate clicks no a day
 traffic_net = subset(traffic, country == 'Netherlands')
@@ -107,27 +105,48 @@ uniqueDatesBoth = base::intersect(uniqueDatesBel, uniqueDatesNet) #adverts in bo
 uniqueDatesOnlyBel = base::setdiff(uniqueDatesBel, uniqueDatesBoth) #adverts only in Belgium on certain day
 uniqueDatesOnlyNet = base::setdiff(uniqueDatesNet, uniqueDatesBoth) #adverts only in Netherlands on certain day
 
-#calculate average per day for different searches -- Netherlands
-av_traffic_day_net = matrix(NA, 24)
-traffic_net = traffic_net[order(traffic_net$date),]
+#calculate average for different searches
+visitorsSum$time_min = 60 * 24 * as.numeric(times(substr(visitorsSum[, 1], 12, 19)))
+max_website_net = max(visitorsSum[, 2])
+max_app_net = max(visitorsSum[, 3])
+max_website_bel = max(visitorsSum[, 4])
+max_app_bel = max(visitorsSum[, 5])
+
+#calculate average for different searches -- Netherlands - website
+av_traffic_day_net_website = matrix(NA, 24)
 for (i in 1:24){
   print(i)
-  traffic_subset = subset(traffic_net, (time_min >= (i - 1) * 60) & (time_min < i * 60))
-  av_traffic_day_net[i] = nrow(traffic_subset)/amountDays
+  visitorsSum_subset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 2]/max_website_net
+  av_traffic_day_net_website[i] = mean(visitorsSum_subset)
 }
-traffic_net = traffic_net[order(as.numeric(row.names(traffic_net))),]
 
-#calculate average per day for different searches -- Belgium
-av_traffic_day_bel = matrix(NA, 24)
-traffic_bel = traffic_bel[order(traffic_bel$date),]
+#calculate average for different searches -- Netherlands - app
+av_traffic_day_net_app = matrix(NA, 24)
 for (i in 1:24){
   print(i)
-  traffic_subset = subset(traffic_bel, (time_min >= (i - 1) * 60) & (time_min < i * 60))
-  av_traffic_day_bel[i] = nrow(traffic_subset)/amountDays
+  visitorsSum_subset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 3]/max_app_net
+  av_traffic_day_net_app[i] = mean(visitorsSum_subset)
 }
-traffic_bel = traffic_bel[order(as.numeric(row.names(traffic_bel))),]
 
-#calculate average amount of broadcasts per day -- Netherlands
+#calculate average for different searches -- Belgium - website
+av_traffic_day_bel_website = matrix(NA, 24)
+for (i in 1:24){
+  print(i)
+  visitorsSum_subset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 4]/max_website_bel
+  av_traffic_day_bel_website[i] = mean(visitorsSum_subset)
+}
+
+#calculate average for different searches -- Belgium - app
+av_traffic_day_bel_app = matrix(NA, 24)
+for (i in 1:24){
+  print(i)
+  visitorsSum_subset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 5]/max_app_bel
+  av_traffic_day_bel_app[i] = mean(visitorsSum_subset)
+}
+
+visitorsSum = subset(visitorsSum, select = -time_min)
+
+#calculate average amount of broadcasts -- Netherlands
 av_broad_day_net = matrix(NA, 24)
 broad_net = broad_net[order(broad_net$date),]
 for (i in 1:24){
@@ -137,7 +156,7 @@ for (i in 1:24){
 }
 broad_net = broad_net[order(as.numeric(row.names(broad_net))),]
 
-#calculate average amount of broadcasts per day -- Belgium
+#calculate average amount of broadcasts -- Belgium
 av_broad_day_bel = matrix(NA, 24)
 broad_bel = broad_bel[order(broad_bel$date),]
 for (i in 1:24){
@@ -147,13 +166,14 @@ for (i in 1:24){
 }
 broad_bel = broad_bel[order(as.numeric(row.names(broad_bel))),]
 
+#broadcast histogram
 hours = c("00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00")
 cat_net = rep("Netherlands", 24)
 cat_bel = rep("Belgium", 24)
 categories = c(cat_net, cat_bel)
 value = c(av_broad_day_net, av_broad_day_bel)
 data = data.frame(categories, hours, value)
-hourly_traffic = ggplot(data, aes(fill=categories, y=value, x=hours)) + scale_fill_grey(start = 0.7, end = 0.4)  +  geom_bar(position="stack", stat="identity")
+hourly_traffic = ggplot(data, aes(fill=categories, y=value, x=hours)) + scale_fill_grey(start = 0.7, end = 0.4)  +  geom_bar(position="dodge", stat="identity")
 print(hourly_traffic + 
         labs(fill = "Countries", title = "Average amount of broadcasts per hour", y = "Average amount of broadcasts", x = "Hour of the day")) + 
   theme(plot.title = element_text(hjust = 0.5)) +
@@ -162,9 +182,10 @@ print(hourly_traffic +
   theme(axis.text.x = element_text(color=c("black","transparent","transparent","transparent", "transparent","transparent", "black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent"))) +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"))
 
-value = c(av_traffic_day_net, av_traffic_day_bel)
+#website traffic histogram
+value = c(av_traffic_day_net_website, av_traffic_day_bel_website)
 data = data.frame(categories, hours, value)
-hourly_traffic = ggplot(data, aes(fill=categories, y=value, x=hours)) + scale_fill_grey(start = 0.7, end = 0.4)  +  geom_bar(position="stack", stat="identity")
+hourly_traffic = ggplot(data, aes(fill=categories, y=value, x=hours)) + scale_fill_grey(start = 0.7, end = 0.4)  +  geom_bar(position="dodge", stat="identity")
 print(hourly_traffic + 
         labs(fill = "Countries", title = "Average amount of website visitors per hour", y = "Average amount of website visitors", x = "Hour of the day")) + 
         theme(plot.title = element_text(hjust = 0.5)) +
@@ -172,6 +193,18 @@ print(hourly_traffic +
         theme(axis.ticks = element_blank()) + 
         theme(axis.text.x = element_text(color=c("black","transparent","transparent","transparent", "transparent","transparent", "black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent"))) +
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"))
+
+#app traffic histogram
+value = c(av_traffic_day_net_app, av_traffic_day_bel_app)
+data = data.frame(categories, hours, value)
+hourly_traffic = ggplot(data, aes(fill=categories, y=value, x=hours)) + scale_fill_grey(start = 0.7, end = 0.4)  +  geom_bar(position="dodge", stat="identity")
+print(hourly_traffic + 
+        labs(fill = "Countries", title = "Average amount of app visitors per hour", y = "Average amount of app visitors", x = "Hour of the day")) + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(axis.title.x = element_text(vjust = -0.5)) + 
+  theme(axis.ticks = element_blank()) + 
+  theme(axis.text.x = element_text(color=c("black","transparent","transparent","transparent", "transparent","transparent", "black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent"))) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"))
 
 #amount of advertisements per day -- Total
 adAmount = matrix(0, scopeDays) 
@@ -344,7 +377,7 @@ broad['position_in_break_3option'] = 0
 for (i in 1:nBroad) {
   if(broad$position_in_break[i] == "0" || broad$position_in_break[i] == "1" || broad$position_in_break[i] == "2" ||
      broad$position_in_break[i] == "First Position" || broad$position_in_break[i] == "Second Position") {
-    broad$position_in_break_3option[i] <- "begin"
+    broad$position_in_break_3option[i] = "begin"
   } else if (broad$position_in_break[i] == "3" || broad$position_in_break[i] == "4" || broad$position_in_break[i] == "5" ||
              broad$position_in_break[i] == "6" || broad$position_in_break[i] == "7" || broad$position_in_break[i] == "8" ||
              broad$position_in_break[i] == "9" || broad$position_in_break[i] == "10" || broad$position_in_break[i] == "11" ||
@@ -352,7 +385,7 @@ for (i in 1:nBroad) {
              broad$position_in_break[i] == "15" || broad$position_in_break[i] == "16" || broad$position_in_break[i] == "17" ||
              broad$position_in_break[i] == "18" || broad$position_in_break[i] == "19" || broad$position_in_break[i] == "20" ||
              broad$position_in_break[i] == "Any Other Position") {
-    broad$position_in_break_3option[i] <- "middle"
+    broad$position_in_break_3option[i] = "middle"
   } else if (broad$position_in_break[i] == "21" || broad$position_in_break[i] == "22" || broad$position_in_break[i] == "23" ||
              broad$position_in_break[i] == "24" || broad$position_in_break[i] == "25" || broad$position_in_break[i] == "98" ||
              broad$position_in_break[i] == "99" || broad$position_in_break[i] == "Before Last Position" || 
@@ -535,10 +568,9 @@ dummiesDirectModelNoChannelNoProduct = subset(dummiesDirectModelNoChannel, selec
 #broadNonZeroGross = broad[broad[, "gross_rating_point"] > 0,]
 
 dummiesDirectModelTime = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option", "weekdays"), remove_most_frequent_dummy = T)
-dummiesDirectModelTime = dummiesDirectModelTime[,32:49]
+dummiesDirectModelTime = dummiesDirectModelTime[, 20:38]
 
-corTabel <- cor(dummiesDirectModelNeeded)
-
+corTabel = cor(dummiesDirectModelNeeded)
 
 
 KingsDay = traffic[traffic$medium == "website" & traffic$country == "Netherlands" & traffic$date == "2019-04-30", ]
@@ -551,10 +583,3 @@ sapply(data, max, na.rm = TRUE)
 
 which(broad$gross_rating_point == max(broad$gross_rating_point))
 broad$time_min[which(broad$gross_rating_point == max(broad$gross_rating_point))]
-
-
-
-
-
-
-
