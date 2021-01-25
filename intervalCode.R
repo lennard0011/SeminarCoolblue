@@ -8,6 +8,8 @@
 #count visits pre-commercial
 broad['preVisitorsApp'] = 0
 broad['preVisitorsWeb'] = 0
+broad['postVisitorsApp'] = 0
+broad['postVisitorsWeb'] = 0
 
 intervalSize = 2
 
