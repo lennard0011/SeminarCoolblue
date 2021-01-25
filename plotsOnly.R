@@ -77,7 +77,7 @@ axis(side =1, at=c(ceiling(0+(31-0)/2), ceiling(31+(59-31)/2), ceiling(59+(90-59
      labels= c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'), tick = FALSE)
 
 
-#we moeten nog steeds bepalen of het zin heeft om dit te laten zien -- interpretatie is vaag
+# we moeten nog steeds bepalen of het zin heeft om dit te laten zien -- interpretatie is vaag
 ## Barplot of total Website traffic, per hour [Marjolein]
 hours = c("00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00")
 value = c(avTrafficDayNetWebsite, avTrafficDayBelWebsite)
