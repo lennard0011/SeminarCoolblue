@@ -120,16 +120,12 @@ summary(treatmentOnlyModelTotal)$r.squared
 AIC(treatmentOnlyModelTotal)
 BIC(treatmentOnlyModelTotal)
 
-<<<<<<< HEAD
-
 # Calculate Mean Squared Prediction Error
-=======
 #Full models
 fullModelTotalNoChannel = lm(broad$postVisitors ~ broad$preVisitors + ., data = dummiesDirectModelNoChannel)
 coeftest(fullModelTotalNoChannel, vcov = vcovHC(fullModelTotalNoChannel, type = 'HC1')) #robust se
 summary(fullModelTotalNoChannel)$r.squared
 #Calculate Mean Squared Prediction Error OUTDATED
->>>>>>> 5d007dbff26a469b9a6f2ba6b7219e6ef12c8b98
 postVisitors = broad$postVisitors
 preVisitors = broad$preVisitors
 hours = broad$hours
@@ -149,23 +145,18 @@ treatmentOnlyModelTotal = lm(postVisitors ~ ., data = broadTrain)
 summary(treatmentOnlyModelTotal)$r.squared
 rmse(broadTest$postVisitors, predict(treatmentOnlyModelTotal, broadTest))
 
-<<<<<<< HEAD
 # Full models
 # all visitors
-
 # all visitors -- no channel dummies
 fullModelTotalNoChannel = lm(broad$postVisitors ~ broad$preVisitors + ., data = dummiesDirectModelNoChannel)
 coeftest(fullModelTotalNoChannel, vcov = vcovHC(fullModelTotalNoChannel, type="HC1")) # robust se
 summary(fullModelTotalNoChannel)
-
 
 # all visitors -- no channel dummies, no prod. category
 fullModelTotalNoChannelNoProduct = lm(broad$postVisitors ~ broad$preVisitors + ., data = dummiesDirectModelNoChannelNoProduct)
 coeftest(fullModelTotalNoChannelNoProduct, vcov = vcovHC(fullModelTotalNoChannelNoProduct, type="HC1")) # robust se
 summary(fullModelTotalNoChannelNoProduct) # makes clusters somewhat more sign. but not too many
 
-=======
->>>>>>> 5d007dbff26a469b9a6f2ba6b7219e6ef12c8b98
 # Evaluation (for now on FULL models)
 R2models = cbind(summary(baselineModelTotal)$r.squared, summary(treatmentOnlyModelTotal)$r.squared, summary(fullModelTotal)$r.squared)
 AICmodels = cbind(AIC(baselineModelTotal), AIC(treatmentOnlyModelTotal), AIC(fullModelTotal))
@@ -173,13 +164,8 @@ BICmodels = cbind(BIC(baselineModelTotal), BIC(treatmentOnlyModelTotal), BIC(ful
 R2_AIC_BICmodels = rbind(R2models, AICmodels, BICmodels)
 colnames(R2_AIC_BICmodels) = c("Baseline only", "Treatment only", "Full model") 
 rownames(R2_AIC_BICmodels) = c("R2", "AIC", "BIC")
-<<<<<<< HEAD
-format(R2_AIC_BICmodels, scientific = FALSE, digits = 2)
 
+format(R2_AIC_BICmodels, scientific = FALSE, digits = 2)
 
 fullModelTime = lm(broad$postVisitors ~broad$preVisitors +., data = dummiesDirectModelTime)
-
 summary(fullModelTime)
-=======
-format(R2_AIC_BICmodels, scientific = FALSE, digits = 2)
->>>>>>> 5d007dbff26a469b9a6f2ba6b7219e6ef12c8b98
