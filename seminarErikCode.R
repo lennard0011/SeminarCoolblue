@@ -1,19 +1,7 @@
 ## SEMINAR COOLBLUE BA&QM 2021 Team 21
 ## @author: Erik van der Heide
-## note to myself: use rm(var) to clean up workspace (environment)
-## note to myself: dplyr packages takes care of lag()
 
-# Packages
-install.packages("dplyr")
-
-library("dplyr")
-
-# Load data
-broad <- read.csv(file.choose(), header = T)
-broad <- broad[order(broad$date, broad$time),]
-traffic <- read.csv(file.choose(), header = T)
-
-# Descriptive of TRAFFIC 
+# Descriptive of TRAFFIC (note: this is not worth much)
 head(traffic)
 min(traffic$date_time)
 max(traffic$date_time)
@@ -40,7 +28,7 @@ unique(traffic$country)
 sum(traffic$country == "Netherlands")
 sum(traffic$country == "Belgium")
 
-# Descriptive of BROAD (I took most occuring from Jupyter)
+# Descriptive of BROAD
 head(broad)
 unique(broad$operator)
 unique(broad$channel)
@@ -57,27 +45,12 @@ summary(broad$gross_rating_point)
 unique(broad$product_category)
 unique(broad$country)
 
-# Select one day from data (Wednesday May 1, 2019):
-traffic_day <- subset(traffic, grepl("2019-05-01", traffic$date_time) == TRUE)
-traffic_day <- traffic_day[order(traffic_day$date_time),]
-
-# Aggregate visits for every minute of the day 
-# assumption: there is at least 1 visit every minute of the day
-minute_counter = 1 # will go up to 1440
-visit_density <- vector(mode="integer", length=1440)
-# small neglection: the first obsv. is not counted
-for (i in 2:nrow(traffic_day)) {
-  if (traffic_day$date_time[i] == traffic_day$date_time[i-1]) {
-    visit_density[minute_counter] = visit_density[minute_counter] + 1
-  } else {
-    minute_counter = minute_counter + 1
-  }
-}
-
-plot(visit_density, main = "Number of Visitors on May 1, 2019", type = "l")
+# useful operators but not on this data anymore
+#traffic_day <- subset(traffic, grepl("2019-05-01", traffic$date_time) == TRUE)
+#traffic_day <- traffic_day[order(traffic_day$date_time),]
 
 # Create "indicators" for commercials (given there are on this day)
-broad_day <- subset(broad, date == "2019-05-01")
+broad_day <- subset(broad, date == "2019-05-01", )
 broad_day <- broad_day[order(broad_day$time),]
 
 # Plotting
@@ -193,62 +166,8 @@ broadMostViewed <- broadMostViewed[1:10,]
 plot(visit_density, main = "Number of Visitors on May 1, 2019", type = "l",
      xlab = "Time (hours)", ylab = "Number of clicks", xaxt='n')
 axis(side =1, at=c(0,60,120,180,240,300,360,420,480,540,600,660,720,780,840,900,
-                   960,1020,1080,1140,1200,1260,1320,1380,1440), labels= 0:24)
+                   960,1020,1080,1140,1200,1260,1320,1380,1440), labels= 0:24)#
 
-# PLOT TIME SERIES -- Netherlands ######################################
-par(mfrow=c(2,2))
-
-# plot Netherlands -- Website
-plot(days_visWebNetSum[,2], type = "l", xaxt='n',  yaxt='n', ann=FALSE)
-for (i in 1:length(uniqueDatesNet)){
-  abline(v = yday(uniqueDatesNet[i]), col = '#DCDCDC', lwd = 3) # ads
-}
-par(new=TRUE)
-plot(days_visWebNetSum[,2], las=1, type = "l", xaxt='n', xlab = "Time (months)", 
-     ylab = 'Visit density', main = "Website traffic Netherlands (2019)")
-axis(side =1, at=c(0, 31, 59, 90, 120, 151, 181), labels = NA)
-axis(side =1, at=c(ceiling(0+(31-0)/2), ceiling(31+(59-31)/2), ceiling(59+(90-59)/2), 
-                   (90+(120-90)/2), ceiling(120+(151-120)/2), ceiling(151+(181-151)/2)), 
-     labels= c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'), tick = FALSE)
-
-# plot Netherlands -- App
-plot(days_visAppNetSum[,2], type = "l", xaxt='n',  yaxt='n', ann=FALSE)
-for (i in 1:length(uniqueDatesNet)){
-  abline(v = yday(uniqueDatesNet[i]), col = '#DCDCDC', lwd = 3) # ads
-}
-par(new=TRUE)
-plot(days_visAppNetSum[,2], las=1, type = "l", xaxt='n', xlab = "Time (months)", 
-     ylab = 'Visit density', main = "App traffic Netherlands (2019)")
-axis(side =1, at=c(0, 31, 59, 90, 120, 151, 181), labels = NA)
-axis(side =1, at=c(ceiling(0+(31-0)/2), ceiling(31+(59-31)/2), ceiling(59+(90-59)/2), 
-                   (90+(120-90)/2), ceiling(120+(151-120)/2), ceiling(151+(181-151)/2)), 
-     labels= c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'), tick = FALSE)
-
-# plot Belgium -- Website
-plot(days_visWebBelSum[,2], type = "l", xaxt='n',  yaxt='n', ann=FALSE)
-for (i in 1:length(uniqueDatesNet)){
-  abline(v = yday(uniqueDatesBel[i]), col = '#DCDCDC', lwd = 3) # ads
-}
-par(new=TRUE)
-plot(days_visWebBelSum[,2], las=1, type = "l", xaxt='n', xlab = "Time (months)", 
-     ylab = 'Visit density', main = "Website traffic Belgium (2019)")
-axis(side =1, at=c(0, 31, 59, 90, 120, 151, 181), labels = NA)
-axis(side =1, at=c(ceiling(0+(31-0)/2), ceiling(31+(59-31)/2), ceiling(59+(90-59)/2), 
-                   (90+(120-90)/2), ceiling(120+(151-120)/2), ceiling(151+(181-151)/2)), 
-     labels= c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'), tick = FALSE)
-
-# plot Belgium -- App
-plot(days_visAppBelSum[,2], type = "l", xaxt='n',  yaxt='n', ann=FALSE)
-for (i in 1:length(uniqueDatesNet)){
-  abline(v = yday(uniqueDatesBel[i]), col = '#DCDCDC', lwd = 3) # ads
-}
-par(new=TRUE)
-plot(days_visAppBelSum[,2], las=1, type = "l", xaxt='n', xlab = "Time (months)", 
-     ylab = 'Visit density', main = "App traffic Belgium (2019)")
-axis(side =1, at=c(0, 31, 59, 90, 120, 151, 181), labels = NA)
-axis(side =1, at=c(ceiling(0+(31-0)/2), ceiling(31+(59-31)/2), ceiling(59+(90-59)/2), 
-                   (90+(120-90)/2), ceiling(120+(151-120)/2), ceiling(151+(181-151)/2)), 
-     labels= c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'), tick = FALSE)
 
 ########################################################################
 
@@ -261,16 +180,3 @@ axis(side =1, at=c(ceiling(0+(31-0)/2), ceiling(31+(59-31)/2), ceiling(59+(90-59
 #  }
 #}
 
-plot(trafAmountBel/1000, type = "l", xaxt='n', yaxt = 'n', ann=FALSE)
-abline(v = yday(uniqueDatesBel[i]), col = '#DCDCDC', lwd = 3) # ads
-par(new=TRUE)
-plot(trafAmountBel/1000, las=1, type = "l", xaxt='n', xlab = "Time (months)", 
-     ylab = "Daily visits (x1000)", main = "Website traffic Belgium Jan-Jun 2019")
-axis(side =1, at=c(0, 31, 59, 90, 120, 151, 181), labels= c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'))
-#for (i in 1:length(holidaysDates)) {
-#  abline(v = yday(holidaysDates[i]), col = 'orange') # holidays
-#} # local spike on Hemvelvaartsdag in Bel
-
-plot(days_visWebBelSum[,2], type = "l", xaxt='n', ann=FALSE)
-plot(days_visAppNetSum[,2], type = "l", xaxt='n', ann=FALSE)
-plot(days_visAppBelSum[,2], type = "l", xaxt='n', ann=FALSE)
