@@ -1,6 +1,6 @@
 # Seminar Coolblue 2021 -- Data Preprocessing (variables, dummies)
 
-#Installing packages (only once)
+# Installing packages (only once)
 install.packages("chron")
 install.packages("ggplot2")
 install.packages("lubridate")
@@ -13,7 +13,7 @@ install.packages("AIC")
 install.packages("BIC")
 install.packages("Metrics")
 
-#Adding packages
+# Adding packages
 library("chron")
 library("ggplot2")
 library("lubridate")
@@ -27,43 +27,41 @@ library("fastDummies")
 library("lmtest") # use the variance estimator in a linear model
 library("sandwich") # computes robust covariance matrix estimators
 library("stats") # AIC, BIC
-library("Metrics") #rmse calc
+library("Metrics") # rmse calc
 library("plyr")
 
-#loading the data
+# loading the data
 traffic = read.csv(file.choose(), header = T)
 broad = read.csv(file.choose(), header = T)
 
 traffic = subset(traffic, bounces != 1 | is.na(bounces))
-#option to leave out zero gross rating points
+# option to leave out zero gross rating points
 broad = broad[broad[, "gross_rating_point"] > 0,]
 
 nTraffic = nrow(traffic)
 nBroad = nrow(broad)
 
 
-#now that packages and data has been loaded, we start by creating new features and set the data up in a nice and usable way
-
-#now that packages and data has been loaded, we start by creating new features and set the data up in a nice and usable way
-#First we add the column time_min to traffic and broad, which is the time in a scale of minutes (from 0 to 24*60= 1440)
-#Also we add the column date to traffic
-#add date+time to every broadcast
+# now that packages and data have been loaded, we start by creating new features and set the data up in a nice and usable way
+# First we add the column time_min to traffic and broad, which is the time in a scale of minutes (from 0 to 24*60= 1440)
+# Also we add the column date to traffic
+# add date+time to every broadcast
 
 broad$date_time = 0
 for (i in 1:nBroad){
   broad$date_time[i] = paste(broad$date[i], broad$time[i], sep = " ")
 }
 
-#add time_min to every broadcast
+# add time_min to every broadcast
 broad$time_min = 0
-for (i in 1:nBroad) { #nBroad
+for (i in 1:nBroad) { # nBroad
   time = broad$time[i]
   timeMinute = 60 * 24 * as.numeric(times(time))
   broad$time_min[i] = timeMinute
 }
 rm(timeMinute)
 rm(time)
-#add time_min and date to every travel
+# add time_min and date to every travel
 traffic['time_min'] = 0
 traffic$date_time = as.character(traffic$date_time)
 trafficDateSplitWhole = strsplit(traffic$date_time, "\\s+")
@@ -98,12 +96,12 @@ print(paste0("Missing pairs App-Netherlands (incl. summer time): ", maxPairs-nro
 # Belgium - Website
 visWebBelSum = aggregate(visits_index ~ date + time_min + date, data = visWebBel, FUN=sum, simplify = TRUE, drop = TRUE)
 names(visWebBelSum) = cbind("date", "time_min", "visitsWebBel")
-print(paste0("Missing pairs Website-Belgium (incl. zomertijd): ", maxPairs-nrow(visWebBelSum)))
+print(paste0("Missing pairs Website-Belgium (incl. summer time): ", maxPairs-nrow(visWebBelSum)))
 
 # Belgium - App
 visAppBelSum = aggregate(visits_index ~ date + time_min + date, data = visAppBel, FUN=sum, simplify = TRUE, drop = TRUE)
 names(visAppBelSum) = cbind("date", "time_min", "visitsAppBel")
-print(paste0("Missing pairs App-Belgium (incl. zomertijd): ", maxPairs-nrow(visAppBelSum)))
+print(paste0("Missing pairs App-Belgium (incl. summer time): ", maxPairs-nrow(visAppBelSum)))
 
 visitorsSum = merge(merge(visWebNetSum, visAppNetSum, all = TRUE), merge(visWebBelSum, visAppBelSum, all = TRUE), all = TRUE)
 visitorsSum[is.na(visitorsSum)] = 0
@@ -132,60 +130,60 @@ for (i in 1:nrow(visitorsSum)) { # takes at most 2min to run
   daysVisitorsSum[day, 5] = as.numeric(daysVisitorsSum[day, 5]) + visitIndexAppBel
 }
 
-#Further country specific variables + Aggregate clicks no a day
+# Further country specific variables + Aggregate clicks no a day
 trafficNet = subset(traffic, country == 'Netherlands')
 trafficBel = subset(traffic, country == 'Belgium')
 broadNet = subset(broad, country == 'Netherlands')
 broadBel = subset(broad, country == 'Belgium')
 
-#amount of days in time-frame
+# amount of days in time-frame
 amountDays = 31 + 28 + 31 + 30 + 31 + 30
-#amountDays = amountDays op 27-01 verwijderen
-#set of unique advertising dates
+# amountDays = amountDays op 27-01 verwijderen
+# set of unique advertising dates
 uniqueDates = unique(broad$date)
 uniqueDatesBel = unique(broadBel$date)
 uniqueDatesNet = unique(broadNet$date)
-uniqueDatesBoth = base::intersect(uniqueDatesBel, uniqueDatesNet) #adverts in both on certain day
-uniqueDatesOnlyBel = base::setdiff(uniqueDatesBel, uniqueDatesBoth) #adverts only in Belgium on certain day
-uniqueDatesOnlyNet = base::setdiff(uniqueDatesNet, uniqueDatesBoth) #adverts only in Netherlands on certain day
+uniqueDatesBoth = base::intersect(uniqueDatesBel, uniqueDatesNet) # adverts in both on certain day
+uniqueDatesOnlyBel = base::setdiff(uniqueDatesBel, uniqueDatesBoth) # adverts only in Belgium on certain day
+uniqueDatesOnlyNet = base::setdiff(uniqueDatesNet, uniqueDatesBoth) # adverts only in Netherlands on certain day
 
-#calculate average for different searches
-#visitorsSum$time_min = 60 * 24 * as.numeric(times(substr(visitorsSum[, 1], 12, 19))) delete 27-01
+# calculate average for different searches
+# visitorsSum$time_min = 60 * 24 * as.numeric(times(substr(visitorsSum[, 1], 12, 19))) delete 27-01
 maxWebsiteNet = max(visitorsSum$visitsWebNet)
 maxAppNet = max(visitorsSum$visitsAppNet)
 maxWebsiteBel = max(visitorsSum$visitsWebBel)
 maxAppBel = max(visitorsSum$visitsAppBel)
 
 # Data for plot average of hour over the days
-#calculate average for different searches -- Netherlands - website
+# calculate average for different searches -- Netherlands - website
 avTrafficDayNetWebsite = matrix(NA, 24)
 for (i in 1:24){
-  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 2]/maxWebsiteNet
+  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 3]
   avTrafficDayNetWebsite[i] = mean(visitorsSumSubset)
 }
 
-#calculate average for different searches -- Netherlands - app
+# calculate average for different searches -- Netherlands - app
 avTrafficDayNetApp = matrix(NA, 24)
 for (i in 1:24){
-  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 3]/maxAppNet
+  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 4]
   avTrafficDayNetApp[i] = mean(visitorsSumSubset)
 }
 
-#calculate average for different searches -- Belgium - website
+# calculate average for different searches -- Belgium - website
 avTrafficDayBelWebsite = matrix(NA, 24)
 for (i in 1:24){
-  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 4]/maxWebsiteBel
+  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 5]
   avTrafficDayBelWebsite[i] = mean(visitorsSumSubset)
 }
 
-#calculate average for different searches -- Belgium - app
+# calculate average for different searches -- Belgium - app
 avTrafficDayBelApp = matrix(NA, 24)
 for (i in 1:24){
-  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 5]/maxAppBel
+  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 6]
   avTrafficDayBelApp[i] = mean(visitorsSumSubset)
 }
 
-#calculate average amount of broadcasts -- Netherlands
+# calculate average amount of broadcasts -- Netherlands
 avBroadDayNet = matrix(NA, 24)
 broadNet = broadNet[order(broadNet$date),]
 for (i in 1:24){
@@ -195,7 +193,7 @@ for (i in 1:24){
 }
 broadNet = broadNet[order(as.numeric(row.names(broadNet))),]
 
-#calculate average amount of broadcasts -- Belgium
+# calculate average amount of broadcasts -- Belgium
 avBroadDayBel = matrix(NA, 24)
 broadBel = broad_bel[order(broadBel$date),]
 for (i in 1:24){
@@ -205,7 +203,7 @@ for (i in 1:24){
 }
 broadBel = broadBel[order(as.numeric(row.names(broadBel))),]
 
-#amount of advertisements per day -- Total
+# amount of advertisements per day -- Total
 adAmount = matrix(0, amountDays) 
 for (i in 1:amountDays){
   iDate = as.Date(i - 1, origin = "2019-01-01")
@@ -213,25 +211,25 @@ for (i in 1:amountDays){
   adAmount[i] = adsIDate
 }
 
-#amount of advertisements per day -- Netherlands
+# amount of advertisements per day -- Netherlands
 adAmountNet = as.matrix(table(broad_net$date))
 
-#amount of advertisements per day -- Belgium
+# amount of advertisements per day -- Belgium
 adAmountBel = as.matrix(table(broad_bel$date))
 
-#amount of traffic per day -- Netherlands (approx. running time 5 seconds)
-#trafAmountNet = as.matrix(table(traffic_net$date)) #how much traffic per day DOES NOT WORK CORRECTLY
+# amount of traffic per day -- Netherlands (approx. running time 5 seconds)
+# trafAmountNet = as.matrix(table(traffic_net$date)) # how much traffic per day DOES NOT WORK CORRECTLY
 
-#amount of traffic per day -- Belgium (approx. running time 5 seconds)
-#trafAmountBel = as.matrix(table(traffic_bel$date)) DOES NOT WORK CORRECTLY
+# amount of traffic per day -- Belgium (approx. running time 5 seconds)
+# trafAmountBel = as.matrix(table(traffic_bel$date)) DOES NOT WORK CORRECTLY
 
-#amount of traffic per day -- Total
-#NOTE: you can only run this if you have run both Net and Bel
-#trafAmount = trafAmountNet + trafAmountBel
+# amount of traffic per day -- Total
+# NOTE: you can only run this if you have run both Net and Bel
+# trafAmount = trafAmountNet + trafAmountBel
 
 ## ADDING DUMMIES FOR DAILY TRAFFIC (time series)
 
-#national holidays
+national holidays
 holidaysNames = c("Nieuwjaarsdag", "Goede Vrijdag", "Eerste Paasdag", 
                   "Tweede Paasdag", "Koningsdag", "Bevrijdingsdag", 
                   "Hemelvaartsdag", "Eerste Pinksterdag", 
@@ -248,7 +246,7 @@ indexHemelvaart = yday(holidaysDates[7])
 dummyHemelvaartsdag = matrix(rep(0), nrow = amountDays)
 dummyHemelvaartsdag[indexHemelvaart] = 1
 
-#weekday and week dummies
+# weekday and week dummies
 allDates = sort(unique(traffic$date))
 allweekdays = weekdays(as.Date(allDates))
 
@@ -256,18 +254,18 @@ dummyWeekdays = dummy_cols(allweekdays) # column 2 = monday, 8 = sunday
 dummyWeekdays = cbind(allDates, dummyWeekdays[, c(4, 2, 6, 3, 5, 7, 8)])
 colnames(dummyWeekdays) = c("data", "mondag", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
 
-#variable with weekdaysnames
+# variable with weekdaysnames
 broad$weekdays = 0
 for (i in 1:nBroad){
   broad$weekdays[i] = weekdays(as.Date(broad$date[i]))
 }
 
-#month dummies
+# month dummies
 dummyMonths = dummy_cols(month(allDates))
 dummyMonths = cbind(allDates, dummyMonths[, 2:7]) # column 2 = Jan, 7 = Jun
 colnames(dummyMonths) = c("data", "January", "February", "March", "April", "May", "June")
 
-#ads dummies
+# ads dummies
 dummyAdsTot = matrix(rep(0), nrow = amountDays)
 for (i in 1:length(uniqueDates)) {
   index = yday(uniqueDates[i])
@@ -283,7 +281,7 @@ for (i in 1:length(uniqueDatesBel)) {
   index = yday(uniqueDatesBel[i])
   dummyAdsBel[index] = 1
 }
-dummyAds = cbind(dummyAdsTot, dummyAdsNet, dummyAdsBel) #1=Tot, 2=NL, 3=BE
+dummyAds = cbind(dummyAdsTot, dummyAdsNet, dummyAdsBel) # 1=Tot, 2=NL, 3=BE
 colnames(dummyAds) = c("Ads Total","Ads Netherlands","Ads Belgium")
 rm(dummyAdsTot); rm(dummyAdsNet); rm(dummyAdsBel)
 
@@ -311,7 +309,7 @@ for (i in 1:nBroad) {
   }
 }
 
-#overlap dummy
+# overlap dummy
 intervalSize = 2
 intervalSizeOverlap = 2*intervalSize
 broad = broad[order(broad$date_time),]
@@ -324,13 +322,13 @@ for (i in 1:nBroad){
   datetime = as.POSIXct(datetime)
   four_earlier = datetime - intervalSizeOverlap * 60
   four_later = datetime + intervalSizeOverlap * 60
-  #4 minutes before
+  # 4 minutes before
   if (i > 1){
     if (four_earlier <= broad$date_time[i - 1] && broad$date_time[i - 1] <= datetime){
       broad$overlap[i] = 1
     }
   }
-  #4 minutes after
+  # 4 minutes after
   if (i < nBroad){
     if (datetime <= broad$date_time[i + 1] && broad$date_time[i + 1] <= four_later){
       broad$overlap[i] = 1
@@ -340,33 +338,33 @@ for (i in 1:nBroad){
 broad = broad[order(as.numeric(row.names(broad))),]
 broad = subset(broad, select = -date_time)
 
-#hourly dummies
+# hourly dummies
 broad$hours = factor(floor(24*as.numeric(times(broad$time))))
 
-#1. Product: Wasmachines, television, laptop
-#2. Broadcast category: 7 
-#3. TV channel: 51
-#4. Commercial length: 30, 30+10, 30+10+5
-#5. Position in break: beginning (1-3), middle (4-15), last (15-25??)
-#6. Hour dummies
+# 1. Product: Wasmachines, television, laptop
+# 2. Broadcast category: 7 
+# 3. TV channel: 51
+# 4. Commercial length: 30, 30+10, 30+10+5
+# 5. Position in break: beginning (1-3), middle (4-15), last (15-25??)
+# 6. Hour dummies
 
 dummiesDirectModel = dummy_cols(.data = broad, select_columns = c("product_category", "channel", "length_of_spot", "position_in_break_3option", "weekdays"), remove_most_frequent_dummy = T)
 
 dummiesDirectModelNeeded = dummiesDirectModel[,((ncol(broad)+1):ncol(dummiesDirectModel))]
 
 dummiesDirectModelNeeded = as.data.frame(dummiesDirectModelNeeded)
-#automate with non singular names \/
+# automate with non singular names \/
 dummiesDirectModelNeeded = subset(dummiesDirectModelNeeded, select = -c(`channel_MTV (NL)`, `channel_RTL 5`, channel_SPIKE, 
                                                                         channel_Viceland, channel_VIER, channel_ZES)) # Exclude singularities
-#broad = dummiesDirectModel # I am afraid to press this BUT this should include the dummy
+# broad = dummiesDirectModel # I am afraid to press this BUT this should include the dummy
 dummiesDirectModelNoChannel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option"), remove_first_dummy = T)
 dummiesDirectModelNoChannel = dummiesDirectModelNoChannel[,((ncol(broad)+1):ncol(dummiesDirectModelNoChannel))]
 dummiesDirectModelNoCluster = dummy_cols(.data = broad, select_columns = c("channel", "product_category", "length_of_spot", "position_in_break_3option", "program_category_before"), remove_most_frequent_dummy = T)
 dummiesDirectModelNoCluster = dummiesDirectModelNoCluster[,((ncol(broad)+1):ncol(dummiesDirectModelNoCluster))]
 dummiesDirectModelNoChannelNoProduct = subset(dummiesDirectModelNoChannel, select = -c(product_category_wasmachines, product_category_televisies)) # Exclude prod. cat
 
-#broad data with broadcasts that have a gross rating higher than 0
-#broadNonZeroGross = broad[broad[, "gross_rating_point"] > 0,]
+# broad data with broadcasts that have a gross rating higher than 0
+# broadNonZeroGross = broad[broad[, "gross_rating_point"] > 0,]
 
 dummiesDirectModelTime = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option", "weekdays"), remove_most_frequent_dummy = T)
 dummiesDirectModelTime = dummiesDirectModelTime[,((ncol(broad)+1):ncol(dummiesDirectModelTime))]

@@ -2,7 +2,7 @@
 channel = unique(broad$channel)
 channel = as.data.frame(channel)
 nChan = nrow(channel)
-#channel country
+# channel country
 channel$country = 0
 for (i in 1:nChan){
   print(i)
@@ -15,7 +15,7 @@ for (i in 1:nChan){
     break
   }
 }
-#gender
+# gender
 channel$women = 0
 channel$men = 0
 channel$men[3] = 1
@@ -29,25 +29,25 @@ channel$men[25] = 1
 channel$women[27] = 1
 channel$women[33] = 1
 channel$men[35] = 1
-#music
+# music
 channel$music = 0
 channel$music[16] = 1
 channel$music[26] = 1
 channel$music[29] = 1
 channel$music[38] = 1
-#sport
+# sport
 channel$sport = 0
 channel$sport[36] = 1
 channel$sport[40] = 1
 channel$sport[41] = 1
 channel$sport[42] = 1
-#age
+# age
 channel$youth = 0
 channel$youth[6] = 1
 channel$youth[12] = 1
 channel$youth[18] = 1
 channel$youth[30] = 1
-#kmeans
+# kmeans
 scaled_channel = scale(channel[2:7])
 set.seed(21)
 kmean = kmeans(scaled_channel, 6)
@@ -79,7 +79,7 @@ for (i in 1:nBroad){
   }
 }
 
-#add some manual program categories if not filled in
+# add some manual program categories if not filled in
 for (i in 1:nBroad){
   print(i)
   if (broad$program_before[i] == 'NOS FIFA WK VOETBAL (V) 2019, NEDERLAND'){
@@ -158,11 +158,11 @@ for (i in 1:nBroad){
 
 broad$program_after[broad$program_category_after=='niet opgegeven']
 
-#make new program categories
+# make new program categories
 broad$program_category_before_2 = broad$program_category_before
 broad$program_category_after_2 = broad$program_category_after
 for (i in 1:nBroad){
-  #spanning
+  # spanning
   if (broad$program_category_before[i] %in% c('btl series: spanning', 'btl films: spanning', 'nld series: spanning', 'nld films: spanning')){
     broad$program_category_before_2[i] = 'spanning'
   }
@@ -170,7 +170,7 @@ for (i in 1:nBroad){
     broad$program_category_after_2[i] = 'spanning'
   }
   
-  #series/films: overig
+  # series/films: overig
   if (broad$program_category_before[i] %in% c('btl series: overig', 'nld series: overig', 'btl films: overig', 'film', 'serie')){
     broad$program_category_before_2[i] = 'films_series_overig'
   }
@@ -178,7 +178,7 @@ for (i in 1:nBroad){
     broad$program_category_after_2[i] = 'films_series_overig'
   }
   
-  #drama
+  # drama
   if (broad$program_category_before[i] %in% c('nld series: drama', 'btl series: drama', 'btl films: drama', 'nld films: drama')){
     broad$program_category_before_2[i] = 'drama'
   }
@@ -186,7 +186,7 @@ for (i in 1:nBroad){
     broad$program_category_after_2[i] = 'drama'
   }
   
-  #talent show
+  # talent show
   if (broad$program_category_before[i] %in% c('show', 'talentenjacht of auditieprogramma')){
     broad$program_category_before_2[i] = 'talent_show'
   }
@@ -194,7 +194,7 @@ for (i in 1:nBroad){
     broad$program_category_after_2[i] = 'talent_show'
   }
   
-  #reality
+  # reality
   if (broad$program_category_before[i] %in% c('reality structured', 'docusoap/reality serie', 'reality show')){
     broad$program_category_before_2[i] = 'reality'
   }
@@ -202,7 +202,7 @@ for (i in 1:nBroad){
     broad$program_category_after_2[i] = 'reality'
   }
   
-  #comedy
+  # comedy
   if (broad$program_category_before[i] %in% c('on stage', 'nld series: (sit)comedy', 'btl series: (sit)comedy', 'nld films: comedy', 'btl films: comedy')){
     broad$program_category_before_2[i] = 'comedy'
   }
@@ -210,7 +210,7 @@ for (i in 1:nBroad){
     broad$program_category_after_2[i] = 'comedy'
   }
   
-  #sport
+  # sport
   if (broad$program_category_before[i] %in% c('voetbalreportage', 'actuele sportinformatie', 'overige sportinformatie', 'overige sportreportage')){
     broad$program_category_before_2[i] = 'sport'
   }
@@ -218,7 +218,7 @@ for (i in 1:nBroad){
     broad$program_category_after_2[i] = 'sport'
   }
   
-  #music
+  # music
   if (broad$program_category_before[i] %in% c('populaire muziek: videoclips', 'populaire muziek: programma', 'overige muziek: overig')){
     broad$program_category_before_2[i] = 'music'
   }
@@ -226,7 +226,7 @@ for (i in 1:nBroad){
     broad$program_category_after_2[i] = 'music'
   }
   
-  #quiz
+  # quiz
   if (broad$program_category_before[i] %in% c('spel & quiz', 'game/quiz')){
     broad$program_category_before_2[i] = 'quiz'
   }
@@ -234,7 +234,7 @@ for (i in 1:nBroad){
     broad$program_category_after_2[i] = 'quiz'
   }
   
-  #soap
+  # soap
   if (broad$program_category_before[i] %in% c('btl series: soap', 'nld series: soap')){
     broad$program_category_before_2[i] = 'soap'
   }
@@ -242,7 +242,7 @@ for (i in 1:nBroad){
     broad$program_category_after_2[i] = 'soap'
   }
   
-  #news
+  # news
   if (broad$program_category_before[i] %in% c('weerbericht', 'actualiteiten', 'nieuws', 'news/flash')){
     broad$program_category_before_2[i] = 'news'
   }
@@ -250,7 +250,7 @@ for (i in 1:nBroad){
     broad$program_category_after_2[i] = 'news'
   }
   
-  #children
+  # children
   if (broad$program_category_before[i] %in% c('animation serie/cartoon', 'animation film', 'kinderen: non fictie', 'kinderfilms: tekenfilm/animatie/poppen', 'kinderen: amusement')){
     broad$program_category_before_2[i] = 'children'
   }
@@ -258,7 +258,7 @@ for (i in 1:nBroad){
     broad$program_category_after_2[i] = 'children'
   }
   
-  #documentary
+  # documentary
   if (broad$program_category_before[i] %in% c('documentary film', 'documentary series')){
     broad$program_category_before_2[i] = 'documentary'
   }
@@ -266,7 +266,7 @@ for (i in 1:nBroad){
     broad$program_category_after_2[i] = 'documentary'
   }
   
-  #not enough observations
+  # not enough observations
   if (broad$program_category_before[i] %in% c('niet opgegeven', 'debate/talk show', 'other studio/structured/show', 'tekstuele informatie', 'cabaret/kleinkunst', 'godsdienst/verkondiging', 'kunst', 'satirisch programma', 'reizen/vakantie/toerisme', 'storing', 'programme trailer', 'other advertising', 'algemene consumenten informatie')){
     broad$program_category_before_2[i] = 'small'
   }
