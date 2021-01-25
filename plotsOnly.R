@@ -28,48 +28,48 @@ rm(visitorsSumDay); rm(broadDay)
 ## Plots of visit density over 6 months (2x2) [Erik]
 par(mfrow=c(2,2))
 # plot Netherlands -- Website
-plot(days_visWebNetSum[,2], type = "l", xaxt='n',  yaxt='n', ann=FALSE)
+plot(daysVisitorsSum[,2], type = "l", xaxt='n',  yaxt='n', ann=FALSE)
 for (i in 1:length(uniqueDatesNet)){
   abline(v = yday(uniqueDatesNet[i]), col = '#DCDCDC', lwd = 3) # ads
 }
 par(new=TRUE)
-plot(days_visWebNetSum[,2], las=1, type = "l", xaxt='n', xlab = "Time (months)", 
+plot(daysVisitorsSum[,2], las=1, type = "l", xaxt='n', xlab = "Time (months)", 
      ylab = 'Visit density', main = "Website traffic Netherlands (2019)")
 axis(side =1, at=c(0, 31, 59, 90, 120, 151, 181), labels = NA)
 axis(side =1, at=c(ceiling(0+(31-0)/2), ceiling(31+(59-31)/2), ceiling(59+(90-59)/2), 
                    (90+(120-90)/2), ceiling(120+(151-120)/2), ceiling(151+(181-151)/2)), 
      labels= c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'), tick = FALSE)
 # plot Netherlands -- App
-plot(days_visAppNetSum[,2], type = "l", xaxt='n',  yaxt='n', ann=FALSE)
+plot(daysVisitorsSum[,3], type = "l", xaxt='n',  yaxt='n', ann=FALSE)
 for (i in 1:length(uniqueDatesNet)){
   abline(v = yday(uniqueDatesNet[i]), col = '#DCDCDC', lwd = 3) # ads
 }
 par(new=TRUE)
-plot(days_visAppNetSum[,2], las=1, type = "l", xaxt='n', xlab = "Time (months)", 
+plot(daysVisitorsSum[,3], las=1, type = "l", xaxt='n', xlab = "Time (months)", 
      ylab = 'Visit density', main = "App traffic Netherlands (2019)")
 axis(side =1, at=c(0, 31, 59, 90, 120, 151, 181), labels = NA)
 axis(side =1, at=c(ceiling(0+(31-0)/2), ceiling(31+(59-31)/2), ceiling(59+(90-59)/2), 
                    (90+(120-90)/2), ceiling(120+(151-120)/2), ceiling(151+(181-151)/2)), 
      labels= c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'), tick = FALSE)
 # plot Belgium -- Website
-plot(days_visWebBelSum[,2], type = "l", xaxt='n',  yaxt='n', ann=FALSE)
+plot(daysVisitorsSum[,4], type = "l", xaxt='n',  yaxt='n', ann=FALSE)
 for (i in 1:length(uniqueDatesNet)){
   abline(v = yday(uniqueDatesBel[i]), col = '#DCDCDC', lwd = 3) # ads
 }
 par(new=TRUE)
-plot(days_visWebBelSum[,2], las=1, type = "l", xaxt='n', xlab = "Time (months)", 
+plot(daysVisitorsSum[,4], las=1, type = "l", xaxt='n', xlab = "Time (months)", 
      ylab = 'Visit density', main = "Website traffic Belgium (2019)")
 axis(side =1, at=c(0, 31, 59, 90, 120, 151, 181), labels = NA)
 axis(side =1, at=c(ceiling(0+(31-0)/2), ceiling(31+(59-31)/2), ceiling(59+(90-59)/2), 
                    (90+(120-90)/2), ceiling(120+(151-120)/2), ceiling(151+(181-151)/2)), 
      labels= c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'), tick = FALSE)
 # plot Belgium -- App
-plot(days_visAppBelSum[,2], type = "l", xaxt='n',  yaxt='n', ann=FALSE)
+plot(daysVisitorsSum[,5], type = "l", xaxt='n',  yaxt='n', ann=FALSE)
 for (i in 1:length(uniqueDatesNet)){
   abline(v = yday(uniqueDatesBel[i]), col = '#DCDCDC', lwd = 3) # ads
 }
 par(new=TRUE)
-plot(days_visAppBelSum[,2], las=1, type = "l", xaxt='n', xlab = "Time (months)", 
+plot(daysVisitorsSum[,5], las=1, type = "l", xaxt='n', xlab = "Time (months)", 
      ylab = 'Visit density', main = "App traffic Belgium (2019)")
 axis(side =1, at=c(0, 31, 59, 90, 120, 151, 181), labels = NA)
 axis(side =1, at=c(ceiling(0+(31-0)/2), ceiling(31+(59-31)/2), ceiling(59+(90-59)/2), 
