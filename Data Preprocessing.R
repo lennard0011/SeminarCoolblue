@@ -162,77 +162,77 @@ for (i in 1:nrow(visAppBelSum)) { # takes about 30sec to run
 }
 
 #Further country specific variables + Aggregate clicks no a day
-traffic_net = subset(traffic, country == 'Netherlands')
-traffic_bel = subset(traffic, country == 'Belgium')
-broad_net = subset(broad, country == 'Netherlands')
-broad_bel = subset(broad, country == 'Belgium')
+trafficNet = subset(traffic, country == 'Netherlands')
+trafficBel = subset(traffic, country == 'Belgium')
+broadNet = subset(broad, country == 'Netherlands')
+broadBel = subset(broad, country == 'Belgium')
 
 #amount of days in time-frame
 amountDays = 31 + 28 + 31 + 30 + 31 + 30
 #amountDays = amountDays op 27-01 verwijderen
 #set of unique advertising dates
 uniqueDates = unique(broad$date)
-uniqueDatesBel = unique(broad_bel$date)
-uniqueDatesNet = unique(broad_net$date)
+uniqueDatesBel = unique(broadBel$date)
+uniqueDatesNet = unique(broadNet$date)
 uniqueDatesBoth = base::intersect(uniqueDatesBel, uniqueDatesNet) #adverts in both on certain day
 uniqueDatesOnlyBel = base::setdiff(uniqueDatesBel, uniqueDatesBoth) #adverts only in Belgium on certain day
 uniqueDatesOnlyNet = base::setdiff(uniqueDatesNet, uniqueDatesBoth) #adverts only in Netherlands on certain day
 
 #calculate average for different searches
 #visitorsSum$time_min = 60 * 24 * as.numeric(times(substr(visitorsSum[, 1], 12, 19))) delete 27-01
-max_website_net = max(visitorsSum$visitsWebNet)
-max_app_net = max(visitorsSum$visitsAppNet)
-max_website_bel = max(visitorsSum$visitsWebBel)
-max_app_bel = max(visitorsSum$visitsAppBel)
+maxWebsiteNet = max(visitorsSum$visitsWebNet)
+maxAppNet = max(visitorsSum$visitsAppNet)
+maxWebsiteBel = max(visitorsSum$visitsWebBel)
+maxAppBel = max(visitorsSum$visitsAppBel)
 
 # Data for plot average of hour over the days
 #calculate average for different searches -- Netherlands - website
-av_traffic_day_net_website = matrix(NA, 24)
+avTrafficDayNetWebsite = matrix(NA, 24)
 for (i in 1:24){
-  visitorsSum_subset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 2]/max_website_net
-  av_traffic_day_net_website[i] = mean(visitorsSum_subset)
+  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 2]/maxWebsiteNet
+  avTrafficDayNetWebsite[i] = mean(visitorsSumSubset)
 }
 
 #calculate average for different searches -- Netherlands - app
-av_traffic_day_net_app = matrix(NA, 24)
+avTrafficDayNetApp = matrix(NA, 24)
 for (i in 1:24){
-  visitorsSum_subset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 3]/max_app_net
-  av_traffic_day_net_app[i] = mean(visitorsSum_subset)
+  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 3]/maxAppNet
+  avTrafficDayNetApp[i] = mean(visitorsSumSubset)
 }
 
 #calculate average for different searches -- Belgium - website
-av_traffic_day_bel_website = matrix(NA, 24)
+avTrafficDayBelWebsite = matrix(NA, 24)
 for (i in 1:24){
-  visitorsSum_subset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 4]/max_website_bel
-  av_traffic_day_bel_website[i] = mean(visitorsSum_subset)
+  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 4]/maxWebsiteBel
+  avTrafficDayBelWebsite[i] = mean(visitorsSumSubset)
 }
 
 #calculate average for different searches -- Belgium - app
-av_traffic_day_bel_app = matrix(NA, 24)
+avTrafficDayBelApp = matrix(NA, 24)
 for (i in 1:24){
-  visitorsSum_subset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 5]/max_app_bel
-  av_traffic_day_bel_app[i] = mean(visitorsSum_subset)
+  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 5]/maxAppBel
+  avTrafficDayBelApp[i] = mean(visitorsSumSubset)
 }
 
 #calculate average amount of broadcasts -- Netherlands
-av_broad_day_net = matrix(NA, 24)
-broad_net = broad_net[order(broad_net$date),]
+avBroadDayNet = matrix(NA, 24)
+broadNet = broadNet[order(broadNet$date),]
 for (i in 1:24){
   print(i)
-  broad_subset = subset(broad_net, (time_min >= (i - 1) * 60) & (time_min < i * 60))
-  av_broad_day_net[i] = nrow(broad_subset)/amountDays
+  broadSubset = subset(broadNet, (time_min >= (i - 1) * 60) & (time_min < i * 60))
+  avBroadDayNet[i] = nrow(broadSubset)/amountDays
 }
-broad_net = broad_net[order(as.numeric(row.names(broad_net))),]
+broadNet = broadNet[order(as.numeric(row.names(broadNet))),]
 
 #calculate average amount of broadcasts -- Belgium
-av_broad_day_bel = matrix(NA, 24)
-broad_bel = broad_bel[order(broad_bel$date),]
+avBroadDayBel = matrix(NA, 24)
+broadBel = broad_bel[order(broadBel$date),]
 for (i in 1:24){
   print(i)
-  broad_subset = subset(broad_bel, (time_min >= (i - 1) * 60) & (time_min < i * 60))
-  av_broad_day_bel[i] = nrow(broad_subset)/amountDays
+  broadSubset = subset(broadBel, (time_min >= (i - 1) * 60) & (time_min < i * 60))
+  avBroadDayBel[i] = nrow(broadSubset)/amountDays
 }
-broad_bel = broad_bel[order(as.numeric(row.names(broad_bel))),]
+broadBel = broadBel[order(as.numeric(row.names(broadBel))),]
 
 #broadcast histogram
 hours = c("00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00")
@@ -325,11 +325,10 @@ dummyWeekdays = dummy_cols(allweekdays) # column 2 = monday, 8 = sunday
 dummyWeekdays = cbind(allDates, dummyWeekdays[, c(4, 2, 6, 3, 5, 7, 8)])
 colnames(dummyWeekdays) = c("data", "mondag", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
 
-#DOES NOT WORK CORRECTLY
+#variable with weekdaysnames
 broad$weekdays = 0
 for (i in 1:nBroad){
-  yearDay = yday(broad$date[i])
-  broad$weekdays[i] = weekdays(as.Date(yearDay))
+  broad$weekdays[i] = weekdays(as.Date(broad$date[i]))
 }
 
 #month dummies
