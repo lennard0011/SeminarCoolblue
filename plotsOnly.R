@@ -121,5 +121,40 @@ print(hourly_traffic +
 
 
 # Plots of time before-after commercials with biggest GRP [Daniel]
+broad <- broad[order(broad$gross_rating_point, decreasing = TRUE),]
 
+interval <- 60
+
+par(mfrow = c(2,3))
+for(j in 1:6){
+  datecommercial <- broad[j,"date"]
+  timecommercial <- broad[j,"time"]
+  
+  traffic_datesub <- subset(visitorsSum,grepl(datecommercial, visitorsSum$date) == TRUE)
+  
+  timecommercial <- str_split_fixed(timecommercial, ":", 3)
+  colnames(timecommercial) <- c("hour", "minute", "seconds")
+  timecommercial <- data.frame(timecommercial)
+  timecommercial <- 60*as.numeric(timecommercial[1,"hour"]) + as.numeric(timecommercial[1,"minute"]) + 1
+  
+  timeStart <- timecommercial - interval
+  timeEinde <- timecommercial + interval
+  totalLength <- 2*interval + 1
+  visitsVector <- as.matrix(rep(0,totalLength))
+  row.names(visitsVector) <- c(seq(from = timeStart, to = timeEinde))
+  
+  for(i in 1:totalLength){
+    visitsVector[i] <- traffic_datesub[(timeStart + i), "visitsWebNet"]
+  }
+  
+  visitsMean <- rollmeanr(visitsVector, 10, align = 'center', fill = NA)
+  row.names(visitsMean) <- c(seq(from = timeStart, to = timeEinde))
+  
+  xlim = c(timecommercial - interval, timecommercial + interval)
+  plot(visitsVector, type = "l", main = paste("Website visits (NL) commercial with GDP", broadorderkijk[j,"gross_rating_point"]), xlab = "Time (minutes)", ylab = "Visits Ratio")
+  lines(visitsMean, col = "red")
+  abline(v = interval + 1, col = "blue")
+}
+
+broad = broad[order(as.numeric(row.names(broad))),]
 # Plots of time before-after commercials with biggest pre-post visitors
