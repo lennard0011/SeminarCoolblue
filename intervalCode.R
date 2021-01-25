@@ -30,11 +30,11 @@ for (i in 1:nBroad) { #nBroad
     broad$postVisitorsWeb[[i]] = sum(subset(visitorsSum, date == broadDate & time_min >= broadTime & time_min < broadTime + intervalSize)$visitsWebBel)
     
   } else if(broadCountry == "Netherlands") {
-    broad$preVisitorsApp[[i]] = sum(subset(visitorsSum, date == broadDate & time_min < broadTime & time_min >= broadTime - intervalSize)$visitsAppNed)
-    broad$preVisitorsWeb[[i]] = sum(subset(visitorsSum, date == broadDate & time_min < broadTime & time_min >= broadTime - intervalSize)$visitsWebNed)
+    broad$preVisitorsApp[[i]] = sum(subset(visitorsSum, date == broadDate & time_min < broadTime & time_min >= broadTime - intervalSize)$visitsAppNet)
+    broad$preVisitorsWeb[[i]] = sum(subset(visitorsSum, date == broadDate & time_min < broadTime & time_min >= broadTime - intervalSize)$visitsWebNet)
     
-    broad$postVisitorsApp[[i]] = sum(subset(visitorsSum, date == broadDate & time_min >= broadTime & time_min < broadTime + intervalSize)$visitsAppNed)
-    broad$postVisitorsWeb[[i]] = sum(subset(visitorsSum, date == broadDate & time_min >= broadTime & time_min < broadTime + intervalSize)$visitsWebNed)
+    broad$postVisitorsApp[[i]] = sum(subset(visitorsSum, date == broadDate & time_min >= broadTime & time_min < broadTime + intervalSize)$visitsAppNet)
+    broad$postVisitorsWeb[[i]] = sum(subset(visitorsSum, date == broadDate & time_min >= broadTime & time_min < broadTime + intervalSize)$visitsWebNet)
   }
 
   if(i %% 100 == 0) {print(paste(i,Sys.time() - start))}
@@ -43,21 +43,23 @@ for (i in 1:nBroad) { #nBroad
 #aggregate pre- and post-visitors (d, r, total)
 
 # first analysis
+broad$postVisitorsWeb = as.numeric(broad$postVisitorsWeb)
+broad$preVisitorsWeb = as.numeric(broad$preVisitorsWeb)
 mean(broad$postVisitorsWeb - broad$preVisitorsWeb)
 lm(broad$postVisitorsWeb ~ broad$preVisitorsWeb + 0)
 
 #min(broad$postVisitors - broad$preVisitors)
 #max(broad$postVisitors - broad$preVisitors)
-#dataInterval = cbind(broad$preVisitors, broad$postVisitors)
+dataInterval = cbind(broad$preVisitorsWeb, broad$postVisitorsWeb)
 #data = cbind(log(broad$postVisitors[1:nBroad]), log(broad$preVisitors[1:nBroad]))
 dataInterval = as.data.frame(dataInterval)
 colnames(dataInterval) = c("preVisitors", "postVisitors")
 
-# data plotting
+#data plotting
 plot(dataInterval$preVisitors, dataInterval$postVisitors)
 lines(cbind(0,10000), cbind(0,10000))
-hist(broad$postVisitors)
-hist(broad$preVisitors)
+hist(broad$postVisitorsWeb)
+hist(broad$preVisitorsWeb)
 
 # which ads show the biggest direct increase?
 biggestAds = subset(broad, preVisitors - postVisitors > 30, 
