@@ -10,7 +10,8 @@ broad['preVisitorsApp'] = 0
 broad['preVisitorsWeb'] = 0
 broad['postVisitorsApp'] = 0
 broad['postVisitorsWeb'] = 0
-intervalSize
+
+intervalSize = 2
 
 #count preVisitors and postvisitors for every broadcast
 start = Sys.time()
@@ -43,10 +44,7 @@ for (i in 1:nBroad) { #nBroad
 
 # first analysis
 mean(broad$postVisitorsWeb - broad$preVisitorsWeb)
-simpleModelWeb = lm(broad$postVisitorsWeb ~ broad$preVisitorsWeb + 0)
-summary(simpleModel)
-simpleModelApp = lm(broad$postVisitorsApp ~ broad$preVisitorsApp + 0)
-summary(simpleModelApp)
+lm(broad$postVisitorsWeb ~ broad$preVisitorsWeb + 0)
 
 #min(broad$postVisitors - broad$preVisitors)
 #max(broad$postVisitors - broad$preVisitors)
@@ -66,46 +64,59 @@ biggestAds = subset(broad, preVisitors - postVisitors > 30,
                     select = -c(program_category_after, program_after))
 
 # split data in training and test
-data_split = sample.split(broad$postVisitorsApp, SplitRatio = 0.8)
+data_split = sample.split(dataInterval$postVisitors, SplitRatio = 0.8)
 train = subset(dataInterval, data_split == TRUE)
 test = subset(dataInterval, data_split == FALSE)
+
+#more advanced regression
+indexHemelvaart = yday("2019-05-30")
+broad$hemelvaart = 0
+broad$monday = 0
+for (i in 1:nBroad){
+  if (yday(broad[i, ]$date) == indexHemelvaart){
+    broad$hemelvaart[[i]] = 1
+  }
+  if (weekdays(as.Date(broad[i, ]$date)) == "maandag"){
+    broad$monday[[i]] = 1
+  }
+}
+regData = cbind(broad$hemelvaart, broad$monday)
+modelVisitorsAdv = lm(postVisitors ~ ., data = broad)
+summary(modelVisitorsAdv)
+coefficients(modelVisitorsAdv)
+
 
 ##REGRESSION MODELS 2-minute model
 
 # TODO include option to regress on positive GRP obsv. only
-# TODO delete NA dummies automate!
+# TODO delete NA dummies `channel_MTV (NL)` `channel_RTL 5` channel_SPIKE  channel_Viceland  channel_VIER channel_ZES  
 
 # Baseline models
 #all visitors
-baselineModelTotal = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours), data = broad)
+baselineModelTotal = lm(postVisitors ~ preVisitors + factor(hours), data = broadNonZeroGross)
 coeftest(baselineModelTotal, vcov = vcovHC(baselineModelTotal, type="HC1")) # robust se
 summary(baselineModelTotal) # to get R^2
-hist(baselineModelTotal$residuals, breaks = 50)
+hist(baselineModelTotal$residuals)
 AIC(baselineModelTotal)
 BIC(baselineModelTotal)
 
 # Treatment effect only models
 # all visitors
-treatmentOnlyModelTotal = lm(broad$postVisitorsWeb ~ ., data = dummiesDirectModelNeeded)
-#coeftest(treatmentOnlyModelTotal, vcov = vcovHC(treatmentOnlyModelTotal, type="HC1")) # robust se
+treatmentOnlyModelTotal = lm(broadNonZeroGross$postVisitors ~ broadNonZeroGross$preVisitors + ., data = dummiesDirectModelNeeded)
+coeftest(treatmentOnlyModelTotal, vcov = vcovHC(treatmentOnlyModelTotal, type="HC1")) # robust se
 summary(treatmentOnlyModelTotal)
 hist(baselineModelTotal$residuals, breaks=100)
 AIC(treatmentOnlyModelTotal)
 BIC(treatmentOnlyModelTotal)
 # no channel
-treatmentOnlyModelTotal = lm(broad$postVisitorsWeb ~ ., data = dummiesDirectModelNoChannel)
+treatmentOnlyModelTotal = lm(broadNonZeroGross$postVisitors ~ broadNonZeroGross$preVisitors + ., data = dummiesDirectModelNoChannel)
 coeftest(treatmentOnlyModelTotal, vcov = vcovHC(treatmentOnlyModelTotal, type="HC1")) # robust se
-summary(treatmentOnlyModelTotal)$r.squared
+summary(treatmentOnlyModelTotal)
 AIC(treatmentOnlyModelTotal)
 BIC(treatmentOnlyModelTotal)
 
-#Full models
-fullModelTotalNoChannel = lm(broad$postVisitors ~ broad$preVisitors + ., data = dummiesDirectModelNoChannel)
-coeftest(fullModelTotalNoChannel, vcov = vcovHC(fullModelTotalNoChannel, type="HC1")) # robust se
-summary(fullModelTotalNoChannel)$r.squared
 
-
-#Calculate Mean Squared Prediction Error OUTDATED
+#Calculate Mean Squared Prediction Error
 postVisitors = broad$postVisitors
 preVisitors = broad$preVisitors
 hours = broad$hours
@@ -126,6 +137,28 @@ summary(treatmentOnlyModelTotal)
 rmse(broadTest$postVisitors, predict(treatmentOnlyModelTotal, broadTest))
 
 
+
+
+#stop
+
+
+
+
+
+# Full models
+#all visitors
+
+#all visitors -- no channel dummies
+fullModelTotalNoChannel = lm(broad$postVisitors ~ broad$preVisitors + ., data = dummiesDirectModelNoChannel)
+coeftest(fullModelTotalNoChannel, vcov = vcovHC(fullModelTotalNoChannel, type="HC1")) # robust se
+summary(fullModelTotalNoChannel)
+
+
+#all visitors -- no channel dummies, no prod. category
+fullModelTotalNoChannelNoProduct = lm(broad$postVisitors ~ broad$preVisitors + ., data = dummiesDirectModelNoChannelNoProduct)
+coeftest(fullModelTotalNoChannelNoProduct, vcov = vcovHC(fullModelTotalNoChannelNoProduct, type="HC1")) # robust se
+summary(fullModelTotalNoChannelNoProduct) # makes clusters somewhat more sign. but not too many
+
 # Evaluation (for now on FULL models)
 R2models = cbind(summary(baselineModelTotal)$r.squared, summary(treatmentOnlyModelTotal)$r.squared, summary(fullModelTotal)$r.squared)
 AICmodels = cbind(AIC(baselineModelTotal), AIC(treatmentOnlyModelTotal), AIC(fullModelTotal))
@@ -134,3 +167,19 @@ R2_AIC_BICmodels = rbind(R2models, AICmodels, BICmodels)
 colnames(R2_AIC_BICmodels) = c("Baseline only", "Treatment only", "Full model") 
 rownames(R2_AIC_BICmodels) = c("R2", "AIC", "BIC")
 format(R2_AIC_BICmodels, scientific = FALSE, digits = 2)
+
+
+fullModelTime = lm(broad$postVisitors ~broad$preVisitors +., data = dummiesDirectModelTime)
+
+summary(fullModelTime)
+
+#polynomial test
+polynomial = 6
+baselineModelTotal = lm(postVisitors ~ preVisitors + poly(time_min, polynomial), data = broad)
+summary(baselineModelTotal)
+
+xseq = seq(0,60*24)
+x = poly(xseq, polynomial)
+#y = x %*% coef(baselineModelTotal)[3:(polynomial+2)]
+y = x %*% coef(baselineModelTotal)[2:(polynomial+1)]
+plot(xseq, y)
