@@ -186,32 +186,32 @@ maxAppNet = max(visitorsSum$visitsAppNet)
 maxWebsiteBel = max(visitorsSum$visitsWebBel)
 maxAppBel = max(visitorsSum$visitsAppBel)
 
-# Data for plot average of hour over the days
+#Data for plot average of hour over the days
 #calculate average for different searches -- Netherlands - website
 avTrafficDayNetWebsite = matrix(NA, 24)
 for (i in 1:24){
-  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 2]/maxWebsiteNet
+  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 3]
   avTrafficDayNetWebsite[i] = mean(visitorsSumSubset)
 }
 
 #calculate average for different searches -- Netherlands - app
 avTrafficDayNetApp = matrix(NA, 24)
 for (i in 1:24){
-  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 3]/maxAppNet
+  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 4]
   avTrafficDayNetApp[i] = mean(visitorsSumSubset)
 }
 
 #calculate average for different searches -- Belgium - website
 avTrafficDayBelWebsite = matrix(NA, 24)
 for (i in 1:24){
-  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 4]/maxWebsiteBel
+  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 5]
   avTrafficDayBelWebsite[i] = mean(visitorsSumSubset)
 }
 
 #calculate average for different searches -- Belgium - app
 avTrafficDayBelApp = matrix(NA, 24)
 for (i in 1:24){
-  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 5]/maxAppBel
+  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 6]
   avTrafficDayBelApp[i] = mean(visitorsSumSubset)
 }
 
