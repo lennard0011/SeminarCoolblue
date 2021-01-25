@@ -37,6 +37,9 @@ broad = read.csv(file.choose(), header = T)
 nTraffic = nrow(traffic)
 nBroad = nrow(broad)
 
+
+traffic = subset(traffic, bounces != 1 | is.na(bounces))
+
 #now that packages and data has been loaded, we start by creating new features and set the data up in a nice and usable way
 
 #First we add the column time_min to traffic and broad, which is the time in a scale of minutes (from 0 to 24*60= 1440)
