@@ -179,3 +179,54 @@ summary(regrAdsNetLag) # not significant as well
   #create best ARMA(p,q) model: lowest AIC&SIC, plot autocorrelations (AR1=to0)
   #inclusion of level and/or trend  
   #misspecification tests (slide 21-23 BasicConc2 TRA / Ectrie 2)
+
+# Bekijk nog eens de grootste 10 reclames
+broadMostViewed <- broad[order(broad$gross_rating_point, decreasing = T),]
+broadMostViewed <- subset(broadMostViewed, gross_rating_point > 1)
+nrow(broadMostViewed)
+
+# 10 most viewed
+broadMostViewed <- broadMostViewed[1:10,]
+
+## TO PLOT (was lost, now back)
+# Plots daily
+plot(visit_density, main = "Number of Visitors on May 1, 2019", type = "l",
+     xlab = "Time (hours)", ylab = "Number of clicks", xaxt='n')
+axis(side =1, at=c(0,60,120,180,240,300,360,420,480,540,600,660,720,780,840,900,
+                   960,1020,1080,1140,1200,1260,1320,1380,1440), labels= 0:24)
+
+# Plot time series -- Netherlands
+dataWebAppNet = matrix(0, nrow = amountDays)
+dataWebAppNet = as.numeric(days_visWebNetSum[,2]) + as.numeric(days_visAppNetSum[,2])
+plot(dataWebAppNet, type = "l", xaxt='n', yaxt = 'n', ann=FALSE)
+plot(days_visWebNetSum[,2], type = "l", xaxt='n', ann=FALSE)
+plot(days_visWebBelSum[,2], type = "l", xaxt='n', ann=FALSE)
+plot(days_visAppNetSum[,2], type = "l", xaxt='n', ann=FALSE)
+plot(days_visAppBelSum[,2], type = "l", xaxt='n', ann=FALSE)
+#lines(x = 1:181, y = days_visAppNetSum[,2], col = 'green')
+for (i in 1:length(uniqueDatesNet)){
+  abline(v = yday(uniqueDatesNet[i]), col = '#DCDCDC', lwd = 3) # ads
+}
+par(new=TRUE)
+plot(dataWebAppNet, las=1, type = "l", xaxt='n', xlab = "Time (months)", 
+     ylab = 'n', yaxt='n', main = "Website traffic Netherlands Jan-Jun 2019")
+axis(side =1, at=c(0, 31, 59, 90, 120, 151, 181), labels= c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'))
+for (i in 1:length(holidaysDates)) {
+  abline(v = yday(holidaysDates[i]), col = 'orange') # holidays
+} # global spike on Hemelvaartsdag in Net
+#for (i in 1:length(trafAmountNet)) {
+#  if (wday(unique(traffic$date)[i]) == 3) { # wednesdays
+#    abline(v = yday(unique(traffic$date)[i]), col = 'yellow') # plot all mondays
+#  }
+#}
+
+plot(trafAmountBel/1000, type = "l", xaxt='n', yaxt = 'n', ann=FALSE)
+abline(v = yday(uniqueDatesBel[i]), col = '#DCDCDC', lwd = 3) # ads
+par(new=TRUE)
+plot(trafAmountBel/1000, las=1, type = "l", xaxt='n', xlab = "Time (months)", 
+     ylab = "Daily visits (x1000)", main = "Website traffic Belgium Jan-Jun 2019")
+axis(side =1, at=c(0, 31, 59, 90, 120, 151, 181), labels= c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'))
+#for (i in 1:length(holidaysDates)) {
+#  abline(v = yday(holidaysDates[i]), col = 'orange') # holidays
+#} # local spike on Hemvelvaartsdag in Bel
+

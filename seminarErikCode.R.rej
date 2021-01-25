@@ -1,0 +1,9 @@
+diff a/seminarErikCode.R b/seminarErikCode.R	(rejected hunks)
+@@ -73,6 +73,7 @@
+   }
+ }
+ 
++plot(visit_density, main = "Number of Visitors on May 1, 2019", type = "l",
+      xlab = "Time (hours)", ylab = "Number of clicks", xaxt='n')
+ axis(side =1, at=c(0,60,120,180,240,300,360,420,480,540,600,660,720,780,840,900,
+                    960,1020,1080,1140,1200,1260,1320,1380,1440), labels= 0:24)
