@@ -88,78 +88,48 @@ maxPairs
 # Netherlands - Website
 visWebNetSum = aggregate(visits_index ~ date + time_min, data = visWebNet, FUN=sum, simplify = TRUE, drop = TRUE)
 names(visWebNetSum) = cbind("date", "time_min", "visitsWebNet")
-#print(paste0("Num. rows: ", nrow(visWebNetSum)))
-print(paste0("Missing pairs Website-Netherlands (incl. summer time): ", 
-             maxPairs-nrow(visWebNetSum)))
+print(paste0("Missing pairs Website-Netherlands (incl. summer time): ", maxPairs-nrow(visWebNetSum)))
 
 # Netherlands - App
 visAppNetSum = aggregate(visits_index ~ date +  time_min + date, data = visAppNet, FUN=sum, simplify = TRUE, drop = TRUE)
 names(visAppNetSum) = cbind("date", "time_min", "visitsAppNet")
-#print(paste0("Num. rows: ", nrow(visAppNetSum)))
-print(paste0("Missing pairs App-Netherlands (incl. summer time): ", 
-             maxPairs-nrow(visAppNetSum)))
+print(paste0("Missing pairs App-Netherlands (incl. summer time): ", maxPairs-nrow(visAppNetSum)))
 
 # Belgium - Website
 visWebBelSum = aggregate(visits_index ~ date + time_min + date, data = visWebBel, FUN=sum, simplify = TRUE, drop = TRUE)
 names(visWebBelSum) = cbind("date", "time_min", "visitsWebBel")
-#print(paste0("Num. rows: ", nrow(visWebBelSum)))
-print(paste0("Missing pairs Website-Belgium (incl. zomertijd): ", 
-             maxPairs-nrow(visWebBelSum)))
+print(paste0("Missing pairs Website-Belgium (incl. zomertijd): ", maxPairs-nrow(visWebBelSum)))
 
 # Belgium - App
 visAppBelSum = aggregate(visits_index ~ date + time_min + date, data = visAppBel, FUN=sum, simplify = TRUE, drop = TRUE)
 names(visAppBelSum) = cbind("date", "time_min", "visitsAppBel")
-#print(paste0("Num. rows: ", nrow(visAppBelSum)))
-print(paste0("Missing pairs App-Belgium (incl. zomertijd): ", 
-             maxPairs-nrow(visAppBelSum)))
+print(paste0("Missing pairs App-Belgium (incl. zomertijd): ", maxPairs-nrow(visAppBelSum)))
 
 visitorsSum = merge(merge(visWebNetSum, visAppNetSum, all = TRUE), merge(visWebBelSum, visAppBelSum, all = TRUE), all = TRUE)
 visitorsSum[is.na(visitorsSum)] = 0
 # insert summer time na obs. 128280 (wie hier zin in heeft mag het doen)
 
-#aggregated over the days
+## Aggregate visit density over the days, 4 pairs of combinations
 amountDays = 31 + 28 + 31 + 30 + 31 + 30
-uniqueDates = unique(sort(traffic$date)) #takes about 30sec
-
-# Netherlands - Website (Aggregated over the days)
-# visWebNetSum = visWebNetSum[order(visWebNetSum$date),] # not necessary but convenient
-days_visWebNetSum = matrix(0.0, nrow = amountDays, ncol = 2)
-colnames(days_visWebNetSum) = cbind("date", "visitsWebNetSumDay")
-days_visWebNetSum[,1] = uniqueDates
-for (i in 1:nrow(visWebNetSum)) { # takes about 30sec to run
-  day = yday(visWebNetSum$date[i])
-  visitIndex = visWebNetSum$visitsWebNet[i]
-  days_visWebNetSum[day, 2] = as.numeric(days_visWebNetSum[day, 2]) + visitIndex
-}
-
-# Netherlands - App (Aggregated over the days)
-days_visAppNetSum = matrix(0.0, nrow = amountDays, ncol = 2)
-colnames(days_visAppNetSum) = cbind("date", "visitsAppNetSumDay")
-days_visAppNetSum[,1] = uniqueDates
-for (i in 1:nrow(visAppNetSum)) { # takes about 30sec to run
-  day = yday(visAppNetSum$date[i])
-  visitIndex = visAppNetSum$visitsAppNet[i]
-  days_visAppNetSum[day, 2] = as.numeric(days_visAppNetSum[day, 2]) + visitIndex
-}
-
-# Belgium - Website (Aggregated over the days)
-days_visWebBelSum = matrix(0.0, nrow = amountDays, ncol = 2)
-colnames(days_visWebBelSum) = cbind("date", "visitsWebBelSumDay")
-days_visWebBelSum[,1] = uniqueDates
-for (i in 1:nrow(visWebBelSum)) { # takes about 30sec to run
-  day = yday(visWebBelSum$date[i])
-  visitIndex = visWebBelSum$visitsWebBel[i]
-  days_visWebBelSum[day, 2] = as.numeric(days_visWebBelSum[day, 2]) + visitIndex
-}
-
-# Belgium - App (Aggregated over the days)
-days_visAppBelSum = matrix(0.0, nrow = amountDays, ncol = 2)
-colnames(days_visAppBelSum) = cbind("date", "visitsAppBelSumDay")
-days_visAppBelSum[,1] = uniqueDates
-for (i in 1:nrow(visAppBelSum)) { # takes about 30sec to run
-  day = yday(visAppBelSum$date[i])
-  visitIndex = visAppBelSum$visitsAppBel[i]
-  days_visAppBelSum[day, 2] = as.numeric(days_visAppBelSum[day, 2]) + visitIndex
+uniqueDates = unique(traffic$date) 
+uniqueDates = sort(uniqueDates)
+daysVisitorsSum = matrix(0.0, nrow = amountDays, ncol = 5)
+colnames(daysVisitorsSum) = cbind("date", "visitsWebNetDay", "visitsAppNetDay", "visitsWebBelDay", "visitsAppBelDay")
+daysVisitorsSum[,1] = uniqueDates
+for (i in 1:nrow(visitorsSum)) { # takes at most 2min to run
+  day = yday(visitorsSum$date[i])
+  visitIndexWebNet = visitorsSum$visitsWebNet[i]
+  if (is.na(visitIndexWebNet)) {visitIndexWebNet = 0.0}
+  visitIndexAppNet = visitorsSum$visitsAppNet[i]
+  if (is.na(visitIndexAppNet)) {visitIndexAppNet = 0.0}
+  visitIndexWebBel = visitorsSum$visitsWebBel[i]
+  if (is.na(visitIndexWebBel)) {visitIndexWebBel = 0.0}
+  visitIndexAppBel = visitorsSum$visitsAppBel[i]
+  if (is.na(visitIndexAppBel)) {visitIndexAppBel = 0.0}
+  daysVisitorsSum[day, 2] = as.numeric(daysVisitorsSum[day, 2]) + visitIndexWebNet
+  daysVisitorsSum[day, 3] = as.numeric(daysVisitorsSum[day, 3]) + visitIndexAppNet
+  daysVisitorsSum[day, 4] = as.numeric(daysVisitorsSum[day, 4]) + visitIndexWebBel
+  daysVisitorsSum[day, 5] = as.numeric(daysVisitorsSum[day, 5]) + visitIndexAppBel
 }
 
 #Further country specific variables + Aggregate clicks no a day
