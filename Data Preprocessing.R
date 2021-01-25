@@ -55,11 +55,11 @@ for (i in 1:nBroad){
 }
 
 #add time_min to every broadcast
-broad['time_min'] = 0
+broad$time_min = 0
 for (i in 1:nBroad) { #nBroad
-  time = broad$time[[i]]
+  time = broad$time[i]
   timeMinute = 60 * 24 * as.numeric(times(time))
-  broad$time_min[[i]] = timeMinute
+  broad$time_min[i] = timeMinute
 }
 rm(timeMinute)
 rm(time)
@@ -89,14 +89,14 @@ maxPairs
 visWebNetSum = aggregate(visits_index ~ date + time_min, data = visWebNet, FUN=sum, simplify = TRUE, drop = TRUE)
 names(visWebNetSum) = cbind("date", "time_min", "visitsWebNet")
 #print(paste0("Num. rows: ", nrow(visWebNetSum)))
-print(paste0("Missing pairs Website-Netherlands (incl. zomertijd): ", 
+print(paste0("Missing pairs Website-Netherlands (incl. summer time): ", 
              maxPairs-nrow(visWebNetSum)))
 
 # Netherlands - App
 visAppNetSum = aggregate(visits_index ~ date +  time_min + date, data = visAppNet, FUN=sum, simplify = TRUE, drop = TRUE)
 names(visAppNetSum) = cbind("date", "time_min", "visitsAppNet")
 #print(paste0("Num. rows: ", nrow(visAppNetSum)))
-print(paste0("Missing pairs App-Netherlands (incl. zomertijd): ", 
+print(paste0("Missing pairs App-Netherlands (incl. summer time): ", 
              maxPairs-nrow(visAppNetSum)))
 
 # Belgium - Website
@@ -409,7 +409,6 @@ channel$youth[12] = 1
 channel$youth[18] = 1
 channel$youth[30] = 1
 #kmeans
-# Elbow method
 scaled_channel = scale(channel[2:7])
 set.seed(21)
 kmean = kmeans(scaled_channel, 6)
