@@ -2,8 +2,6 @@
 
 #For the direct effects model we calculate the amount of traffic in an interval before the broadcast and after the broadcast
 #Results are stored in the column preVisitors and postVisitors in the dataframe broad
-#BEWARE IT TAKES A LONG TIME TO RUN
-
 
 #count visits pre-commercial
 broad['preVisitorsApp'] = 0
@@ -40,53 +38,50 @@ for (i in 1:nBroad) { #nBroad
   if(i %% 100 == 0) {print(paste(i,Sys.time() - start))}
 }
 
-#aggregate pre- and post-visitors (d, r, total)
+# First analysis (onderscheid NL en BE? heel lastig...)
 
-# first analysis
+#website
 broad$postVisitorsWeb = as.numeric(broad$postVisitorsWeb)
 broad$preVisitorsWeb = as.numeric(broad$preVisitorsWeb)
 mean(broad$postVisitorsWeb - broad$preVisitorsWeb)
+min(broad$postVisitorsWeb - broad$preVisitorsWeb)
+max(broad$postVisitorsWeb - broad$preVisitorsWeb)
+sum(broad$postVisitorsWeb > broad$preVisitorsWeb)
+sum(broad$postVisitorsWeb < broad$preVisitorsWeb)
 lm(broad$postVisitorsWeb ~ broad$preVisitorsWeb + 0)
-
-#min(broad$postVisitors - broad$preVisitors)
-#max(broad$postVisitors - broad$preVisitors)
-dataInterval = cbind(broad$preVisitorsWeb, broad$postVisitorsWeb)
-#data = cbind(log(broad$postVisitors[1:nBroad]), log(broad$preVisitors[1:nBroad]))
-dataInterval = as.data.frame(dataInterval)
-colnames(dataInterval) = c("preVisitors", "postVisitors")
-
-#data plotting
-plot(dataInterval$preVisitors, dataInterval$postVisitors)
+#data plotting website
+plot(broad$preVisitorsWeb, broad$postVisitorsWeb)
 lines(cbind(0,10000), cbind(0,10000))
-hist(broad$postVisitorsWeb)
-hist(broad$preVisitorsWeb)
+par(mfrow=c(2,1))
+hist(broad$postVisitorsWeb, xlim = c(0,3))
+hist(broad$preVisitorsWeb, xlim = c(0,3))
+par(mfrow=c(1,1))
+
+#app
+broad$postVisitorsApp = as.numeric(broad$postVisitorsApp)
+broad$preVisitorsApp = as.numeric(broad$preVisitorsWeb)
+mean(broad$postVisitorsApp - broad$preVisitorsApp)
+min(broad$postVisitorsApp - broad$preVisitorsApp)
+max(broad$postVisitorsApp - broad$preVisitorsApp) # bizar laag!!
+lm(broad$postVisitorsApp ~ broad$preVisitorsApp + 0)
+sum(broad$postVisitorsApp > broad$preVisitorsApp)
+sum(broad$postVisitorsApp < broad$preVisitorsApp)
+#data plotting (app)
+plot(broad$preVisitorsApp, broad$postVisitorsApp) # deze plot....
+lines(cbind(0,10000), cbind(0,10000))
+par(mfrow=c(2,1))
+hist(broad$postVisitorsApp, xlim = c(0,2))
+hist(broad$preVisitorsApp, xlim = c(0,2))
+par(mfrow=c(1,1))
 
 # which ads show the biggest direct increase?
-biggestAds = subset(broad, preVisitors - postVisitors > 30, 
+biggestAds = subset(broad, postVisitorsWeb - preVisitorsWeb > 0.7, 
                     select = -c(program_category_after, program_after))
 
 # split data in training and test
-data_split = sample.split(dataInterval$postVisitors, SplitRatio = 0.8)
-train = subset(dataInterval, data_split == TRUE)
-test = subset(dataInterval, data_split == FALSE)
-
-#more advanced regression
-indexHemelvaart = yday("2019-05-30")
-broad$hemelvaart = 0
-broad$monday = 0
-for (i in 1:nBroad){
-  if (yday(broad[i, ]$date) == indexHemelvaart){
-    broad$hemelvaart[[i]] = 1
-  }
-  if (weekdays(as.Date(broad[i, ]$date)) == "maandag"){
-    broad$monday[[i]] = 1
-  }
-}
-regData = cbind(broad$hemelvaart, broad$monday)
-modelVisitorsAdv = lm(postVisitors ~ ., data = broad)
-summary(modelVisitorsAdv)
-coefficients(modelVisitorsAdv)
-
+data_split = sample.split(broad$postVisitorsWeb, SplitRatio = 0.8)
+train = subset(broad$postVisitorsWeb, data_split == TRUE)
+test = subset(broad$postVisitorsWeb, data_split == FALSE)
 
 ##REGRESSION MODELS 2-minute model
 
@@ -146,7 +141,6 @@ rmse(broadTest$postVisitors, predict(treatmentOnlyModelTotal, broadTest))
 
 
 
-
 # Full models
 #all visitors
 
@@ -174,14 +168,3 @@ format(R2_AIC_BICmodels, scientific = FALSE, digits = 2)
 fullModelTime = lm(broad$postVisitors ~broad$preVisitors +., data = dummiesDirectModelTime)
 
 summary(fullModelTime)
-
-#polynomial test
-polynomial = 6
-baselineModelTotal = lm(postVisitors ~ preVisitors + poly(time_min, polynomial), data = broad)
-summary(baselineModelTotal)
-
-xseq = seq(0,60*24)
-x = poly(xseq, polynomial)
-#y = x %*% coef(baselineModelTotal)[3:(polynomial+2)]
-y = x %*% coef(baselineModelTotal)[2:(polynomial+1)]
-plot(xseq, y)

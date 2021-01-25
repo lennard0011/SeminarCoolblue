@@ -120,11 +120,9 @@ print(hourly_traffic +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"))
 
 
-# Plots of time before-after commercials with biggest GRP [Daniel]
+## Plots of time before-after commercials with biggest GRP [Daniel]
 broad <- broad[order(broad$gross_rating_point, decreasing = TRUE),]
-
 interval <- 60
-
 par(mfrow = c(2,3))
 for(j in 1:6){
   datecommercial <- broad[j,"date"]
@@ -155,6 +153,6 @@ for(j in 1:6){
   lines(visitsMean, col = "red")
   abline(v = interval + 1, col = "blue")
 }
-
 broad = broad[order(as.numeric(row.names(broad))),]
-# Plots of time before-after commercials with biggest pre-post visitors
+
+## Plots of time before-after commercials with biggest pre-post visitors
