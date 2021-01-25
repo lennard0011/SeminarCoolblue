@@ -37,6 +37,8 @@ broad = read.csv(file.choose(), header = T)
 nTraffic = nrow(traffic)
 nBroad = nrow(broad)
 
+traffic = subset(traffic, bounces != 1 | is.na(bounces))
+
 #now that packages and data has been loaded, we start by creating new features and set the data up in a nice and usable way
 
 #First we add the column time_min to traffic and broad, which is the time in a scale of minutes (from 0 to 24*60= 1440)
@@ -124,7 +126,6 @@ for (i in 1:nrow(visWebNetSum)) { # takes about 30sec to run
   visitIndex = visWebNetSum$visitsWebNet[i]
   days_visWebNetSum[day, 2] = as.numeric(days_visWebNetSum[day, 2]) + visitIndex
 }
-plot(days_visWebNetSum[,2]) # quick plot
 
 # Netherlands - App (Aggregated over the days)
 days_visAppNetSum = matrix(0.0, nrow = amountDays, ncol = 2)
@@ -135,8 +136,6 @@ for (i in 1:nrow(visAppNetSum)) { # takes about 30sec to run
   visitIndex = visAppNetSum$visitsAppNet[i]
   days_visAppNetSum[day, 2] = as.numeric(days_visAppNetSum[day, 2]) + visitIndex
 }
-plot(days_visAppNetSum[,2]) # quick plot
-plot(days_visAppNetSum[,2], ylim = c(7, 16)) # excl. 2 outliers
 
 # Belgium - Website (Aggregated over the days)
 days_visWebBelSum = matrix(0.0, nrow = amountDays, ncol = 2)
@@ -147,8 +146,6 @@ for (i in 1:nrow(visWebBelSum)) { # takes about 30sec to run
   visitIndex = visWebBelSum$visitsWebBel[i]
   days_visWebBelSum[day, 2] = as.numeric(days_visWebBelSum[day, 2]) + visitIndex
 }
-plot(days_visWebBelSum[,2]) # quick plot
-plot(days_visWebBelSum[32:181,2]) # excluding january
 
 # Belgium - App (Aggregated over the days)
 days_visAppBelSum = matrix(0.0, nrow = amountDays, ncol = 2)
@@ -159,8 +156,6 @@ for (i in 1:nrow(visAppBelSum)) { # takes about 30sec to run
   visitIndex = visAppBelSum$visitsAppBel[i]
   days_visAppBelSum[day, 2] = as.numeric(days_visAppBelSum[day, 2]) + visitIndex
 }
-plot(days_visAppBelSum[,2]) # quick plot
-plot(days_visAppBelSum[,2], ylim = c(7, 20)) # excl. 2 outliers
 
 #Further country specific variables + Aggregate clicks no a day
 traffic_net = subset(traffic, country == 'Netherlands')
