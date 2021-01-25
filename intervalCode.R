@@ -51,13 +51,8 @@ simpleModelApp = lm(broad$postVisitorsApp ~ broad$previsitorsApp + 0)
 summary(simpleModelApp)
 
 
-<<<<<<< HEAD
 # min(broad$postVisitors - broad$preVisitors)
 # max(broad$postVisitors - broad$preVisitors)
-=======
-min(broad$postVisitors - broad$preVisitors)
-max(broad$postVisitors - broad$preVisitors)
->>>>>>> 5d007dbff26a469b9a6f2ba6b7219e6ef12c8b98
 dataInterval = cbind(broad$preVisitorsWeb, broad$postVisitorsWeb)
 # data = cbind(log(broad$postVisitors[1:nBroad]), log(broad$preVisitors[1:nBroad]))
 dataInterval = as.data.frame(dataInterval)
@@ -78,7 +73,6 @@ data_split = sample.split(broad$postVisitors, SplitRatio = 0.8)
 train = subset(dataInterval, data_split == TRUE)
 test = subset(dataInterval, data_split == FALSE)
 
-<<<<<<< HEAD
 # more advanced regression
 indexHemelvaart = yday("2019-05-30")
 broad$hemelvaart = 0
@@ -98,21 +92,13 @@ coefficients(modelVisitorsAdv)
 
 
 ## REGRESSION MODELS 2-minute model
-=======
-##REGRESSION MODELS 2-minute model
->>>>>>> 5d007dbff26a469b9a6f2ba6b7219e6ef12c8b98
 
 # TODO include option to regress on positive GRP obsv. only
 # TODO delete NA dummies `channel_MTV (NL)` `channel_RTL 5` channel_SPIKE  channel_Viceland  channel_VIER channel_ZES  
 
 # Baseline models
-<<<<<<< HEAD
-# all visitors
-baselineModelTotal = lm(postVisitors ~ preVisitors + factor(hours), data = broadNonZeroGross)
-=======
 #all visitors
 baselineModelTotal = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours), data = broad)
->>>>>>> 5d007dbff26a469b9a6f2ba6b7219e6ef12c8b98
 coeftest(baselineModelTotal, vcov = vcovHC(baselineModelTotal, type="HC1")) # robust se
 summary(baselineModelTotal) # to get R^2
 hist(baselineModelTotal$residuals, breaks = 50)
