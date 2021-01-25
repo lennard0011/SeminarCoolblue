@@ -115,6 +115,7 @@ print(paste0("Missing pairs App-Belgium (incl. zomertijd): ",
 
 visitorsSum = merge(merge(visWebNetSum, visAppNetSum, all = TRUE), merge(visWebBelSum, visAppBelSum, all = TRUE), all = TRUE)
 visitorsSum[is.na(visitorsSum)] = 0
+# insert summer time na obs. 128280 (wie hier zin in heeft mag het doen)
 
 #aggregated over the days
 amountDays = 31 + 28 + 31 + 30 + 31 + 30
@@ -233,46 +234,6 @@ for (i in 1:24){
   avBroadDayBel[i] = nrow(broadSubset)/amountDays
 }
 broadBel = broadBel[order(as.numeric(row.names(broadBel))),]
-
-#broadcast histogram
-hours = c("00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00")
-cat_net = rep("Netherlands", 24)
-cat_bel = rep("Belgium", 24)
-categories = c(cat_net, cat_bel)
-value = c(av_broad_day_net, av_broad_day_bel)
-data = data.frame(categories, hours, value)
-hourly_traffic = ggplot(data, aes(fill=categories, y=value, x=hours)) + scale_fill_grey(start = 0.7, end = 0.4)  +  geom_bar(position="dodge", stat="identity")
-print(hourly_traffic + 
-        labs(fill = "Countries", title = "Average amount of broadcasts per hour", y = "Average amount of broadcasts", x = "Hour of the day")) + 
-  theme(plot.title = element_text(hjust = 0.5)) +
-  theme(axis.title.x = element_text(vjust = -0.5)) + 
-  theme(axis.ticks = element_blank()) + 
-  theme(axis.text.x = element_text(color=c("black","transparent","transparent","transparent", "transparent","transparent", "black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent"))) +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"))
-
-#website traffic histogram
-value = c(av_traffic_day_net_website, av_traffic_day_bel_website)
-data = data.frame(categories, hours, value)
-hourly_traffic = ggplot(data, aes(fill=categories, y=value, x=hours)) + scale_fill_grey(start = 0.7, end = 0.4)  +  geom_bar(position="dodge", stat="identity")
-print(hourly_traffic + 
-        labs(fill = "Countries", title = "Average amount of website visitors per hour", y = "Average amount of website visitors", x = "Hour of the day")) + 
-        theme(plot.title = element_text(hjust = 0.5)) +
-        theme(axis.title.x = element_text(vjust = -0.5)) + 
-        theme(axis.ticks = element_blank()) + 
-        theme(axis.text.x = element_text(color=c("black","transparent","transparent","transparent", "transparent","transparent", "black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent"))) +
-        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"))
-
-#app traffic histogram
-value = c(av_traffic_day_net_app, av_traffic_day_bel_app)
-data = data.frame(categories, hours, value)
-hourly_traffic = ggplot(data, aes(fill=categories, y=value, x=hours)) + scale_fill_grey(start = 0.7, end = 0.4)  +  geom_bar(position="dodge", stat="identity")
-print(hourly_traffic + 
-        labs(fill = "Countries", title = "Average amount of app visitors per hour", y = "Average amount of app visitors", x = "Hour of the day")) + 
-  theme(plot.title = element_text(hjust = 0.5)) +
-  theme(axis.title.x = element_text(vjust = -0.5)) + 
-  theme(axis.ticks = element_blank()) + 
-  theme(axis.text.x = element_text(color=c("black","transparent","transparent","transparent", "transparent","transparent", "black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent"))) +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"))
 
 #amount of advertisements per day -- Total
 adAmount = matrix(0, amountDays) 
