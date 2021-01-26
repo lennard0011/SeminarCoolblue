@@ -5,10 +5,10 @@
 # Results are stored in the column preVisitors and postVisitors in the dataframe broad
   
 # count visits pre-commercial
-broad['preVisitorsApp'] = 0
 broad['preVisitorsWeb'] = 0
-broad['postVisitorsApp'] = 0
 broad['postVisitorsWeb'] = 0
+broad['preVisitorsApp'] = 0
+broad['postVisitorsApp'] = 0
 intervalSize
 
 # count preVisitors and postvisitors for every broadcast
@@ -60,6 +60,43 @@ hist(broad$preVisitorsWeb, xlim = c(0,3))
 par(mfrow=c(1,1))
 simpleModelWeb = lm(broad$postVisitorsWeb ~ broad$preVisitorsWeb + 0)
 summary(simpleModelWeb)
+
+# NL vs. BE
+broadNet = subset(broad, country == "Netherlands")
+broadBel = subset(broad, country == "Belgium")
+
+# Website NL
+mean(broadNet$postVisitorsWeb - broadNet$preVisitorsWeb)
+min(broadNet$postVisitorsWeb - broadNet$preVisitorsWeb)
+max(broadNet$postVisitorsWeb - broadNet$preVisitorsWeb)
+sum(broadNet$postVisitorsWeb > broadNet$preVisitorsWeb)
+sum(broadNet$postVisitorsWeb < broadNet$preVisitorsWeb)
+#data plotting website
+plot(broadNet$preVisitorsWeb, broadNet$postVisitorsWeb)
+lines(cbind(0,10000), cbind(0,10000))
+par(mfrow=c(2,1))
+hist(broadNet$postVisitorsWeb, xlim = c(0,3))
+hist(broadNet$preVisitorsWeb, xlim = c(0,3))
+par(mfrow=c(1,1))
+simpleModelWebNet = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + 0)
+summary(simpleModelWebNet)
+
+# Website BE
+mean(broadBel$postVisitorsWeb - broadBel$preVisitorsWeb)
+min(broadBel$postVisitorsWeb - broadBel$preVisitorsWeb)
+max(broadBel$postVisitorsWeb - broadBel$preVisitorsWeb)
+sum(broadBel$postVisitorsWeb > broadBel$preVisitorsWeb)
+sum(broadBel$postVisitorsWeb < broadBel$preVisitorsWeb)
+#data plotting website
+plot(broadBel$preVisitorsWeb, broadBel$postVisitorsWeb)
+lines(cbind(0,10000), cbind(0,10000))
+par(mfrow=c(2,1))
+hist(broadBel$postVisitorsWeb, xlim = c(0,3))
+hist(broadBel$preVisitorsWeb, xlim = c(0,3))
+par(mfrow=c(1,1))
+simpleModelWebBel = lm(broadBel$postVisitorsWeb ~ broadBel$preVisitorsWeb + 0)
+summary(simpleModelWebBel)
+
 simpleModelApp = lm(broad$postVisitorsApp ~ broad$preVisitorsApp + 0)
 summary(simpleModelApp)
 
@@ -71,15 +108,15 @@ summary(simpleModelApp)
 #app
 mean(broad$postVisitorsApp - broad$preVisitorsApp)
 min(broad$postVisitorsApp - broad$preVisitorsApp)
-max(broad$postVisitorsApp - broad$preVisitorsApp) # bizar laag!!
+max(broad$postVisitorsApp - broad$preVisitorsApp)
 sum(broad$postVisitorsApp > broad$preVisitorsApp)
 sum(broad$postVisitorsApp < broad$preVisitorsApp)
 #data plotting (app)
-plot(broad$preVisitorsApp, broad$postVisitorsApp) # deze plot....
+plot(broad$preVisitorsApp, broad$postVisitorsApp, xlim = c(0,0.2)) # deze plot....
 lines(cbind(0,10000), cbind(0,10000))
 par(mfrow=c(2,1))
-hist(broad$postVisitorsApp, xlim = c(0,2))
-hist(broad$preVisitorsApp, xlim = c(0,2))
+hist(broad$postVisitorsApp)
+hist(broad$preVisitorsApp)
 par(mfrow=c(1,1))
 simpleModelApp = lm(broad$postVisitorsApp ~ broad$preVisitorsApp + 0)
 summary(simpleModelApp)
@@ -99,7 +136,10 @@ test = subset(broad$postVisitorsWeb, data_split == FALSE)
 # TODO delete NA dummies `channel_MTV (NL)` `channel_RTL 5` channel_SPIKE  channel_Viceland  channel_VIER channel_ZES  
 
 # Baseline models
+broadNet = subset(broad, country == 'Netherlands')
+broadBel = subset(broad, country == 'Belgium')
 #all visitors
+
 baselineModelTotal = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours), data = broadNet)
 coeftest(baselineModelTotal, vcov = vcovHC(baselineModelTotal, type="HC1")) # robust se
 summary(baselineModelTotal) # to get R^2
@@ -124,9 +164,13 @@ BIC(treatmentOnlyModelTotal)
 
 # Calculate Mean Squared Prediction Error
 #Full models
-fullModelTotalNoChannel = lm(broad$postVisitors ~ broad$preVisitors + ., data = dummiesDirectModelNoChannel)
+fullModelTotal = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + ., data = dummiesDirectModelNeeded)
+summary(fullModelTotal)
+
+fullModelTotalNoChannel = lm(broad$postVisitorsWeb ~ broad$preVisitorsWeb + ., data = dummiesDirectModelNoChannel)
 coeftest(fullModelTotalNoChannel, vcov = vcovHC(fullModelTotalNoChannel, type = 'HC1')) #robust se
 summary(fullModelTotalNoChannel)$r.squared
+
 #Calculate Mean Squared Prediction Error OUTDATED
 postVisitors = broad$postVisitors
 preVisitors = broad$preVisitors
