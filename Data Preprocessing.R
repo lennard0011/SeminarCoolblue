@@ -315,13 +315,9 @@ for (i in 1:nBroad) {
   }
 }
 
-<<<<<<< HEAD
 # overlap dummy
 broadNet = subset(broad, country == 'Netherlands')
 broadBel = subset(broad, country == 'Belgium')
-=======
-# Overlap with over commercials dummies
->>>>>>> 69507aee6a8a8b3ed7ccee8da9f3e959848c0781
 intervalSize = 2
 iNet = 0
 iBel = 0
@@ -374,11 +370,8 @@ for (i in 1:nBroad){
   }
 }
 broad = broad[order(as.numeric(row.names(broad))),]
-<<<<<<< HEAD
 broadNet = broadNet[order(as.numeric(row.names(broadNet))),]
 broadBel = broadBel[order(as.numeric(row.names(broadBel))),]
-=======
->>>>>>> 69507aee6a8a8b3ed7ccee8da9f3e959848c0781
 
 ## CREATING MATRICES WITH DUMMIES ##########################################
 
