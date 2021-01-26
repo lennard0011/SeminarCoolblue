@@ -227,7 +227,9 @@ adAmountBel = as.matrix(table(broadBel$date))
 # NOTE: you can only run this if you have run both Net and Bel
 # trafAmount = trafAmountNet + trafAmountBel
 
-## ADDING DUMMIES FOR DAILY TRAFFIC (time series)
+
+## ADDING DUMMIES FOR DAILY TRAFFIC (time series) #########################
+
 
 #national holidays
 holidaysNames = c("Nieuwjaarsdag", "Goede Vrijdag", "Eerste Paasdag", 
@@ -254,12 +256,6 @@ dummyWeekdays = dummy_cols(allweekdays) # column 2 = monday, 8 = sunday
 dummyWeekdays = cbind(allDates, dummyWeekdays[, c(4, 2, 6, 3, 5, 7, 8)])
 colnames(dummyWeekdays) = c("data", "mondag", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
 
-# variable with weekdaysnames
-broad$weekdays = 0
-for (i in 1:nBroad){
-  broad$weekdays[i] = weekdays(as.Date(broad$date[i]))
-}
-
 # month dummies
 dummyMonths = dummy_cols(month(allDates))
 dummyMonths = cbind(allDates, dummyMonths[, 2:7]) # column 2 = Jan, 7 = Jun
@@ -285,7 +281,17 @@ dummyAds = cbind(dummyAdsTot, dummyAdsNet, dummyAdsBel) # 1=Tot, 2=NL, 3=BE
 colnames(dummyAds) = c("Ads Total","Ads Netherlands","Ads Belgium")
 rm(dummyAdsTot); rm(dummyAdsNet); rm(dummyAdsBel)
 
-## ADDING DUMMIES FOR COMMERCIALS (direct effects)
+
+## ADDING DUMMIES FOR COMMERCIALS (direct effects) #########################
+
+# Weekdays dummiess
+broad$weekdays = 0
+for (i in 1:nBroad){
+  broad$weekdays[i] = weekdays(as.Date(broad$date[i]))
+}
+
+# Hourly dummies
+broad$hours = factor(floor(24*as.numeric(times(broad$time))))
 
 # Begin, middle and end for position in break
 broad['position_in_break_3option'] = 0
@@ -309,7 +315,7 @@ for (i in 1:nBroad) {
   }
 }
 
-# overlap dummy
+# Overlap with over commercials dummies
 intervalSize = 2
 intervalSizeOverlap = 2*intervalSize
 broad = broad[order(broad$date_time),]
@@ -336,27 +342,28 @@ for (i in 1:nBroad){
   }
 }
 broad = broad[order(as.numeric(row.names(broad))),]
-broad = subset(broad, select = -date_time)
 
-# hourly dummies
-broad$hours = factor(floor(24*as.numeric(times(broad$time))))
+## CREATING MATRICES WITH DUMMIES ##########################################
 
-# 1. Product: Wasmachines, television, laptop
-# 2. Broadcast category: 7 
-# 3. TV channel: 51
-# 4. Commercial length: 30, 30+10, 30+10+5
-# 5. Position in break: beginning (1-3), middle (4-15), last (15-25??)
-# 6. Hour dummies
+# The dummies we include in the treatment effect (we EXCLUDE the most freq. dummy)
+  # 1. Product category: 3 ("wasmachines", "televisies", "laptops")
+  # 2. TV channel: 51
+  # 2. Length of spot: 3 ("30", "30+10", "30+10+5")
+  # 3. Position in break: 3 ("begin", "middle", "end")
+  # 4. Weekdays: 7
+  # 5. Overlap with other commercial: 2 (1=T, 0=F)
 
-library("fastDummies")
-dummiesDirectModel = dummy_cols(.data = broad, select_columns = c("product_category", "channel", "length_of_spot", "position_in_break_3option", "weekdays", "overlap"), remove_most_frequent_dummy = T)
-dummiesDirectModel = subset(dummiesDirectModel, country == "Netherlands")
+# We will continue with Web-NL
+broadNet = subset(broad, country == "Netherlands")
 
-dummiesDirectModelNeeded = dummiesDirectModel[,((ncol(broad)+1):ncol(dummiesDirectModel))]
+# dummiesDirectModel contains the treatment variables
+variablesDirectModel = c("product_category", "channel", "length_of_spot", "position_in_break_3option", "weekdays", "overlap")
+dummiesDirectModelPre = dummy_cols(.data = broadNet, select_columns = variablesDirectModel, remove_most_frequent_dummy = T)
+dummiesDirectModel = dummiesDirectModelPre[,((ncol(broadNet)+1):ncol(dummiesDirectModelPre))]
+dummiesDirectModel = as.data.frame(dummiesDirectModel)
+rm(dummiesDirectModelPre); rm(variablesDirectModel)
 
-dummiesDirectModelNeeded = as.data.frame(dummiesDirectModelNeeded)
 # automate with non singular names \/
-
 removeNonSingular <- function(model, data) {
   naCoef = names(which(is.na(coef(model))))
   naCoef = gsub('`', '', naCoef)
@@ -364,16 +371,12 @@ removeNonSingular <- function(model, data) {
   data
 }
 
-# broad = dummiesDirectModel # I am afraid to press this BUT this should include the dummy
-dummiesDirectModelNoChannel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option"), remove_first_dummy = T)
-dummiesDirectModelNoChannel = dummiesDirectModelNoChannel[,((ncol(broad)+1):ncol(dummiesDirectModelNoChannel))]
-dummiesDirectModelNoCluster = dummy_cols(.data = broad, select_columns = c("channel", "product_category", "length_of_spot", "position_in_break_3option", "program_category_before"), remove_most_frequent_dummy = T)
-dummiesDirectModelNoCluster = dummiesDirectModelNoCluster[,((ncol(broad)+1):ncol(dummiesDirectModelNoCluster))]
-dummiesDirectModelNoChannelNoProduct = subset(dummiesDirectModelNoChannel, select = -c(product_category_wasmachines, product_category_televisies)) # Exclude prod. cat
-
-# broad data with broadcasts that have a gross rating higher than 0
-# broadNonZeroGross = broad[broad[, "gross_rating_point"] > 0,]
-
-dummiesDirectModelTime = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option", "weekdays"), remove_most_frequent_dummy = T)
-dummiesDirectModelTime = dummiesDirectModelTime[,((ncol(broad)+1):ncol(dummiesDirectModelTime))]
+## TO BE DELETED! ######################################
+#dummiesDirectModelNoChannel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option"), remove_first_dummy = T)
+#dummiesDirectModelNoChannel = dummiesDirectModelNoChannel[,((ncol(broad)+1):ncol(dummiesDirectModelNoChannel))]
+#dummiesDirectModelNoCluster = dummy_cols(.data = broad, select_columns = c("channel", "product_category", "length_of_spot", "position_in_break_3option", "program_category_before"), remove_most_frequent_dummy = T)
+#dummiesDirectModelNoCluster = dummiesDirectModelNoCluster[,((ncol(broad)+1):ncol(dummiesDirectModelNoCluster))]
+#dummiesDirectModelNoChannelNoProduct = subset(dummiesDirectModelNoChannel, select = -c(product_category_wasmachines, product_category_televisies)) # Exclude prod. cat
+#dummiesDirectModelTime = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option", "weekdays"), remove_most_frequent_dummy = T)
+#dummiesDirectModelTime = dummiesDirectModelTime[,((ncol(broad)+1):ncol(dummiesDirectModelTime))]
 
