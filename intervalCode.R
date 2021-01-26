@@ -121,11 +121,6 @@ summary(simpleModelApp)
 ##            REGRESSION MODELS 2-minute model
 ## ========================================================
 
-# split data in training and test
-data_split = sample.split(broad$postVisitorsWeb, SplitRatio = 0.8)
-train = subset(broad$postVisitorsWeb, data_split == TRUE)
-test = subset(broad$postVisitorsWeb, data_split == FALSE)
-
 # function for model summary
 getModelSumm <- function(model, coef) {
   if(coef) {
@@ -150,24 +145,21 @@ getModelSumm(treatmentOnlyModel, FALSE)
 fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + ., data = dummiesDirectModel)
 getModelSumm(fullModel, FALSE)
 
+
+
+
 ## ========================================================
 ##                    Overfitting Test
 ## ========================================================
 
 #Calculate Mean Squared Prediction Error OUTDATED
-postVisitors = broad$postVisitors
-preVisitors = broad$preVisitors
-hours = broad$hours
-broadDumm = cbind(postVisitors, preVisitors, hours, dummiesDirectModelNoChannelNoProduct)
 
-sampleSplit = sample.split(broadDumm$postVisitors, SplitRatio = 0.8)
-broadTrain = broadDumm[sampleSplit == TRUE,]
-broadTest = broadDumm[sampleSplit == FALSE,]
+sampleSplit = sample.split(broadNet$postVisitorsWeb, SplitRatio = 0.8)
 
 # Baseline model
-baselineModelTotal = lm(postVisitors ~ preVisitors + hours, data=broadTrain)
-summary(baselineModelTotal)
-rmse(broadTest$postVisitors, predict(baselineModelTotal, broadTest))
+baselineModel = lm(postVisitorsWeb[sampleSplit == TRUE] ~ preVisitorsWeb[sampleSplit == TRUE] + factor(hours[sampleSplit == TRUE]), data = broadNet[sampleSplit == TRUE,])
+getModelSumm(baselineModelTotal, FALSE)
+rmse(postVisitorsWeb[sampleSplit == FALSE], predict(baselineModelTotal, broadTest))
 
 # Full treatment model
 treatmentOnlyModelTotal = lm(postVisitors ~ ., data = broadTrain)
