@@ -229,7 +229,7 @@ adAmountBel = as.matrix(table(broad_bel$date))
 
 ## ADDING DUMMIES FOR DAILY TRAFFIC (time series)
 
-national holidays
+#national holidays
 holidaysNames = c("Nieuwjaarsdag", "Goede Vrijdag", "Eerste Paasdag", 
                   "Tweede Paasdag", "Koningsdag", "Bevrijdingsdag", 
                   "Hemelvaartsdag", "Eerste Pinksterdag", 
@@ -348,7 +348,9 @@ broad$hours = factor(floor(24*as.numeric(times(broad$time))))
 # 5. Position in break: beginning (1-3), middle (4-15), last (15-25??)
 # 6. Hour dummies
 
-dummiesDirectModel = dummy_cols(.data = broad, select_columns = c("product_category", "channel", "length_of_spot", "position_in_break_3option", "weekdays"), remove_most_frequent_dummy = T)
+library("fastDummies")
+dummiesDirectModel = dummy_cols(.data = broad, select_columns = c("product_category", "channel", "length_of_spot", "position_in_break_3option", "weekdays", "overlap"), remove_most_frequent_dummy = T)
+dummiesDirectModel = subset(dummiesDirectModel, country == "Netherlands")
 
 dummiesDirectModelNeeded = dummiesDirectModel[,((ncol(broad)+1):ncol(dummiesDirectModel))]
 
