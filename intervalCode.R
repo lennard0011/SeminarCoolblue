@@ -153,6 +153,7 @@ getModelSumm(fullModel, TRUE)
 ## ========================================================
 
 #Calculate Mean Squared Prediction Error 
+set.seed(21)
 postVisitorsWeb = broadNet$postVisitorsWeb
 preVisitorsWeb = broadNet$preVisitorsWeb
 hours = broadNet$hours
@@ -160,19 +161,20 @@ broadDumm = cbind(postVisitorsWeb, preVisitorsWeb, hours, dummiesDirectModel)
 
 sampleSplit = sample.split(broadNet$postVisitorsWeb, SplitRatio = 0.8)
 broadTrain = broadDumm[sampleSplit == TRUE,]
-broadTest = broadDumm[sampleSplit == TRUE,]
+broadTest = broadDumm[sampleSplit == FALSE,]
 
 # Baseline model
 baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours), data = broadTrain)
 getModelSumm(baselineModel, FALSE)
+rmse(broadTrain$postVisitorsWeb, predict(baselineModel, broadTrain))
 rmse(broadTest$postVisitorsWeb, predict(baselineModel, broadTest))
 
 # Treatment effects only models
-treatmentOnlyModel = lm(postVisitors ~ .-preVisitors, data = broadTrain)
-summary(baselineModelTotal)
-rmse(broadTest$postVisitors, predict(treatmentOnlyModel, broadTest))
+#treatmentOnlyModel = lm(postVisitors ~ .-preVisitors, data = broadTrain)
+#rmse(broadTest$postVisitors, predict(treatmentOnlyModel, broadTest))
 
 # Full treatment model
-FullModelTotal = lm(postVisitors ~ preVisitors + ., data = broadTrain)
-summary(FullModelTotal)
-rmse(broadTest$postVisitors, predict(FullModelTotal, broadTest))
+fullModel = lm(postVisitorsWeb ~ preVisitorsWeb + ., data = broadTrain)
+getModelSumm(fullModel, FALSE)
+rmse(broadTrain$postVisitorsWeb, predict(fullModel, broadTrain))
+rmse(broadTest$postVisitorsWeb, predict(fullModel, broadTest))
