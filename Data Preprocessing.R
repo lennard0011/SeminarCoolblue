@@ -315,33 +315,63 @@ for (i in 1:nBroad) {
   }
 }
 
-# Overlap with over commercials dummies
+# overlap dummy
+broadNet = subset(broad, country == 'Netherlands')
+broadBel = subset(broad, country == 'Belgium')
 intervalSize = 2
+iNet = 0
+iBel = 0
 intervalSizeOverlap = 2*intervalSize
 broad = broad[order(broad$date_time),]
-broad$overlap = 0
+broadNet = broadNet[order(broadNet$date_time),]
+broadBel = broadBel[order(broadBel$date_time),]
+broad$overlapBefore = 0
+broad$overlapAfter = 0
 for (i in 1:nBroad){
-  if (i %% 100 == 0){
+  if (broad$country[i] == 'Netherlands'){
+    iNet = iNet + 1
     print(i)
-  }
-  datetime = broad$date_time[i]
-  datetime = as.POSIXct(datetime)
-  four_earlier = datetime - intervalSizeOverlap * 60
-  four_later = datetime + intervalSizeOverlap * 60
-  # 4 minutes before
-  if (i > 1){
-    if (four_earlier <= broad$date_time[i - 1] && broad$date_time[i - 1] <= datetime){
-      broad$overlap[i] = 1
+    datetime = broad$date_time[i]
+    datetime = as.POSIXct(datetime)
+    four_earlier = datetime - intervalSizeOverlap * 60
+    four_later = datetime + intervalSizeOverlap * 60
+    # 4 minutes before
+    if (iNet > 1){
+      if (four_earlier <= broadNet$date_time[iNet - 1] && broadNet$date_time[iNet - 1] <= datetime){
+        broad$overlapBefore[i] = 1
+      }
+    }
+    # 4 minutes after
+    if (iNet < nrow(broadNet)){
+      if (datetime <= broadNet$date_time[iNet + 1] && broadNet$date_time[iNet + 1] <= four_later){
+        broad$overlapAfter[i] = 1
+      }
     }
   }
-  # 4 minutes after
-  if (i < nBroad){
-    if (datetime <= broad$date_time[i + 1] && broad$date_time[i + 1] <= four_later){
-      broad$overlap[i] = 1
+  if (broad$country[i] == 'Belgium'){
+    iBel = iBel + 1
+    print(i)
+    datetime = broad$date_time[i]
+    datetime = as.POSIXct(datetime)
+    four_earlier = datetime - intervalSizeOverlap * 60
+    four_later = datetime + intervalSizeOverlap * 60
+    # 4 minutes before
+    if (iBel > 1){
+      if (four_earlier <= broadBel$date_time[iBel - 1] && broadBel$date_time[iBel - 1] <= datetime){
+        broad$overlapBefore[i] = 1
+      }
+    }
+    # 4 minutes after
+    if (iBel < nrow(broadBel)){
+      if (datetime <= broadBel$date_time[iBel + 1] && broadBel$date_time[iBel + 1] <= four_later){
+        broad$overlapAfter[i] = 1
+      }
     }
   }
 }
 broad = broad[order(as.numeric(row.names(broad))),]
+broadNet = broadNet[order(as.numeric(row.names(broadNet))),]
+broadBel = broadBel[order(as.numeric(row.names(broadBel))),]
 
 ## CREATING MATRICES WITH DUMMIES ##########################################
 
