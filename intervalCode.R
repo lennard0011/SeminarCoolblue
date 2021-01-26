@@ -135,15 +135,15 @@ getModelSumm <- function(model, coef) {
 
 # Baseline models
 baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours), data = broadNet)
-getModelSumm(baselineModel, FALSE)
+getModelSumm(baselineModel, TRUE)
 
 # Treatment effect only models
 treatmentOnlyModel = lm(broadNet$postVisitorsWeb ~ ., data = dummiesDirectModel)
-getModelSumm(treatmentOnlyModel, FALSE)
+getModelSumm(treatmentOnlyModel, TRUE)
 
 # Full model 
-fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + ., data = dummiesDirectModel)
-getModelSumm(fullModel, FALSE)
+fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(hours) + ., data = dummiesDirectModel)
+getModelSumm(fullModel, TRUE)
 
 
 
@@ -152,19 +152,27 @@ getModelSumm(fullModel, FALSE)
 ##                    Overfitting Test
 ## ========================================================
 
-#Calculate Mean Squared Prediction Error OUTDATED
+#Calculate Mean Squared Prediction Error 
+postVisitorsWeb = broadNet$postVisitorsWeb
+preVisitorsWeb = broadNet$preVisitorsWeb
+hours = broadNet$hours
+broadDumm = cbind(postVisitorsWeb, preVisitorsWeb, hours, dummiesDirectModel)
 
 sampleSplit = sample.split(broadNet$postVisitorsWeb, SplitRatio = 0.8)
+broadTrain = broadDumm[sampleSplit == TRUE,]
+broadTest = broadDumm[sampleSplit == TRUE,]
 
 # Baseline model
-baselineModel = lm(postVisitorsWeb[sampleSplit == TRUE] ~ preVisitorsWeb[sampleSplit == TRUE] + factor(hours[sampleSplit == TRUE]), data = broadNet[sampleSplit == TRUE,])
+baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours), data = broadTrain)
 getModelSumm(baselineModel, FALSE)
+rmse(broadTest$postVisitorsWeb, predict(baselineModel, broadTest))
 
-predict(baselineModel,  broadNet[sampleSplit == FALSE,])
-
-rmse(postVisitorsWeb[sampleSplit == FALSE], predict(baselineModel,  broadNet[sampleSplit == FALSE,]))
+# Treatment effects only models
+treatmentOnlyModel = lm(postVisitors ~ .-preVisitors, data = broadTrain)
+summary(baselineModelTotal)
+rmse(broadTest$postVisitors, predict(treatmentOnlyModel, broadTest))
 
 # Full treatment model
-treatmentOnlyModelTotal = lm(postVisitors ~ ., data = broadTrain)
-summary(treatmentOnlyModelTotal)$r.squared
-rmse(broadTest$postVisitors, predict(treatmentOnlyModelTotal, broadTest))
+FullModelTotal = lm(postVisitors ~ preVisitors + ., data = broadTrain)
+summary(FullModelTotal)
+rmse(broadTest$postVisitors, predict(FullModelTotal, broadTest))
