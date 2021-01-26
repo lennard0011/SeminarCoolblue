@@ -50,13 +50,13 @@ broadBel = subset(broad, country == 'Belgium')
 ##                    First analysis
 ## ========================================================
 
-#website analysis
+# website analysis
 mean(broad$postVisitorsWeb - broad$preVisitorsWeb)
 min(broad$postVisitorsWeb - broad$preVisitorsWeb)
 max(broad$postVisitorsWeb - broad$preVisitorsWeb)
 sum(broad$postVisitorsWeb > broad$preVisitorsWeb)
 sum(broad$postVisitorsWeb < broad$preVisitorsWeb)
-#data plotting website
+# data plotting website
 plot(broad$preVisitorsWeb, broad$postVisitorsWeb)
 lines(cbind(0,10000), cbind(0,10000))
 par(mfrow=c(2,1))
@@ -72,7 +72,7 @@ min(broadNet$postVisitorsWeb - broadNet$preVisitorsWeb)
 max(broadNet$postVisitorsWeb - broadNet$preVisitorsWeb)
 sum(broadNet$postVisitorsWeb > broadNet$preVisitorsWeb)
 sum(broadNet$postVisitorsWeb < broadNet$preVisitorsWeb)
-#data plotting website
+# data plotting website
 plot(broadNet$preVisitorsWeb, broadNet$postVisitorsWeb)
 lines(cbind(0,10000), cbind(0,10000))
 par(mfrow=c(2,1))
@@ -88,7 +88,7 @@ min(broadBel$postVisitorsWeb - broadBel$preVisitorsWeb)
 max(broadBel$postVisitorsWeb - broadBel$preVisitorsWeb)
 sum(broadBel$postVisitorsWeb > broadBel$preVisitorsWeb)
 sum(broadBel$postVisitorsWeb < broadBel$preVisitorsWeb)
-#data plotting website
+# data plotting website
 plot(broadBel$preVisitorsWeb, broadBel$postVisitorsWeb)
 lines(cbind(0,10000), cbind(0,10000))
 par(mfrow=c(2,1))
@@ -104,7 +104,7 @@ min(broad$postVisitorsApp - broad$preVisitorsApp)
 max(broad$postVisitorsApp - broad$preVisitorsApp)
 sum(broad$postVisitorsApp > broad$preVisitorsApp)
 sum(broad$postVisitorsApp < broad$preVisitorsApp)
-#data plotting (app)
+# data plotting (app)
 plot(broad$preVisitorsApp, broad$postVisitorsApp, xlim = c(0,0.2)) # deze plot....
 lines(cbind(0,10000), cbind(0,10000))
 par(mfrow=c(2,1))
@@ -139,7 +139,7 @@ getModelSumm(baselineModel, TRUE)
 
 # Treatment effect only models
 treatmentOnlyModel = lm(broadNet$postVisitorsWeb ~ ., data = dummiesDirectModel)
-getModelSumm(treatmentOnlyModel, FALSE)
+getModelSumm(treatmentOnlyModel, TRUE)
 
 # Full model 
 fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(broadNet$hours) + ., data = dummiesDirectModel)
@@ -155,22 +155,30 @@ train = subset(broad$postVisitorsWeb, data_split == TRUE)
 test = subset(broad$postVisitorsWeb, data_split == FALSE)
 
 
-#Calculate Mean Squared Prediction Error OUTDATED
-postVisitors = broad$postVisitors
-preVisitors = broad$preVisitors
-hours = broad$hours
-broadDumm = cbind(postVisitors, preVisitors, hours, dummiesDirectModelNoChannelNoProduct)
+# Calculate Mean Squared Prediction Error 
+postVisitorsWeb = broadNet$postVisitorsWeb
+preVisitorsWeb = broadNet$preVisitorsWeb
+hours = broadNet$hours
+broadDumm = cbind(postVisitors, preVisitors, hours, dummiesDirectModel)
 
-sampleSplit = sample.split(broadDumm$postVisitors, SplitRatio = 0.8)
+set.seed(21)
+sampleSplit = sample.split(broadNet$postVisitorsWeb, SplitRatio = 0.8)
 broadTrain = broadDumm[sampleSplit == TRUE,]
 broadTest = broadDumm[sampleSplit == FALSE,]
 
 # Baseline model
 baselineModelTotal = lm(postVisitors ~ preVisitors + hours, data=broadTrain)
 summary(baselineModelTotal)
+rmse(broadTrain$postVisitors, predict(baselineModelTotal, broadTrain))
 rmse(broadTest$postVisitors, predict(baselineModelTotal, broadTest))
 
+# Treatment effects only models
+treatmentOnlyModel = lm(postVisitors ~ .-preVisitors, data = broadTrain)
+summary(baselineModelTotal)
+rmse(broadTest$postVisitors, predict(treatmentOnlyModel, broadTest))
+
 # Full treatment model
-treatmentOnlyModelTotal = lm(postVisitors ~ ., data = broadTrain)
-summary(treatmentOnlyModelTotal)$r.squared
-rmse(broadTest$postVisitors, predict(treatmentOnlyModelTotal, broadTest))
+fullModel = lm(postVisitorsWeb ~ preVisitorsWeb + ., data = broadTrain)
+getModelSumm(fullModel, FALSE)
+rmse(broadTrain$postVisitorsWeb, predict(fullModel, broadTrain))
+rmse(broadTest$postVisitorsWeb, predict(fullModel, broadTest))
