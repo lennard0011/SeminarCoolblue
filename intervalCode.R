@@ -38,6 +38,10 @@ for (i in 1:nBroad) { # nBroad
   if(i %% 100 == 0) {print(paste(i,Sys.time() - start))}
 }
 
+# broad for Netherlands and Belgium
+broadNet = subset(broad, country == 'Netherlands')
+broadBel = subset(broad, country == 'Belgium')
+
 # First analysis (onderscheid NL en BE? heel lastig...)
 # aggregate pre- and post-visitors (d, r, total)
 
@@ -51,17 +55,20 @@ sum(broad$postVisitorsWeb < broad$preVisitorsWeb)
 plot(broad$preVisitorsWeb, broad$postVisitorsWeb)
 lines(cbind(0,10000), cbind(0,10000))
 par(mfrow=c(2,1))
-hist(broad$postVisitorsWeb, xlim = c(0,3), breaks= 70)
-hist(broad$preVisitorsWeb, xlim = c(0,3), breaks= 70)
+hist(broad$postVisitorsWeb, xlim = c(0,3))
+hist(broad$preVisitorsWeb, xlim = c(0,3))
 par(mfrow=c(1,1))
 simpleModelWeb = lm(broad$postVisitorsWeb ~ broad$preVisitorsWeb + 0)
 summary(simpleModelWeb)
-simpleModelApp = lm(broad$postVisitorsApp ~ broad$previsitorsApp + 0)
+simpleModelApp = lm(broad$postVisitorsApp ~ broad$preVisitorsApp + 0)
 summary(simpleModelApp)
 
+#weg?
+#dataInterval = cbind(broad$preVisitorsWeb, broad$postVisitorsWeb)
+#dataInterval = as.data.frame(dataInterval)
+#colnames(dataInterval) = c("preVisitors", "postVisitors")
+
 #app
-broad$postVisitorsApp = as.numeric(broad$postVisitorsApp)
-broad$preVisitorsApp = as.numeric(broad$preVisitorsWeb)
 mean(broad$postVisitorsApp - broad$preVisitorsApp)
 min(broad$postVisitorsApp - broad$preVisitorsApp)
 max(broad$postVisitorsApp - broad$preVisitorsApp) # bizar laag!!
@@ -74,7 +81,7 @@ par(mfrow=c(2,1))
 hist(broad$postVisitorsApp, xlim = c(0,2))
 hist(broad$preVisitorsApp, xlim = c(0,2))
 par(mfrow=c(1,1))
-simpleModelApp = lm(broad$postVisitorsApp ~ broad$previsitorsApp + 0)
+simpleModelApp = lm(broad$postVisitorsApp ~ broad$preVisitorsApp + 0)
 summary(simpleModelApp)
 
 # which ads show the biggest direct increase?
@@ -93,7 +100,7 @@ test = subset(broad$postVisitorsWeb, data_split == FALSE)
 
 # Baseline models
 #all visitors
-baselineModelTotal = lm(postVisitorsWeb ~ preVisitorsWeb, data = broadNet)
+baselineModelTotal = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours), data = broadNet)
 coeftest(baselineModelTotal, vcov = vcovHC(baselineModelTotal, type="HC1")) # robust se
 summary(baselineModelTotal) # to get R^2
 hist(baselineModelTotal$residuals, breaks = 50)
@@ -108,7 +115,6 @@ summary(treatmentOnlyModelTotal)
 hist(baselineModelTotal$residuals, breaks = 100)
 AIC(treatmentOnlyModelTotal)
 BIC(treatmentOnlyModelTotal)
-
 # no channel
 treatmentOnlyModelTotal = lm(broad$postVisitorsWeb ~ ., data = dummiesDirectModelNoChannel)
 #coeftest(treatmentOnlyModelTotal, vcov = vcovHC(treatmentOnlyModelTotal, type="HC1")) # robust se
@@ -149,6 +155,9 @@ rmse(broadTest$postVisitors, predict(treatmentOnlyModelTotal, broadTest))
 
 # Full models
 # all visitors
+
+
+
 # all visitors -- no channel dummies
 fullModelTotalNoChannel = lm(broad$postVisitors ~ broad$preVisitors + ., data = dummiesDirectModelNoChannel)
 coeftest(fullModelTotalNoChannel, vcov = vcovHC(fullModelTotalNoChannel, type="HC1")) # robust se
