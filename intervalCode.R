@@ -153,28 +153,39 @@ getModelSumm(fullModel, TRUE)
 ## ========================================================
 
 #Calculate Mean Squared Prediction Error 
-set.seed(21)
 postVisitorsWeb = broadNet$postVisitorsWeb
 preVisitorsWeb = broadNet$preVisitorsWeb
 hours = broadNet$hours
 broadDumm = cbind(postVisitorsWeb, preVisitorsWeb, hours, dummiesDirectModel)
 
-sampleSplit = sample.split(broadNet$postVisitorsWeb, SplitRatio = 0.8)
-broadTrain = broadDumm[sampleSplit == TRUE,]
-broadTest = broadDumm[sampleSplit == FALSE,]
-
-# Baseline model
-baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours), data = broadTrain)
-getModelSumm(baselineModel, FALSE)
-rmse(broadTrain$postVisitorsWeb, predict(baselineModel, broadTrain))
-rmse(broadTest$postVisitorsWeb, predict(baselineModel, broadTest))
-
-# Treatment effects only models
-#treatmentOnlyModel = lm(postVisitors ~ .-preVisitors, data = broadTrain)
-#rmse(broadTest$postVisitors, predict(treatmentOnlyModel, broadTest))
-
-# Full treatment model
-fullModel = lm(postVisitorsWeb ~ preVisitorsWeb + ., data = broadTrain)
-getModelSumm(fullModel, FALSE)
-rmse(broadTrain$postVisitorsWeb, predict(fullModel, broadTrain))
-rmse(broadTest$postVisitorsWeb, predict(fullModel, broadTest))
+set.seed(21)
+folds = 100
+avBaseTrainError = vector(length = folds)
+avBaseTestError = vector(length = folds)
+avFullTrainError = vector(length = folds)
+avFullTestError = vector(length = folds)
+for (i in 1:folds){
+  sampleSplit = sample.split(broadNet$postVisitorsWeb, SplitRatio = 0.8)
+  broadTrain = broadDumm[sampleSplit == TRUE,]
+  broadTest = broadDumm[sampleSplit == FALSE,]
+  
+  # Baseline model
+  baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours), data = broadTrain)
+  getModelSumm(baselineModel, FALSE)
+  avBaseTrainError[i] = rmse(broadTrain$postVisitorsWeb, predict(baselineModel, broadTrain))
+  avBaseTestError[i] = rmse(broadTest$postVisitorsWeb, predict(baselineModel, broadTest))
+  
+  # Treatment effects only models
+  #treatmentOnlyModel = lm(postVisitors ~ .-preVisitors, data = broadTrain)
+  #rmse(broadTest$postVisitors, predict(treatmentOnlyModel, broadTest))
+  
+  # Full treatment model
+  fullModel = lm(postVisitorsWeb ~ preVisitorsWeb + ., data = broadTrain)
+  getModelSumm(fullModel, FALSE)
+  avFullTrainError[i] = rmse(broadTrain$postVisitorsWeb, predict(fullModel, broadTrain))
+  avFullTestError[i] = rmse(broadTest$postVisitorsWeb, predict(fullModel, broadTest))
+}
+mean(avBaseTrainError)
+mean(avBaseTestError)
+mean(avFullTrainError)
+mean(avFullTestError)
