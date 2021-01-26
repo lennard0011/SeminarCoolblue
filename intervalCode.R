@@ -50,13 +50,13 @@ broadBel = subset(broad, country == 'Belgium')
 ##                    First analysis
 ## ========================================================
 
-#website analysis
+# website analysis
 mean(broad$postVisitorsWeb - broad$preVisitorsWeb)
 min(broad$postVisitorsWeb - broad$preVisitorsWeb)
 max(broad$postVisitorsWeb - broad$preVisitorsWeb)
 sum(broad$postVisitorsWeb > broad$preVisitorsWeb)
 sum(broad$postVisitorsWeb < broad$preVisitorsWeb)
-#data plotting website
+# data plotting website
 plot(broad$preVisitorsWeb, broad$postVisitorsWeb)
 lines(cbind(0,10000), cbind(0,10000))
 par(mfrow=c(2,1))
@@ -72,7 +72,7 @@ min(broadNet$postVisitorsWeb - broadNet$preVisitorsWeb)
 max(broadNet$postVisitorsWeb - broadNet$preVisitorsWeb)
 sum(broadNet$postVisitorsWeb > broadNet$preVisitorsWeb)
 sum(broadNet$postVisitorsWeb < broadNet$preVisitorsWeb)
-#data plotting website
+# data plotting website
 plot(broadNet$preVisitorsWeb, broadNet$postVisitorsWeb)
 lines(cbind(0,10000), cbind(0,10000))
 par(mfrow=c(2,1))
@@ -88,7 +88,7 @@ min(broadBel$postVisitorsWeb - broadBel$preVisitorsWeb)
 max(broadBel$postVisitorsWeb - broadBel$preVisitorsWeb)
 sum(broadBel$postVisitorsWeb > broadBel$preVisitorsWeb)
 sum(broadBel$postVisitorsWeb < broadBel$preVisitorsWeb)
-#data plotting website
+# data plotting website
 plot(broadBel$preVisitorsWeb, broadBel$postVisitorsWeb)
 lines(cbind(0,10000), cbind(0,10000))
 par(mfrow=c(2,1))
@@ -104,7 +104,7 @@ min(broad$postVisitorsApp - broad$preVisitorsApp)
 max(broad$postVisitorsApp - broad$preVisitorsApp)
 sum(broad$postVisitorsApp > broad$preVisitorsApp)
 sum(broad$postVisitorsApp < broad$preVisitorsApp)
-#data plotting (app)
+# data plotting (app)
 plot(broad$preVisitorsApp, broad$postVisitorsApp, xlim = c(0,0.2)) # deze plot....
 lines(cbind(0,10000), cbind(0,10000))
 par(mfrow=c(2,1))
@@ -114,7 +114,7 @@ par(mfrow=c(1,1))
 simpleModelApp = lm(broad$postVisitorsApp ~ broad$preVisitorsApp + 0)
 summary(simpleModelApp)
 
-
+biggestAds = subset(broad, postVisitorsWeb-preVisitorsWeb > 0.6)
 
 
 ## ========================================================
@@ -128,7 +128,7 @@ getModelSumm <- function(model, coef) {
     print(coeftest(model, vcov = vcovHC(model, type="HC1"))) # robust se
   }
   print(paste("R^2: ", summary(model)$r.squared))
-  hist(model$residuals, breaks = 50)
+  #hist(model$residuals, breaks = 50)
   print(paste("AIC: ",AIC(model)))
   print(paste("BIC: ", BIC(model)))
 }
@@ -142,21 +142,17 @@ treatmentOnlyModel = lm(broadNet$postVisitorsWeb ~ ., data = dummiesDirectModel)
 getModelSumm(treatmentOnlyModel, TRUE)
 
 # Full model 
-fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(hours) + ., data = dummiesDirectModel)
-getModelSumm(fullModel, TRUE)
-
-
-
+fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(broadNet$hours) + ., data = dummiesDirectModel)
+getModelSumm(fullModel, T)
 
 ## ========================================================
 ##                    Overfitting Test
 ## ========================================================
 
 #Calculate Mean Squared Prediction Error 
-postVisitorsWeb = broadNet$postVisitorsWeb
 preVisitorsWeb = broadNet$preVisitorsWeb
 hours = broadNet$hours
-broadDumm = cbind(postVisitorsWeb, preVisitorsWeb, hours, dummiesDirectModel)
+broadDumm = cbind(postVisitors, preVisitors, hours, dummiesDirectModel)
 
 set.seed(21)
 folds = 100
