@@ -212,10 +212,10 @@ for (i in 1:amountDays){
 }
 
 # amount of advertisements per day -- Netherlands
-adAmountNet = as.matrix(table(broad_net$date))
+adAmountNet = as.matrix(table(broadNet$date))
 
 # amount of advertisements per day -- Belgium
-adAmountBel = as.matrix(table(broad_bel$date))
+adAmountBel = as.matrix(table(broadBel$date))
 
 # amount of traffic per day -- Netherlands (approx. running time 5 seconds)
 # trafAmountNet = as.matrix(table(traffic_net$date)) # how much traffic per day DOES NOT WORK CORRECTLY
@@ -229,7 +229,7 @@ adAmountBel = as.matrix(table(broad_bel$date))
 
 ## ADDING DUMMIES FOR DAILY TRAFFIC (time series)
 
-national holidays
+#national holidays
 holidaysNames = c("Nieuwjaarsdag", "Goede Vrijdag", "Eerste Paasdag", 
                   "Tweede Paasdag", "Koningsdag", "Bevrijdingsdag", 
                   "Hemelvaartsdag", "Eerste Pinksterdag", 
