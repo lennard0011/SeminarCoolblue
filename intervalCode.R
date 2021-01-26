@@ -114,17 +114,12 @@ par(mfrow=c(1,1))
 simpleModelApp = lm(broad$postVisitorsApp ~ broad$preVisitorsApp + 0)
 summary(simpleModelApp)
 
-
+biggestAds = subset(broad, postVisitorsWeb-preVisitorsWeb > 0.6)
 
 
 ## ========================================================
 ##            REGRESSION MODELS 2-minute model
 ## ========================================================
-
-# split data in training and test
-data_split = sample.split(broad$postVisitorsWeb, SplitRatio = 0.8)
-train = subset(broad$postVisitorsWeb, data_split == TRUE)
-test = subset(broad$postVisitorsWeb, data_split == FALSE)
 
 # function for model summary
 getModelSumm <- function(model, coef) {
@@ -133,26 +128,32 @@ getModelSumm <- function(model, coef) {
     print(coeftest(model, vcov = vcovHC(model, type="HC1"))) # robust se
   }
   print(paste("R^2: ", summary(model)$r.squared))
-  hist(model$residuals, breaks = 50)
+  #hist(model$residuals, breaks = 50)
   print(paste("AIC: ",AIC(model)))
   print(paste("BIC: ", BIC(model)))
 }
 
 # Baseline models
 baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours), data = broadNet)
-getModelSumm(baselineModel, FALSE)
+getModelSumm(baselineModel, TRUE)
 
 # Treatment effect only models
 treatmentOnlyModel = lm(broadNet$postVisitorsWeb ~ ., data = dummiesDirectModel)
 getModelSumm(treatmentOnlyModel, FALSE)
 
 # Full model 
-fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + ., data = dummiesDirectModel)
-getModelSumm(fullModel, FALSE)
+fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(broadNet$hours) + ., data = dummiesDirectModel)
+getModelSumm(fullModel, T)
 
 ## ========================================================
 ##                    Overfitting Test
 ## ========================================================
+
+# (nog nodig?) split data in training and test
+data_split = sample.split(broad$postVisitorsWeb, SplitRatio = 0.8)
+train = subset(broad$postVisitorsWeb, data_split == TRUE)
+test = subset(broad$postVisitorsWeb, data_split == FALSE)
+
 
 #Calculate Mean Squared Prediction Error OUTDATED
 postVisitors = broad$postVisitors
