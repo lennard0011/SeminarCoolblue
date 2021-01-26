@@ -42,8 +42,6 @@ for (i in 1:nBroad) { # nBroad
 # aggregate pre- and post-visitors (d, r, total)
 
 #website
-broad$postVisitorsWeb = as.numeric(broad$postVisitorsWeb)
-broad$preVisitorsWeb = as.numeric(broad$preVisitorsWeb)
 mean(broad$postVisitorsWeb - broad$preVisitorsWeb)
 min(broad$postVisitorsWeb - broad$preVisitorsWeb)
 max(broad$postVisitorsWeb - broad$preVisitorsWeb)
@@ -58,7 +56,7 @@ hist(broad$preVisitorsWeb, xlim = c(0,3))
 par(mfrow=c(1,1))
 simpleModelWeb = lm(broad$postVisitorsWeb ~ broad$preVisitorsWeb + 0)
 summary(simpleModelWeb)
-simpleModelApp = lm(broad$postVisitorsApp ~ broad$previsitorsApp + 0)
+simpleModelApp = lm(broad$postVisitorsApp ~ broad$preVisitorsApp + 0)
 summary(simpleModelApp)
 
 #weg?
@@ -67,8 +65,6 @@ summary(simpleModelApp)
 #colnames(dataInterval) = c("preVisitors", "postVisitors")
 
 #app
-broad$postVisitorsApp = as.numeric(broad$postVisitorsApp)
-broad$preVisitorsApp = as.numeric(broad$preVisitorsWeb)
 mean(broad$postVisitorsApp - broad$preVisitorsApp)
 min(broad$postVisitorsApp - broad$preVisitorsApp)
 max(broad$postVisitorsApp - broad$preVisitorsApp) # bizar laag!!
@@ -99,8 +95,10 @@ test = subset(broad$postVisitorsWeb, data_split == FALSE)
 # TODO delete NA dummies `channel_MTV (NL)` `channel_RTL 5` channel_SPIKE  channel_Viceland  channel_VIER channel_ZES  
 
 # Baseline models
+broadNet = subset(broad, country == 'Netherlands')
+broadBel = subset(broad, country == 'Belgium')
 #all visitors
-baselineModelTotal = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours), data = broad)
+baselineModelTotal = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours), data = broadNet)
 coeftest(baselineModelTotal, vcov = vcovHC(baselineModelTotal, type="HC1")) # robust se
 summary(baselineModelTotal) # to get R^2
 hist(baselineModelTotal$residuals, breaks = 50)
@@ -124,9 +122,10 @@ BIC(treatmentOnlyModelTotal)
 
 # Calculate Mean Squared Prediction Error
 #Full models
-fullModelTotalNoChannel = lm(broad$postVisitors ~ broad$preVisitors + ., data = dummiesDirectModelNoChannel)
+fullModelTotalNoChannel = lm(broad$postVisitorsWeb ~ broad$preVisitorsWeb + ., data = dummiesDirectModelNoChannel)
 coeftest(fullModelTotalNoChannel, vcov = vcovHC(fullModelTotalNoChannel, type = 'HC1')) #robust se
 summary(fullModelTotalNoChannel)$r.squared
+
 #Calculate Mean Squared Prediction Error OUTDATED
 postVisitors = broad$postVisitors
 preVisitors = broad$preVisitors
