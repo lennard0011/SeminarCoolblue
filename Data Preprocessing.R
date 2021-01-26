@@ -368,6 +368,7 @@ removeNonSingular <- function(model, data) {
   naCoef = names(which(is.na(coef(model))))
   naCoef = gsub('`', '', naCoef)
   data = data[, !(names(data) %in% naCoef )]
+  data
 }
 
 ## TO BE DELETED! ######################################
