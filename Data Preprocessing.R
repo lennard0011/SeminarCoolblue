@@ -108,7 +108,6 @@ visitorsSum[is.na(visitorsSum)] = 0
 # insert summer time na obs. 128280 (wie hier zin in heeft mag het doen)
 
 ## Aggregate visit density over the days, 4 pairs of combinations
-amountDays = 31 + 28 + 31 + 30 + 31 + 30
 uniqueDates = unique(traffic$date) 
 uniqueDates = sort(uniqueDates)
 daysVisitorsSum = matrix(0.0, nrow = amountDays, ncol = 5)
@@ -354,8 +353,13 @@ dummiesDirectModelNeeded = dummiesDirectModel[,((ncol(broad)+1):ncol(dummiesDire
 
 dummiesDirectModelNeeded = as.data.frame(dummiesDirectModelNeeded)
 # automate with non singular names \/
-dummiesDirectModelNeeded = subset(dummiesDirectModelNeeded, select = -c(`channel_MTV (NL)`, `channel_RTL 5`, channel_SPIKE, 
-                                                                        channel_Viceland, channel_VIER, channel_ZES)) # Exclude singularities
+
+removeNonSingular <- function(model, data) {
+  naCoef = names(which(is.na(coef(model))))
+  naCoef = gsub('`', '', naCoef)
+  data = data[, !(names(data) %in% naCoef )]
+}
+
 # broad = dummiesDirectModel # I am afraid to press this BUT this should include the dummy
 dummiesDirectModelNoChannel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option"), remove_first_dummy = T)
 dummiesDirectModelNoChannel = dummiesDirectModelNoChannel[,((ncol(broad)+1):ncol(dummiesDirectModelNoChannel))]
@@ -368,3 +372,4 @@ dummiesDirectModelNoChannelNoProduct = subset(dummiesDirectModelNoChannel, selec
 
 dummiesDirectModelTime = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option", "weekdays"), remove_most_frequent_dummy = T)
 dummiesDirectModelTime = dummiesDirectModelTime[,((ncol(broad)+1):ncol(dummiesDirectModelTime))]
+

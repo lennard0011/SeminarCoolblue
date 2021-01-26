@@ -42,8 +42,6 @@ for (i in 1:nBroad) { # nBroad
 # aggregate pre- and post-visitors (d, r, total)
 
 #website
-broad$postVisitorsWeb = as.numeric(broad$postVisitorsWeb)
-broad$preVisitorsWeb = as.numeric(broad$preVisitorsWeb)
 mean(broad$postVisitorsWeb - broad$preVisitorsWeb)
 min(broad$postVisitorsWeb - broad$preVisitorsWeb)
 max(broad$postVisitorsWeb - broad$preVisitorsWeb)
@@ -53,18 +51,13 @@ sum(broad$postVisitorsWeb < broad$preVisitorsWeb)
 plot(broad$preVisitorsWeb, broad$postVisitorsWeb)
 lines(cbind(0,10000), cbind(0,10000))
 par(mfrow=c(2,1))
-hist(broad$postVisitorsWeb, xlim = c(0,3))
-hist(broad$preVisitorsWeb, xlim = c(0,3))
+hist(broad$postVisitorsWeb, xlim = c(0,3), breaks= 70)
+hist(broad$preVisitorsWeb, xlim = c(0,3), breaks= 70)
 par(mfrow=c(1,1))
 simpleModelWeb = lm(broad$postVisitorsWeb ~ broad$preVisitorsWeb + 0)
 summary(simpleModelWeb)
 simpleModelApp = lm(broad$postVisitorsApp ~ broad$previsitorsApp + 0)
 summary(simpleModelApp)
-
-#weg?
-#dataInterval = cbind(broad$preVisitorsWeb, broad$postVisitorsWeb)
-#dataInterval = as.data.frame(dataInterval)
-#colnames(dataInterval) = c("preVisitors", "postVisitors")
 
 #app
 broad$postVisitorsApp = as.numeric(broad$postVisitorsApp)
@@ -100,7 +93,7 @@ test = subset(broad$postVisitorsWeb, data_split == FALSE)
 
 # Baseline models
 #all visitors
-baselineModelTotal = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours), data = broad)
+baselineModelTotal = lm(postVisitorsWeb ~ preVisitorsWeb, data = broadNet)
 coeftest(baselineModelTotal, vcov = vcovHC(baselineModelTotal, type="HC1")) # robust se
 summary(baselineModelTotal) # to get R^2
 hist(baselineModelTotal$residuals, breaks = 50)
@@ -115,6 +108,7 @@ summary(treatmentOnlyModelTotal)
 hist(baselineModelTotal$residuals, breaks = 100)
 AIC(treatmentOnlyModelTotal)
 BIC(treatmentOnlyModelTotal)
+
 # no channel
 treatmentOnlyModelTotal = lm(broad$postVisitorsWeb ~ ., data = dummiesDirectModelNoChannel)
 #coeftest(treatmentOnlyModelTotal, vcov = vcovHC(treatmentOnlyModelTotal, type="HC1")) # robust se
