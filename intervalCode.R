@@ -158,8 +158,11 @@ sampleSplit = sample.split(broadNet$postVisitorsWeb, SplitRatio = 0.8)
 
 # Baseline model
 baselineModel = lm(postVisitorsWeb[sampleSplit == TRUE] ~ preVisitorsWeb[sampleSplit == TRUE] + factor(hours[sampleSplit == TRUE]), data = broadNet[sampleSplit == TRUE,])
-getModelSumm(baselineModelTotal, FALSE)
-rmse(postVisitorsWeb[sampleSplit == FALSE], predict(baselineModelTotal, broadTest))
+getModelSumm(baselineModel, FALSE)
+
+predict(baselineModel,  broadNet[sampleSplit == FALSE,])
+
+rmse(postVisitorsWeb[sampleSplit == FALSE], predict(baselineModel,  broadNet[sampleSplit == FALSE,]))
 
 # Full treatment model
 treatmentOnlyModelTotal = lm(postVisitors ~ ., data = broadTrain)
