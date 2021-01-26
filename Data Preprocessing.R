@@ -358,6 +358,7 @@ removeNonSingular <- function(model, data) {
   naCoef = names(which(is.na(coef(model))))
   naCoef = gsub('`', '', naCoef)
   data = data[, !(names(data) %in% naCoef )]
+  data
 }
 
 # broad = dummiesDirectModel # I am afraid to press this BUT this should include the dummy

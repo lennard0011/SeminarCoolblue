@@ -93,6 +93,7 @@ test = subset(broad$postVisitorsWeb, data_split == FALSE)
 
 # Baseline models
 #all visitors
+broadNet = subset(broad, country == 'Netherlands')
 baselineModelTotal = lm(postVisitorsWeb ~ preVisitorsWeb, data = broadNet)
 coeftest(baselineModelTotal, vcov = vcovHC(baselineModelTotal, type="HC1")) # robust se
 summary(baselineModelTotal) # to get R^2
