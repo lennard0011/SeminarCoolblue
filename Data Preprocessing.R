@@ -281,8 +281,9 @@ dummyAds = cbind(dummyAdsTot, dummyAdsNet, dummyAdsBel) # 1=Tot, 2=NL, 3=BE
 colnames(dummyAds) = c("Ads Total","Ads Netherlands","Ads Belgium")
 rm(dummyAdsTot); rm(dummyAdsNet); rm(dummyAdsBel)
 
-
-## ADDING DUMMIES FOR COMMERCIALS (direct effects) #########################
+## ========================================================
+##    ADDING DUMMIES FOR COMMERCIALS (direct effects)
+## ## =====================================================
 
 # Weekdays dummiess
 broad$weekdays = 0
