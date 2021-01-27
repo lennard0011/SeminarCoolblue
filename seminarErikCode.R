@@ -50,7 +50,7 @@ broadMostViewed <- broad[order(broad$gross_rating_point, decreasing = T),]
 broadMostViewed <- subset(broadMostViewed, gross_rating_point > 1)
 broadMostViewed <- broadMostViewed[1:10,]
 
-# Useful operators but not on this data anymore
+# Useful operator: subset
 #traffic_day <- subset(traffic, grepl("2019-05-01", traffic$date_time) == TRUE)
 #traffic_day <- traffic_day[order(traffic_day$date_time),]
 
