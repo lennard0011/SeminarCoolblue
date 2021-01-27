@@ -123,18 +123,25 @@ print(hourly_traffic +
 
 ## Plots of time before-after commercials with biggest GRP [Daniel]
 broad <- broad[order(broad$gross_rating_point, decreasing = TRUE),]
-interval <- 60
-par(mfrow = c(2,3))
-for(j in 1:6){
+interval <- 120
+plots = 500
+#par(mfrow = c(1,1))
+rangeValues = matrix(rep(0,plots))
+for(j in 1:plots){
   datecommercial <- broad[j,"date"]
   timecommercial <- broad[j,"time"]
   
+
   traffic_datesub <- subset(visitorsSum,grepl(datecommercial, visitorsSum$date) == TRUE)
   
   timecommercial <- str_split_fixed(timecommercial, ":", 3)
   colnames(timecommercial) <- c("hour", "minute", "seconds")
   timecommercial <- data.frame(timecommercial)
   timecommercial <- 60*as.numeric(timecommercial[1,"hour"]) + as.numeric(timecommercial[1,"minute"]) + 1
+  
+  if(timecommercial > 1340 || timecommercial < 120){
+    next
+  }
   
   timeStart <- timecommercial - interval
   timeEinde <- timecommercial + interval
@@ -147,13 +154,32 @@ for(j in 1:6){
   }
   
   visitsMean <- rollmeanr(visitsVector, 10, align = 'center', fill = NA)
+  firstMean = mean(visitsVector[1:(interval - 5)])
+  secondMean =  mean(visitsVector[(interval + 40): (2*interval -50)])
   row.names(visitsMean) <- c(seq(from = timeStart, to = timeEinde))
   
-  xlim = c(timecommercial - interval, timecommercial + interval)
-  plot(visitsVector, type = "l", main = paste("Website visits (NL) commercial with GDP", broadorderkijk[j,"gross_rating_point"]), xlab = "Time (minutes)", ylab = "Visits Ratio")
-  lines(visitsMean, col = "red")
-  abline(v = interval + 1, col = "blue")
+# xlim = c(timecommercial - interval, timecommercial + interval)
+#  plot(visitsVector, type = "l", main = paste("Website visits (NL) commercial with GDP", broadorderkijk[j,"gross_rating_point"]), xlab = "Time (minutes)", ylab = "Visits Ratio")
+#  lines(visitsMean, col = "red")
+#  abline(v = interval + 1, col = "blue")
+#  abline(h = firstMean, col = "grey")
+#  abline(h = secondMean, col = "purple")
+
+  endMon = 0.5*interval
+  for(i in 1:endMon){
+    if(firstMean > secondMean){
+    if(visitsVector[interval + i] > firstMean){
+      rangeValues[j] = rangeValues[j] + 1
+    }
+  }
+  if(secondMean > firstMean){
+    if(visitsVector[interval + i] > secondMean){
+      rangeValues[j] = rangeValues[j] + 1
+    }
+  }
+  }
 }
+print(mean(rangeValues))
 broad = broad[order(as.numeric(row.names(broad))),]
 
 ## Plots of time before-after commercials with biggest pre-post visitors
