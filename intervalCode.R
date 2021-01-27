@@ -116,8 +116,48 @@ summary(simpleModelApp)
 
 biggestAds = subset(broad, postVisitorsWeb-preVisitorsWeb > 0.6)
 
-
 ## ========================================================
+##            Parallel trends assumption
+## ========================================================
+
+# test parallel trends -- website
+set.seed(21)
+minutes = 20
+trendsMatrix = matrix(NA, nrow(broadNet), minutes)
+for (i in 1:nrow(broadNet)){
+  print(i)
+  date = broadNet$date[i]
+  daysNet = which(as.character(visWebNet$date) == date)
+  daysBel = which(as.character(visWebBel$date) == date)
+  datetime = broadNet$date_time[i]
+  datetime = as.POSIXct(datetime)
+  oneEarlier = datetime - 60 * 60
+  for (j in 0:(minutes - 1)){
+    minute = oneEarlier + j * 60
+    minuteSub = substr(minute, 12, 19)
+    if (minuteSub == ""){
+      minuteSub = "00:00:00"
+    }
+    timeMin = 60 * 24 * as.numeric(times(minuteSub))
+    visitIndexNet = sum(visWebNet$visits_index[daysNet[visWebNet$time_min[daysNet] == timeMin]])
+    visitIndexBel = sum(visWebBel$visits_index[daysBel[visWebBel$time_min[daysBel] == timeMin]])
+    trendsMatrix[i, j + 1] = visitIndexNet - visitIndexBel
+  }
+}
+
+peakMatrix = matrix(0, nrow(broadNet), minutes)
+for (i in 1:nrow(broadNet)){
+  sdPeak = sd(trendsMatrix[i, ])
+  meanPeak = mean(trendsMatrix[i, ])
+  for (j in 1:minutes){
+    if (meanPeak - 2 * sdPeak <= trendsMatrix[i, j] & trendsMatrix[i, j] <= meanPeak + 2 * sdPeak){
+      peakMatrix[i, j] = 1
+    }
+  }
+}
+
+
+ ## ========================================================
 ##            REGRESSION MODELS 2-minute model
 ## ========================================================
 
