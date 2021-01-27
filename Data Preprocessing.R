@@ -319,7 +319,7 @@ for (i in 1:nBroad) {
 # overlap dummy
 broadNet = subset(broad, country == 'Netherlands')
 broadBel = subset(broad, country == 'Belgium')
-intervalSize = 2
+intervalSize = 5
 iNet = 0
 iBel = 0
 intervalSizeOverlap = 2*intervalSize
