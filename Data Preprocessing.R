@@ -316,34 +316,50 @@ for (i in 1:nBroad) {
   }
 }
 
-# overlap dummy
+# Overlap dummy
 broadNet = subset(broad, country == 'Netherlands')
 broadBel = subset(broad, country == 'Belgium')
-intervalSize = 2
+
+intervalSize = 5
+#intervalSize = 20 #important!
+
 iNet = 0
 iBel = 0
+<<<<<<< HEAD
+=======
+#intervalSizeOverlap = 2*intervalSize # niet nodig bij before en after
+>>>>>>> dfe8e66f12bc4eee7e1ea0d902012cfd30e58180
 broad = broad[order(broad$date_time),]
 broadNet = broadNet[order(broadNet$date_time),]
 broadBel = broadBel[order(broadBel$date_time),]
 broad$overlapBefore = 0
 broad$overlapAfter = 0
-for (i in 1:nBroad){
+for (i in 1:nrow(broad)){
+  # en wat bij middernacht?
   if (broad$country[i] == 'Netherlands'){
     iNet = iNet + 1
     print(i)
     datetime = broad$date_time[i]
     datetime = as.POSIXct(datetime)
+<<<<<<< HEAD
     four_earlier = datetime - intervalSize * 60
     four_later = datetime + intervalSize * 60
     # 4 minutes before
     if (iNet > 1){
       if (four_earlier <= broadNet$date_time[iNet - 1] && broadNet$date_time[iNet - 1] <= datetime){
+=======
+    timeEarlier = datetime - intervalSize * 60
+    timeLater = datetime + intervalSize * 60
+    # Interval before
+    if (iNet > 1){ # exclude first dutch commercial
+      if (timeEarlier <= broadNet$date_time[iNet - 1] && broadNet$date_time[iNet - 1] <= datetime){
+>>>>>>> dfe8e66f12bc4eee7e1ea0d902012cfd30e58180
         broad$overlapBefore[i] = 1
       }
     }
-    # 4 minutes after
-    if (iNet < nrow(broadNet)){
-      if (datetime <= broadNet$date_time[iNet + 1] && broadNet$date_time[iNet + 1] <= four_later){
+    # Interval after
+    if (iNet < nrow(broadNet)){ # exclude last dutch commercial
+      if (datetime <= broadNet$date_time[iNet + 1] && broadNet$date_time[iNet + 1] <= timeLater){
         broad$overlapAfter[i] = 1
       }
     }
@@ -353,17 +369,23 @@ for (i in 1:nBroad){
     print(i)
     datetime = broad$date_time[i]
     datetime = as.POSIXct(datetime)
+<<<<<<< HEAD
     four_earlier = datetime - intervalSize * 60
     four_later = datetime + intervalSize * 60
     # 4 minutes before
+=======
+    timeErlier = datetime - intervalSizeOverlap * 60
+    timeLater = datetime + intervalSizeOverlap * 60
+    # Interval before
+>>>>>>> dfe8e66f12bc4eee7e1ea0d902012cfd30e58180
     if (iBel > 1){
-      if (four_earlier <= broadBel$date_time[iBel - 1] && broadBel$date_time[iBel - 1] <= datetime){
+      if (timeEarlier <= broadBel$date_time[iBel - 1] && broadBel$date_time[iBel - 1] <= datetime){
         broad$overlapBefore[i] = 1
       }
     }
-    # 4 minutes after
+    # Interval after
     if (iBel < nrow(broadBel)){
-      if (datetime <= broadBel$date_time[iBel + 1] && broadBel$date_time[iBel + 1] <= four_later){
+      if (datetime <= broadBel$date_time[iBel + 1] && broadBel$date_time[iBel + 1] <= timeLater){
         broad$overlapAfter[i] = 1
       }
     }
@@ -381,7 +403,8 @@ broadBel = broadBel[order(as.numeric(row.names(broadBel))),]
   # 2. Length of spot: 3 ("30", "30+10", "30+10+5")
   # 3. Position in break: 3 ("begin", "middle", "end")
   # 4. Weekdays: 7
-  # 5. Overlap with other commercial: 2 (1=T, 0=F)
+  # 5. Overlap with other commercial: 2 (overlap_before, overlap_after)
+  # 6. GRP
 
 # We will continue with Web-NL
 broadNet = subset(broad, country == "Netherlands")
