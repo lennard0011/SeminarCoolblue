@@ -9,7 +9,6 @@
 #get commercials only in NL, with BE control
 broadNet1 = subset(broad, country == "Netherlands")
 broadNet1 = broadNet1[order(broadNet1$date),]
-broadNet1 = subset(broadNet1, select = -c(preVisitorsWeb, preVisitorsApp, postVisitorsWeb, postVisitorsApp) ) # this is not always necessary
 
 broadNet1['preVisitorsWebNet'] = 0
 broadNet1['postVisitorsWebNet'] = 0
