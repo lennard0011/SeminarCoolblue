@@ -325,10 +325,6 @@ intervalSize = 5
 
 iNet = 0
 iBel = 0
-<<<<<<< HEAD
-=======
-#intervalSizeOverlap = 2*intervalSize # niet nodig bij before en after
->>>>>>> dfe8e66f12bc4eee7e1ea0d902012cfd30e58180
 broad = broad[order(broad$date_time),]
 broadNet = broadNet[order(broadNet$date_time),]
 broadBel = broadBel[order(broadBel$date_time),]
@@ -341,19 +337,11 @@ for (i in 1:nrow(broad)){
     print(i)
     datetime = broad$date_time[i]
     datetime = as.POSIXct(datetime)
-<<<<<<< HEAD
-    four_earlier = datetime - intervalSize * 60
-    four_later = datetime + intervalSize * 60
-    # 4 minutes before
-    if (iNet > 1){
-      if (four_earlier <= broadNet$date_time[iNet - 1] && broadNet$date_time[iNet - 1] <= datetime){
-=======
     timeEarlier = datetime - intervalSize * 60
     timeLater = datetime + intervalSize * 60
     # Interval before
     if (iNet > 1){ # exclude first dutch commercial
       if (timeEarlier <= broadNet$date_time[iNet - 1] && broadNet$date_time[iNet - 1] <= datetime){
->>>>>>> dfe8e66f12bc4eee7e1ea0d902012cfd30e58180
         broad$overlapBefore[i] = 1
       }
     }
@@ -369,15 +357,9 @@ for (i in 1:nrow(broad)){
     print(i)
     datetime = broad$date_time[i]
     datetime = as.POSIXct(datetime)
-<<<<<<< HEAD
-    four_earlier = datetime - intervalSize * 60
-    four_later = datetime + intervalSize * 60
-    # 4 minutes before
-=======
     timeErlier = datetime - intervalSizeOverlap * 60
     timeLater = datetime + intervalSizeOverlap * 60
     # Interval before
->>>>>>> dfe8e66f12bc4eee7e1ea0d902012cfd30e58180
     if (iBel > 1){
       if (timeEarlier <= broadBel$date_time[iBel - 1] && broadBel$date_time[iBel - 1] <= datetime){
         broad$overlapBefore[i] = 1
