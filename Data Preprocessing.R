@@ -320,7 +320,8 @@ for (i in 1:nBroad) {
 # Overlap dummy
 broadNet = subset(broad, country == 'Netherlands')
 broadBel = subset(broad, country == 'Belgium')
-intervalSize = 20 # important!
+intervalSize = 5
+#intervalSize = 20
 iNet = 0
 iBel = 0
 broad = broad[order(broad$date_time),]

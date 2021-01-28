@@ -144,8 +144,9 @@ biggestAds = subset(broad, postVisitorsWeb-preVisitorsWeb > 0.6)
 # test parallel trends -- website
 set.seed(21)
 minutes = 20
-trendsMatrix = matrix(NA, nrow(broadNet), minutes)
-for (i in 1:nrow(broadNet)){
+broadNetRelevant = subset(broadNet1, broadNet1$gross_rating_point > 0.5)
+trendsMatrix = matrix(NA, nrow(broadNetRelevant), minutes)
+for (i in 1:nrow(broadNetRelevant)){
   print(i)
   date = broadNet$date[i]
   daysNet = which(as.character(visWebNet$date) == date)
@@ -166,8 +167,8 @@ for (i in 1:nrow(broadNet)){
   }
 }
 
-peakMatrix = matrix(0, nrow(broadNet), minutes)
-for (i in 1:nrow(broadNet)){
+peakMatrix = matrix(0, nrow(broadNetRelevant), minutes)
+for (i in 1:nrow(broadNetRelevant)){
   sdPeak = sd(trendsMatrix[i, ])
   meanPeak = mean(trendsMatrix[i, ])
   for (j in 1:minutes){
@@ -176,9 +177,10 @@ for (i in 1:nrow(broadNet)){
     }
   }
 }
+sum(peakMatrix)/(nrow(broadNetRelevant) * minutes) * 100
 
 
- ## ========================================================
+## ========================================================
 ##            REGRESSION MODELS 2-minute model
 ## ========================================================
 
@@ -195,7 +197,7 @@ getModelSumm <- function(model, coef) {
 }
 
 # Baseline models
-baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours), data = broadNet)
+baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours) + weekdays, data = broadNet)
 getModelSumm(baselineModel, TRUE)
 
 # Treatment effect only models
@@ -203,7 +205,7 @@ treatmentOnlyModel = lm(broadNet$postVisitorsWeb ~ ., data = dummiesDirectModel)
 getModelSumm(treatmentOnlyModel, TRUE)
 
 # Full model 
-fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(broadNet$hours) + ., data = dummiesDirectModel)
+fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(broadNet$hours) + broadNet$gross_rating_point + ., data = dummiesDirectModel)
 getModelSumm(fullModel, T)
 
 ## ========================================================
@@ -229,8 +231,8 @@ for (i in 1:folds){
   broadTest = broadDumm[sampleSplit == FALSE,]
   
   # Baseline model
-  baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + hours, data = broadTrain)
-  getModelSumm(baselineModel, FALSE)
+  baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + hours + weekdays_dinsdag + weekdays_donderdag + weekdays_maandag +weekdays_vrijdag + weekdays_woensdag + weekdays_zondag, data = broadTrain)
+  #getModelSumm(baselineModel, TRUE)
   avBaseTrainError[i] = rmse(broadTrain$postVisitorsWeb, predict(baselineModel, broadTrain))
   avBaseTestError[i] = rmse(broadTest$postVisitorsWeb, predict(baselineModel, broadTest))
   
@@ -240,7 +242,7 @@ for (i in 1:folds){
   
   # Full treatment model
   fullModel = lm(postVisitorsWeb ~ preVisitorsWeb + ., data = broadTrain)
-  getModelSumm(fullModel, FALSE)
+  #getModelSumm(fullModel, FALSE)
   avFullTrainError[i] = rmse(broadTrain$postVisitorsWeb, predict(fullModel, broadTrain))
   avFullTestError[i] = rmse(broadTest$postVisitorsWeb, predict(fullModel, broadTest))
 }
@@ -248,3 +250,62 @@ mean(avBaseTrainError)
 mean(avBaseTestError)
 mean(avFullTrainError)
 mean(avFullTestError)
+
+
+## ================================================
+##                Netherlands App regression
+## ================================================
+# Baseline models
+baselineModel = lm(postVisitorsApp ~ preVisitorsApp + factor(hours) + weekdays, data = broadNet)
+getModelSumm(baselineModel, TRUE)
+
+# Treatment effect only models
+#treatmentOnlyModel = lm(broadNet$postVisitorsApp ~ ., data = dummiesDirectModel)
+#getModelSumm(treatmentOnlyModel, TRUE)
+
+# Full model 
+fullModel = lm(broadNet$postVisitorsApp ~ broadNet$preVisitorsApp + factor(broadNet$hours) + broadNet$gross_rating_point + ., data = dummiesDirectModel)
+getModelSumm(fullModel, T)
+
+## ========================================================
+##                    Overfitting Test App
+## ========================================================
+preVisitorsApp = broadNet$preVisitorsApp
+postVisitorsApp = broadNet$postVisitorsApp
+hours = broadNet$hours
+grossRating = broadNet$gross_rating_point
+broadDumm = cbind(postVisitorsApp, preVisitorsApp, hours, grossRating, dummiesDirectModel)
+
+set.seed(21)
+folds = 100
+avBaseTrainError = vector(length = folds)
+avBaseTestError = vector(length = folds)
+avFullTrainError = vector(length = folds)
+avFullTestError = vector(length = folds)
+for (i in 1:folds){
+  sampleSplit = sample.split(broadNet$postVisitorsWeb, SplitRatio = 0.8)
+  broadTrain = broadDumm[sampleSplit == TRUE,]
+  broadTest = broadDumm[sampleSplit == FALSE,]
+  
+  # Baseline model
+  baselineModel = lm(postVisitorsApp ~ preVisitorsApp + hours + weekdays_dinsdag + weekdays_donderdag + weekdays_maandag +weekdays_vrijdag + weekdays_woensdag + weekdays_zondag, data = broadTrain)
+  #getModelSumm(baselineModel, TRUE)
+  avBaseTrainError[i] = rmse(broadTrain$postVisitorsApp, predict(baselineModel, broadTrain))
+  avBaseTestError[i] = rmse(broadTest$postVisitorsApp, predict(baselineModel, broadTest))
+  
+  # Treatment effects only models
+  #treatmentOnlyModel = lm(postVisitors ~ .-preVisitors, data = broadTrain)
+  #rmse(broadTest$postVisitors, predict(treatmentOnlyModel, broadTest))
+  
+  # Full treatment model
+  fullModel = lm(postVisitorsApp ~ preVisitorsApp + ., data = broadTrain)
+  #getModelSumm(fullModel, FALSE)
+  avFullTrainError[i] = rmse(broadTrain$postVisitorsApp, predict(fullModel, broadTrain))
+  avFullTestError[i] = rmse(broadTest$postVisitorsApp, predict(fullModel, broadTest))
+}
+mean(avBaseTrainError)
+mean(avBaseTestError)
+mean(avFullTrainError)
+mean(avFullTestError)
+
+
