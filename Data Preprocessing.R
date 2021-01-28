@@ -322,7 +322,6 @@ broadBel = subset(broad, country == 'Belgium')
 intervalSize = 2
 iNet = 0
 iBel = 0
-intervalSizeOverlap = 2*intervalSize
 broad = broad[order(broad$date_time),]
 broadNet = broadNet[order(broadNet$date_time),]
 broadBel = broadBel[order(broadBel$date_time),]
@@ -334,8 +333,8 @@ for (i in 1:nBroad){
     print(i)
     datetime = broad$date_time[i]
     datetime = as.POSIXct(datetime)
-    four_earlier = datetime - intervalSizeOverlap * 60
-    four_later = datetime + intervalSizeOverlap * 60
+    four_earlier = datetime - intervalSize * 60
+    four_later = datetime + intervalSize * 60
     # 4 minutes before
     if (iNet > 1){
       if (four_earlier <= broadNet$date_time[iNet - 1] && broadNet$date_time[iNet - 1] <= datetime){
@@ -354,8 +353,8 @@ for (i in 1:nBroad){
     print(i)
     datetime = broad$date_time[i]
     datetime = as.POSIXct(datetime)
-    four_earlier = datetime - intervalSizeOverlap * 60
-    four_later = datetime + intervalSizeOverlap * 60
+    four_earlier = datetime - intervalSize * 60
+    four_later = datetime + intervalSize * 60
     # 4 minutes before
     if (iBel > 1){
       if (four_earlier <= broadBel$date_time[iBel - 1] && broadBel$date_time[iBel - 1] <= datetime){

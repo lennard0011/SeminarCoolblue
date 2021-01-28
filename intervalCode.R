@@ -144,8 +144,9 @@ biggestAds = subset(broad, postVisitorsWeb-preVisitorsWeb > 0.6)
 # test parallel trends -- website
 set.seed(21)
 minutes = 20
-trendsMatrix = matrix(NA, nrow(broadNet), minutes)
-for (i in 1:nrow(broadNet)){
+broadNetRelevant = subset(broadNet1, broadNet1$gross_rating_point > 0.5)
+trendsMatrix = matrix(NA, nrow(broadNetRelevant), minutes)
+for (i in 1:nrow(broadNetRelevant)){
   print(i)
   date = broadNet$date[i]
   daysNet = which(as.character(visWebNet$date) == date)
@@ -166,8 +167,8 @@ for (i in 1:nrow(broadNet)){
   }
 }
 
-peakMatrix = matrix(0, nrow(broadNet), minutes)
-for (i in 1:nrow(broadNet)){
+peakMatrix = matrix(0, nrow(broadNetRelevant), minutes)
+for (i in 1:nrow(broadNetRelevant)){
   sdPeak = sd(trendsMatrix[i, ])
   meanPeak = mean(trendsMatrix[i, ])
   for (j in 1:minutes){
@@ -176,9 +177,10 @@ for (i in 1:nrow(broadNet)){
     }
   }
 }
+sum(peakMatrix)/(nrow(broadNetRelevant) * minutes) * 100
 
 
- ## ========================================================
+## ========================================================
 ##            REGRESSION MODELS 2-minute model
 ## ========================================================
 
