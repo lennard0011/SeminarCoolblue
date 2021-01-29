@@ -319,7 +319,7 @@ for (i in 1:nBroad) {
 # overlap dummy
 broadNet = subset(broad, country == 'Netherlands')
 broadBel = subset(broad, country == 'Belgium')
-intervalSize = 2
+intervalSize = 5
 iNet = 0
 iBel = 0
 intervalSizeOverlap = 2*intervalSize
@@ -386,11 +386,13 @@ broadBel = broadBel[order(as.numeric(row.names(broadBel))),]
 
 # We will continue with Web-NL
 broadNet = subset(broad, country == "Netherlands")
+broadBel = subset(broad, country == "Belgium")
 
 # dummiesDirectModel contains the treatment variables
-variablesDirectModel = c("product_category", "channel", "length_of_spot", "position_in_break_3option", "weekdays", "overlapBefore", "overlapAfter")
-dummiesDirectModelPre = dummy_cols(.data = broadNet, select_columns = variablesDirectModel, remove_most_frequent_dummy = T)
-dummiesDirectModel = dummiesDirectModelPre[,((ncol(broadNet)+1):ncol(dummiesDirectModelPre))]
+variablesDirectModel = c("product_category","channel","length_of_spot", "position_in_break_3option", "weekdays")
+variablesDirectModel = c("channel", "position_in_break_3option", "weekdays", "overlapBefore", "overlapAfter")
+dummiesDirectModelPre = dummy_cols(.data = broadBel, select_columns = variablesDirectModel, remove_most_frequent_dummy = T)
+dummiesDirectModel = dummiesDirectModelPre[,((ncol(broadBel)+1):ncol(dummiesDirectModelPre))]
 dummiesDirectModel = as.data.frame(dummiesDirectModel)
 rm(dummiesDirectModelPre); rm(variablesDirectModel)
 

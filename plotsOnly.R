@@ -124,8 +124,8 @@ print(hourly_traffic +
 ## Plots of time before-after commercials with biggest GRP [Daniel]
 broad <- broad[order(broad$gross_rating_point, decreasing = TRUE),]
 interval <- 120
-plots = 500
-#par(mfrow = c(1,1))
+plots = 1
+par(mfrow = c(1,1))
 rangeValues = matrix(rep(0,plots))
 for(j in 1:plots){
   datecommercial <- broad[j,"date"]
@@ -158,21 +158,25 @@ for(j in 1:plots){
   secondMean =  mean(visitsVector[(interval + 40): (2*interval -50)])
   row.names(visitsMean) <- c(seq(from = timeStart, to = timeEinde))
   
-# xlim = c(timecommercial - interval, timecommercial + interval)
-#  plot(visitsVector, type = "l", main = paste("Website visits (NL) commercial with GDP", broadorderkijk[j,"gross_rating_point"]), xlab = "Time (minutes)", ylab = "Visits Ratio")
-#  lines(visitsMean, col = "red")
-#  abline(v = interval + 1, col = "blue")
-#  abline(h = firstMean, col = "grey")
-#  abline(h = secondMean, col = "purple")
+ xlim = c(timecommercial - interval, timecommercial + interval - 1)
+  plot(visitsVector, type = "l", xaxt='n', main = paste("Website visits (NL) commercial with GDP", broad[j,"gross_rating_point"]), xlab = "Time (minutes)", ylab = "Visits Ratio")
+  axis(side =1, at=c(0,  121, 141, 241), 
+       labels= c('-120', '0', '20','120'))
+  abline(v = interval + 1, col = "blue")
+  abline(h = firstMean, col = "purple")
+  abline(h = secondMean, col = "orange")
 
   endMon = 0.5*interval
+  if(firstMean > secondMean){
   for(i in 1:endMon){
-    if(firstMean > secondMean){
     if(visitsVector[interval + i] > firstMean){
       rangeValues[j] = rangeValues[j] + 1
     }
   }
+  }
+  
   if(secondMean > firstMean){
+    for(i in 1:40){
     if(visitsVector[interval + i] > secondMean){
       rangeValues[j] = rangeValues[j] + 1
     }
