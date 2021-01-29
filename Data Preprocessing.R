@@ -107,7 +107,32 @@ print(paste0("Missing pairs App-Belgium (incl. summer time): ", maxPairs-nrow(vi
 
 visitorsSum = merge(merge(visWebNetSum, visAppNetSum, all = TRUE), merge(visWebBelSum, visAppBelSum, all = TRUE), all = TRUE)
 visitorsSum[is.na(visitorsSum)] = 0
-# insert summer time na obs. 128280 (wie hier zin in heeft mag het doen)
+# insert summertime for completeness 
+summerTime = matrix(0.0, nrow = 60, ncol = 6)
+colnames(summerTime) <- colnames(visitorsSum)
+summerTime[,1] = "2019-03-31"
+for (i in 1:60) {
+  summerTime[i,2] = 119+i
+}
+summerTime[,3] = visitorsSum[128279,3]
+summerTime[,4] = visitorsSum[128279,4]
+summerTime[,5] = visitorsSum[128279,5]
+summerTime[,6] = visitorsSum[128279,6]
+visitorsSum = rbind(visitorsSum[1:128279,], summerTime, visitorsSum[128280:nrow(visitorsSum),])
+row.names(visitorsSum) <- NULL
+rm(summerTime)
+nrow(visitorsSum)
+# insert 2 remaining missing values
+visitorsSum = rbind(visitorsSum[1:118393,], c("2019-03-24",313,0.0,0.0,0.0,0.0), visitorsSum[118394:nrow(visitorsSum),])
+visitorsSum = rbind(visitorsSum[1:148547,], c("2019-04-14",228,0.0,0.0,0.0,0.0), visitorsSum[148548:nrow(visitorsSum),])
+row.names(visitorsSum) <- NULL
+
+# detect missing obsv.
+for (i in 2:nrow(visitorsSum)) {
+  if (as.numeric(visitorsSum$time_min[i]) != (as.numeric(visitorsSum$time_min[i-1])+1) && as.numeric(visitorsSum$time_min[i]) != 0) {
+    print(i)
+  }
+}
 
 ## Aggregate visit density over the days, 4 pairs of combinations
 uniqueDates = unique(traffic$date) 

@@ -1,5 +1,6 @@
 # Z Score Algorithm -- Seminar Coolblue 2020-2021
 # @authors: 
+# Reference: https://stackoverflow.com/questions/22583391/peak-signal-detection-in-realtime-timeseries-data/54507329#54507329
 
 # Start by testing out the biggest commercial [2019-04-30 21:55:00]
 broad = broad[order(broad$gross_rating_point, decreasing=T),]
@@ -44,17 +45,14 @@ ThresholdingAlgo <- function(y,lag,threshold,influence) {
   return(list("signals"=signals,"avgFilter"=avgFilter,"stdFilter"=stdFilter))
 }
 
-# Data
-y <- c(1,1,1.1,1,0.9,1,1,1.1,1,0.9,1,1.1,1,1,0.9,1,1,1.1,1,1,1,1,1.1,0.9,1,1.1,1,1,0.9,
-       1,1.1,1,1,1.1,1,0.8,0.9,1,1.2,0.9,1,1,1.1,1.2,1,1.5,1,3,2,5,3,2,1,1,1,0.9,1,1,3,
-       2.6,4,3,3.2,2,1,1,0.8,4,4,2,2.5,1,1,1)
-
+# Tuning variables
 lag <- 30
 threshold <- 5
 influence <- 0
 
 # Run algo with lag = 30, threshold = 5, influence = 0
-y = dayVisits
+#y = dayVisits
+y = as.numeric(visitorsSum$visitsWebNet)
 result <- ThresholdingAlgo(y,lag,threshold,influence)
 
 # Plot result
@@ -68,15 +66,57 @@ lines(1:length(y),result$avgFilter+threshold*result$stdFilter,type="l",col="gree
 lines(1:length(y),result$avgFilter-threshold*result$stdFilter,type="l",col="green",lwd=2)
 plot(result$signals,type="S",col="red",ylab="",xlab="",ylim=c(-1.5,1.5),lwd=2)
 
-positiveSignals = matrix(NA, sum(result$signals))
-ind = 1
-for (i in 1:length(result$signals)) {
-  if (result$signals[i] == 1) {
-    positiveSignals[ind] = i
-    ind = ind + 1
-  }
+#### Investigate for which commercials there was a positive signal
+
+# calculate the minute in the year of the commercial
+broadNet = broadNet[order(broadNet$date, broadNet$time),]
+broadNet['minute_in_year'] = 0
+print(paste0("Num of. Dutch commercials we consider: ", nrow(broadNet)))
+for (i in 1:nrow(broadNet)) {
+  dayCom = yday(broadNet$date[i])
+  dayTime = broadNet$time_min[i]
+  broadNet$minute_in_year[i] = ((dayCom-1)*1440)+dayTime+1
 }
 
-for (i in 1:length(positiveSignals)) {
-  # was er 5 minuten pre een commercial? double loop
+# make indicator for commercials on the large line
+commercialIndicator = matrix(0, nrow = 1440*181)
+for (i in 1:nrow(broadNet)) {
+  minuteInYear = broadNet$minute_in_year[i]
+  if ( commercialIndicator[minuteInYear] > 0) {
+    commercialIndicator[minuteInYear] = commercialIndicator[minuteInYear] + 1
+  } else {
+    commercialIndicator[minuteInYear] = 1 
+  }
 }
+sum(commercialIndicator)
+
+# Find for which positive spikes there was a commercial before
+posSpikes = result$signals
+sum(posSpikes==1)
+sum(posSpikes==1) / (1440*181)
+broadNet['useful'] = 0
+for (i in 1:length(posSpikes)) {
+  if (posSpikes[i] == 1) {
+    if (commercialIndicator[i] > 0) {
+      ind = match(i, broadNet$minute_in_year)
+      broadNet$useful[ind] = 1
+    } 
+    if (commercialIndicator[i-1] > 0) {
+      ind = match(i-1, broadNet$minute_in_year)
+      broadNet$useful[ind] = 1
+    }
+    if (commercialIndicator[i-2] > 0) {
+      ind = match(i-2, broadNet$minute_in_year)
+      broadNet$useful[ind] = 1
+    }
+    if (commercialIndicator[i-3] > 0) {
+      ind = match(i-3, broadNet$minute_in_year)
+      broadNet$useful[ind] = 1
+    }
+    if (commercialIndicator[i-4] > 0) {
+      ind = match(i-4, broadNet$minute_in_year)
+      broadNet$useful[ind] = 1
+    }
+  }
+}
+print(paste0("Num. of useful commercials: ", sum(broadNet$useful), " (out of ", nrow(broadNet), " commercials.)"))
