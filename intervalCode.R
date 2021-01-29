@@ -144,7 +144,7 @@ biggestAds = subset(broad, postVisitorsWeb-preVisitorsWeb > 0.6)
 # test parallel trends -- website
 set.seed(21)
 minutes = 20
-broadNetRelevant = subset(broadNet1, broadNet1$gross_rating_point > 0.5)
+broadNetRelevant = subset(broadNet1, broadNet1$gross_rating_point > 0.5) #broadnet1 moet op logische plek gedefinieerd worden
 trendsMatrix = matrix(NA, nrow(broadNetRelevant), minutes)
 for (i in 1:nrow(broadNetRelevant)){
   print(i)
@@ -181,7 +181,7 @@ sum(peakMatrix)/(nrow(broadNetRelevant) * minutes) * 100
 
 
 ## ========================================================
-##            REGRESSION MODELS 2-minute model
+##            REGRESSION MODELS 5-minute model
 ## ========================================================
 
 # function for model summary
@@ -200,13 +200,25 @@ getModelSumm <- function(model, coef) {
 baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours) + weekdays, data = broadNet)
 getModelSumm(baselineModel, TRUE)
 
-# Treatment effect only models
+# Treatment effect only models --> moet dit niet weg?
 treatmentOnlyModel = lm(broadNet$postVisitorsWeb ~ ., data = dummiesDirectModel)
 getModelSumm(treatmentOnlyModel, TRUE)
 
 # Full model 
 fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(broadNet$hours) + broadNet$gross_rating_point + ., data = dummiesDirectModel)
 getModelSumm(fullModel, T)
+
+# Try-out# broad for Netherlands and Belgium
+broadNet = subset(broad, country == 'Netherlands')
+
+dummiesDirectModelProgCatBefore = cbind(dummiesDirectModel, broadNet$program_category_before)
+fullModelProgCatBefore = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(broadNet$hours) + broadNet$gross_rating_point + ., data = dummiesDirectModelProgCatBefore)
+getModelSumm(fullModelProgCatBefore, T)
+
+#die nieuwe categoriën moeten gemaakt zijn voordat we dit doen
+dummiesDirectModelProgCatBefore2 = cbind(dummiesDirectModel, broadNet$program_category_before_2)
+fullModelProgCatBefore2 = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(broadNet$hours) + broadNet$gross_rating_point + ., data = dummiesDirectModelProgCatBefore2)
+getModelSumm(fullModelProgCatBefore2, T)
 
 ## ========================================================
 ##                    Overfitting Test
@@ -307,5 +319,3 @@ mean(avBaseTrainError)
 mean(avBaseTestError)
 mean(avFullTrainError)
 mean(avFullTestError)
-
-
