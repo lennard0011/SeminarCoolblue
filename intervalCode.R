@@ -205,7 +205,6 @@ getModelSumm(baselineModel, FALSE)
 #treatmentOnlyModel = lm(broadNet$postVisitorsWeb ~ ., data = dummiesDirectModel)
 #getModelSumm(treatmentOnlyModel, TRUE)
 
-
 # Full model 
 fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(broadNet$hours) + broadNet$gross_rating_point + ., data = dummiesDirectModel)
 getModelSumm(fullModel, FALSE)
