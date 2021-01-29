@@ -196,15 +196,15 @@ getModelSumm <- function(model, coef) {
 
 # Baseline models
 baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours) + weekdays, data = broadNet)
-getModelSumm(baselineModel, TRUE)
+getModelSumm(baselineModel, FALSE)
 
 # Treatment effect only models
-treatmentOnlyModel = lm(broadNet$postVisitorsWeb ~ ., data = dummiesDirectModel)
-getModelSumm(treatmentOnlyModel, TRUE)
+#treatmentOnlyModel = lm(broadNet$postVisitorsWeb ~ ., data = dummiesDirectModel)
+#getModelSumm(treatmentOnlyModel, TRUE)
 
 # Full model 
 fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(broadNet$hours) + broadNet$gross_rating_point + ., data = dummiesDirectModel)
-getModelSumm(fullModel, T)
+getModelSumm(fullModel, FALSE)
 
 ## ========================================================
 ##                    Overfitting Test
@@ -255,7 +255,7 @@ mean(avFullTestError)
 ## ================================================
 # Baseline models
 baselineModel = lm(postVisitorsApp ~ preVisitorsApp + factor(hours) + weekdays, data = broadNet)
-getModelSumm(baselineModel, TRUE)
+getModelSumm(baselineModel, FALSE)
 
 # Treatment effect only models
 #treatmentOnlyModel = lm(broadNet$postVisitorsApp ~ ., data = dummiesDirectModel)
@@ -263,7 +263,7 @@ getModelSumm(baselineModel, TRUE)
 
 # Full model 
 fullModel = lm(broadNet$postVisitorsApp ~ broadNet$preVisitorsApp + factor(broadNet$hours) + broadNet$gross_rating_point + ., data = dummiesDirectModel)
-getModelSumm(fullModel, T)
+getModelSumm(fullModel, FALSE)
 
 ## ========================================================
 ##                    Overfitting Test App
