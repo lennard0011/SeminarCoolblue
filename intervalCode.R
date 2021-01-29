@@ -137,6 +137,7 @@ summary(simpleModelApp)
 
 biggestAds = subset(broad, postVisitorsWeb-preVisitorsWeb > 0.6)
 
+
 ## ========================================================
 ##            Parallel trends assumption
 ## ========================================================
@@ -179,7 +180,6 @@ for (i in 1:nrow(broadNetRelevant)){
 }
 sum(peakMatrix)/(nrow(broadNetRelevant) * minutes) * 100
 
-
 ## ========================================================
 ##            REGRESSION MODELS 5-minute model
 ## ========================================================
@@ -188,24 +188,43 @@ sum(peakMatrix)/(nrow(broadNetRelevant) * minutes) * 100
 getModelSumm <- function(model, coef) {
   if(coef) {
     print(model)
-    print(coeftest(model, vcov = vcovHC(model, type="HC1"))) # robust se
+   # print(coeftest(model, vcov = vcovHC(model, type="HC1"))) # robust se
   }
   print(paste("R^2: ", summary(model)$r.squared))
-  #hist(model$residuals, breaks = 50)
+  hist(model$residuals, breaks = 50)
   print(paste("AIC: ",AIC(model)))
   print(paste("BIC: ", BIC(model)))
 }
 
+
 # Baseline models
 baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours) + weekdays, data = broadNet)
-getModelSumm(baselineModel, TRUE)
+getModelSumm(baselineModel, FALSE)
 
+<<<<<<< HEAD
 # Treatment effect only models --> moet dit niet weg?
 treatmentOnlyModel = lm(broadNet$postVisitorsWeb ~ ., data = dummiesDirectModel)
 getModelSumm(treatmentOnlyModel, TRUE)
+=======
+# Treatment effect only models
+#treatmentOnlyModel = lm(broadNet$postVisitorsWeb ~ ., data = dummiesDirectModel)
+#getModelSumm(treatmentOnlyModel, TRUE)
+>>>>>>> d5392539a0a3f90cf4123ec727290509467c36ff
 
 # Full model 
 fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(broadNet$hours) + broadNet$gross_rating_point + ., data = dummiesDirectModel)
+getModelSumm(fullModel, FALSE)
+
+# Baseline models -- BE WEB
+baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours) + weekdays, data = broadBel)
+getModelSumm(baselineModel, TRUE)
+
+# Treatment effect only models -- BE WEB
+treatmentOnlyModel = lm(broadBel$postVisitorsWeb ~ ., data = dummiesDirectModel)
+getModelSumm(treatmentOnlyModel, TRUE)
+
+# Full model -- BE WEB
+fullModel = lm(broadBel$postVisitorsWeb ~ broadBel$preVisitorsWeb + factor(broadBel$hours) + broadBel$gross_rating_point +., data = dummiesDirectModel)
 getModelSumm(fullModel, T)
 
 # Try-out# broad for Netherlands and Belgium
@@ -228,8 +247,17 @@ getModelSumm(fullModelProgCatBefore2, T)
 preVisitorsWeb = broadNet$preVisitorsWeb
 postVisitorsWeb = broadNet$postVisitorsWeb
 hours = broadNet$hours
+weekdays = broadNet$weekdays
 grossRating = broadNet$gross_rating_point
-broadDumm = cbind(postVisitorsWeb, preVisitorsWeb, hours, grossRating, dummiesDirectModel)
+broadDumm = cbind(postVisitorsWeb, preVisitorsWeb, hours, weekdays, grossRating, dummiesDirectModel)
+
+#Calculate Mean Squared Prediction Error 
+preVisitorsWeb = broadBel$preVisitorsApp
+postVisitorsWeb = broadBel$postVisitorsApp
+hours = broadBel$hours
+weekdays = broadBel$weekdays
+grossRating = broadBel$gross_rating_point
+broadDumm = cbind(postVisitorsWeb, preVisitorsWeb, hours, weekdays, grossRating, dummiesDirectModel)
 
 set.seed(21)
 folds = 100
@@ -238,7 +266,7 @@ avBaseTestError = vector(length = folds)
 avFullTrainError = vector(length = folds)
 avFullTestError = vector(length = folds)
 for (i in 1:folds){
-  sampleSplit = sample.split(broadNet$postVisitorsWeb, SplitRatio = 0.8)
+  sampleSplit = sample.split(broadBel$postVisitorsApp, SplitRatio = 0.8)
   broadTrain = broadDumm[sampleSplit == TRUE,]
   broadTest = broadDumm[sampleSplit == FALSE,]
   
@@ -269,7 +297,7 @@ mean(avFullTestError)
 ## ================================================
 # Baseline models
 baselineModel = lm(postVisitorsApp ~ preVisitorsApp + factor(hours) + weekdays, data = broadNet)
-getModelSumm(baselineModel, TRUE)
+getModelSumm(baselineModel, FALSE)
 
 # Treatment effect only models
 #treatmentOnlyModel = lm(broadNet$postVisitorsApp ~ ., data = dummiesDirectModel)
@@ -277,7 +305,7 @@ getModelSumm(baselineModel, TRUE)
 
 # Full model 
 fullModel = lm(broadNet$postVisitorsApp ~ broadNet$preVisitorsApp + factor(broadNet$hours) + broadNet$gross_rating_point + ., data = dummiesDirectModel)
-getModelSumm(fullModel, T)
+getModelSumm(fullModel, FALSE)
 
 ## ========================================================
 ##                    Overfitting Test App
