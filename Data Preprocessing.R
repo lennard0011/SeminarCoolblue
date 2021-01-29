@@ -1,17 +1,18 @@
 # Seminar Coolblue 2021 -- Data Preprocessing (variables, dummies)
+# @authors:
 
-# Installing packages (only once)
-install.packages("chron")
-install.packages("ggplot2")
-install.packages("lubridate")
-install.packages("fastDummies")
-install.packages("zoo")
-install.packages("CausalImpact")
-install.packages("factoextra")
-install.packages("fastDummies")
-install.packages("AIC")
-install.packages("BIC")
-install.packages("Metrics")
+# Installing packages (only once, commented such that you can run full code at once)
+#install.packages("chron")
+#install.packages("ggplot2")
+#install.packages("lubridate")
+#install.packages("fastDummies")
+#install.packages("zoo")
+#install.packages("CausalImpact")
+#install.packages("factoextra")
+#install.packages("fastDummies")
+#install.packages("AIC")
+#install.packages("BIC")
+#install.packages("Metrics")
 
 # Adding packages
 library("chron")
@@ -195,7 +196,7 @@ broadNet = broadNet[order(as.numeric(row.names(broadNet))),]
 
 # calculate average amount of broadcasts -- Belgium
 avBroadDayBel = matrix(NA, 24)
-broadBel = broad_bel[order(broadBel$date),]
+broadBel = broadBel[order(broadBel$date),]
 for (i in 1:24){
   print(i)
   broadSubset = subset(broadBel, (time_min >= (i - 1) * 60) & (time_min < i * 60))
@@ -316,55 +317,59 @@ for (i in 1:nBroad) {
   }
 }
 
-# overlap dummy
+# Overlap dummy
 broadNet = subset(broad, country == 'Netherlands')
 broadBel = subset(broad, country == 'Belgium')
 intervalSize = 5
+<<<<<<< HEAD
+=======
+#intervalSize = 20
+>>>>>>> 8ba6b913e85f6d20b4b348d21fb79c6eb74730fa
 iNet = 0
 iBel = 0
-intervalSizeOverlap = 2*intervalSize
 broad = broad[order(broad$date_time),]
 broadNet = broadNet[order(broadNet$date_time),]
 broadBel = broadBel[order(broadBel$date_time),]
 broad$overlapBefore = 0
 broad$overlapAfter = 0
-for (i in 1:nBroad){
+for (i in 1:nrow(broad)){
+  # en wat bij middernacht?
   if (broad$country[i] == 'Netherlands'){
     iNet = iNet + 1
-    print(i)
+    #print(i)
     datetime = broad$date_time[i]
     datetime = as.POSIXct(datetime)
-    four_earlier = datetime - intervalSizeOverlap * 60
-    four_later = datetime + intervalSizeOverlap * 60
-    # 4 minutes before
-    if (iNet > 1){
-      if (four_earlier <= broadNet$date_time[iNet - 1] && broadNet$date_time[iNet - 1] <= datetime){
+    timeEarlier = datetime - intervalSize * 60
+    timeLater = datetime + intervalSize * 60
+    # Interval before
+    if (iNet > 1){ # exclude first dutch commercial
+      if (timeEarlier <= broadNet$date_time[iNet - 1] && broadNet$date_time[iNet - 1] <= datetime){
         broad$overlapBefore[i] = 1
       }
     }
-    # 4 minutes after
-    if (iNet < nrow(broadNet)){
-      if (datetime <= broadNet$date_time[iNet + 1] && broadNet$date_time[iNet + 1] <= four_later){
+    # Interval after
+    if (iNet < nrow(broadNet)){ # exclude last dutch commercial
+      if (datetime <= broadNet$date_time[iNet + 1] && broadNet$date_time[iNet + 1] <= timeLater){
         broad$overlapAfter[i] = 1
       }
     }
   }
   if (broad$country[i] == 'Belgium'){
     iBel = iBel + 1
-    print(i)
+    #print(i)
     datetime = broad$date_time[i]
     datetime = as.POSIXct(datetime)
-    four_earlier = datetime - intervalSizeOverlap * 60
-    four_later = datetime + intervalSizeOverlap * 60
-    # 4 minutes before
+    timeErlier = datetime - intervalSize * 60
+    timeLater = datetime + intervalSize * 60
+    # Interval before
     if (iBel > 1){
-      if (four_earlier <= broadBel$date_time[iBel - 1] && broadBel$date_time[iBel - 1] <= datetime){
+      if (timeEarlier <= broadBel$date_time[iBel - 1] && broadBel$date_time[iBel - 1] <= datetime){
         broad$overlapBefore[i] = 1
       }
     }
-    # 4 minutes after
+    # Interval after
     if (iBel < nrow(broadBel)){
-      if (datetime <= broadBel$date_time[iBel + 1] && broadBel$date_time[iBel + 1] <= four_later){
+      if (datetime <= broadBel$date_time[iBel + 1] && broadBel$date_time[iBel + 1] <= timeLater){
         broad$overlapAfter[i] = 1
       }
     }
@@ -376,13 +381,19 @@ broadBel = broadBel[order(as.numeric(row.names(broadBel))),]
 
 ## CREATING MATRICES WITH DUMMIES ##########################################
 
+# Include in baseline models
+# preVisitors
+# hour (7-1)
+# weekday (23-1)
+
+# Include in full model
 # The dummies we include in the treatment effect (we EXCLUDE the most freq. dummy)
-  # 1. Product category: 3 ("wasmachines", "televisies", "laptops")
-  # 2. TV channel: 51
-  # 2. Length of spot: 3 ("30", "30+10", "30+10+5")
-  # 3. Position in break: 3 ("begin", "middle", "end")
-  # 4. Weekdays: 7
-  # 5. Overlap with other commercial: 2 (1=T, 0=F)
+  # 1. Product category: (3-1) ("wasmachines", "televisies", "laptops")
+  # 2. TV channel (max. 51-1)
+  # 2. Length of spot: (3-1) ("30", "30+10", "30+10+5")
+  # 3. Position in break: (3-1) ("begin", "middle", "end")
+  # 5. Overlap with other commercial: 2 (overlap_before, overlap_after)
+  # 6. GRP (no dummy)
 
 # We will continue with Web-NL
 broadNet = subset(broad, country == "Netherlands")
@@ -403,13 +414,3 @@ removeNonSingular <- function(model, data) {
   data = data[, !(names(data) %in% naCoef )]
   data
 }
-
-## TO BE DELETED! ######################################
-#dummiesDirectModelNoChannel = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option"), remove_first_dummy = T)
-#dummiesDirectModelNoChannel = dummiesDirectModelNoChannel[,((ncol(broad)+1):ncol(dummiesDirectModelNoChannel))]
-#dummiesDirectModelNoCluster = dummy_cols(.data = broad, select_columns = c("channel", "product_category", "length_of_spot", "position_in_break_3option", "program_category_before"), remove_most_frequent_dummy = T)
-#dummiesDirectModelNoCluster = dummiesDirectModelNoCluster[,((ncol(broad)+1):ncol(dummiesDirectModelNoCluster))]
-#dummiesDirectModelNoChannelNoProduct = subset(dummiesDirectModelNoChannel, select = -c(product_category_wasmachines, product_category_televisies)) # Exclude prod. cat
-#dummiesDirectModelTime = dummy_cols(.data = broad, select_columns = c("cluster", "product_category", "length_of_spot", "position_in_break_3option", "weekdays"), remove_most_frequent_dummy = T)
-#dummiesDirectModelTime = dummiesDirectModelTime[,((ncol(broad)+1):ncol(dummiesDirectModelTime))]
-
