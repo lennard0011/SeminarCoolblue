@@ -63,7 +63,7 @@ for (i in 1:amountDays){
     }
   }
 }
-weekdayDummy = dummy_cols(weekdays)[, 2:8]
+weekdayDummy = dummy_cols(weekdays, remove_most_frequent_dummy = TRUE)[, 2:7]
 
 #bsts for entire time periods
 #211-406
