@@ -201,15 +201,9 @@ getModelSumm <- function(model, coef) {
 baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours) + weekdays, data = broadNet)
 getModelSumm(baselineModel, FALSE)
 
-<<<<<<< HEAD
-# Treatment effect only models --> moet dit niet weg?
-treatmentOnlyModel = lm(broadNet$postVisitorsWeb ~ ., data = dummiesDirectModel)
-getModelSumm(treatmentOnlyModel, TRUE)
-=======
 # Treatment effect only models
 #treatmentOnlyModel = lm(broadNet$postVisitorsWeb ~ ., data = dummiesDirectModel)
 #getModelSumm(treatmentOnlyModel, TRUE)
->>>>>>> d5392539a0a3f90cf4123ec727290509467c36ff
 
 # Full model 
 fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(broadNet$hours) + broadNet$gross_rating_point + ., data = dummiesDirectModel)
