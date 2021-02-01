@@ -125,6 +125,10 @@ for (i in posSpikes) { # TODO make more efficient
     broadNet$useful[ind] = 1
   }
 }
+
+# Calculate number of false spikes (before double commercial correction)
+numFalseSpikes = length(posSpikes) - sum(broadNet$useful)
+
 # Correct for double commercials on the same minute
 for (i in 1:(nrow(broadNet)-1)) {
   # if commercial is useful and the next commercial has the same minute_in_year
@@ -132,9 +136,6 @@ for (i in 1:(nrow(broadNet)-1)) {
     broadNet$useful[i+1] = 1
   }
 }
-
-# Calculate number of false spikes
-numFalseSpikes = length(posSpikes) - sum(broadNet$useful)
 
 # Print results
 print(paste0("Nr. of positive spikes web: ", sum(result$signals==1), " (", 
@@ -206,6 +207,19 @@ for (i in posSpikesApp) { # TODO make more efficient
     broadNet$usefulApp[ind] = 1
   }
 }
+
+# Calculate how many useful Web commercials also show a spike in App data
+# ()
+numUsefulWebAndApp = 0
+for (i in 1:nrow(broadNet)) {
+  if (broadNet$useful[i] == 1 && broadNet$usefulApp[i] == 1) {
+    numUsefulWebAndApp = numUsefulWebAndApp + 1
+  }
+}
+
+# Calculate number of false spikes (before double commercial correction)
+numFalseSpikesApp = length(posSpikesApp) - sum(broadNet$usefulApp)
+
 # Correct for double commercials on the same minute
 for (i in 1:(nrow(broadNet)-1)) {
   # if commercial is useful and the next commercial has the same minute_in_year
@@ -221,9 +235,6 @@ for (i in 1:nrow(broadNet)) {
     numUsefulWebAndApp = numUsefulWebAndApp + 1
   }
 }
-
-# Calculate number of false spikes
-numFalseSpikesApp = length(posSpikesApp) - sum(broadNet$usefulApp)
 
 # Print results
 print(paste0("Nr. of positive spikes app: ", sum(resultApp$signals==1), " (", 
