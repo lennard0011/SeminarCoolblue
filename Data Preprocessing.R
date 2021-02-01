@@ -406,6 +406,7 @@ broadBel = broadBel[order(as.numeric(row.names(broadBel))),]
 # We will continue with Web-NL
 broadNet = subset(broad, country == "Netherlands")
 
+
 # dummiesDirectModel Netherlands contains the treatment variables
 variablesDirectModel = c("product_category", "channel", "length_of_spot", "position_in_break_3option", "weekdays", "overlapBefore", "overlapAfter")
 dummiesDirectModelPre = dummy_cols(.data = broadNet, select_columns = variablesDirectModel, remove_most_frequent_dummy = T)
