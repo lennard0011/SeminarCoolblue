@@ -162,9 +162,6 @@ trafficBel = subset(traffic, country == 'Belgium')
 broadNet = subset(broad, country == 'Netherlands')
 broadBel = subset(broad, country == 'Belgium')
 
-# amount of days in time-frame
-amountDays = 31 + 28 + 31 + 30 + 31 + 30
-# amountDays = amountDays op 27-01 verwijderen
 # set of unique advertising dates
 uniqueDates = unique(broad$date)
 uniqueDatesBel = unique(broadBel$date)
@@ -172,13 +169,6 @@ uniqueDatesNet = unique(broadNet$date)
 uniqueDatesBoth = base::intersect(uniqueDatesBel, uniqueDatesNet) # adverts in both on certain day
 uniqueDatesOnlyBel = base::setdiff(uniqueDatesBel, uniqueDatesBoth) # adverts only in Belgium on certain day
 uniqueDatesOnlyNet = base::setdiff(uniqueDatesNet, uniqueDatesBoth) # adverts only in Netherlands on certain day
-
-# calculate average for different searches
-# visitorsSum$time_min = 60 * 24 * as.numeric(times(substr(visitorsSum[, 1], 12, 19))) delete 27-01
-maxWebsiteNet = max(visitorsSum$visitsWebNet)
-maxAppNet = max(visitorsSum$visitsAppNet)
-maxWebsiteBel = max(visitorsSum$visitsWebBel)
-maxAppBel = max(visitorsSum$visitsAppBel)
 
 # Data for plot average of hour over the days
 # calculate average for different searches -- Netherlands - website
@@ -420,10 +410,17 @@ broadBel = broadBel[order(as.numeric(row.names(broadBel))),]
 # We will continue with Web-NL
 broadNet = subset(broad, country == "Netherlands")
 
-# dummiesDirectModel contains the treatment variables
+# dummiesDirectModel Netherlands contains the treatment variables
 variablesDirectModel = c("product_category", "channel", "length_of_spot", "position_in_break_3option", "weekdays", "overlapBefore", "overlapAfter")
 dummiesDirectModelPre = dummy_cols(.data = broadNet, select_columns = variablesDirectModel, remove_most_frequent_dummy = T)
 dummiesDirectModel = dummiesDirectModelPre[,((ncol(broadNet)+1):ncol(dummiesDirectModelPre))]
+dummiesDirectModel = as.data.frame(dummiesDirectModel)
+rm(dummiesDirectModelPre); rm(variablesDirectModel)
+
+# dummiesDirectModel for Belgium
+variablesDirectModel = c("channel", "position_in_break_3option", "weekdays", "overlapBefore", "overlapAfter") # waarom missen 2 dummie-var?
+dummiesDirectModelPre = dummy_cols(.data = broadBel, select_columns = variablesDirectModel, remove_most_frequent_dummy = T)
+dummiesDirectModel = dummiesDirectModelPre[,((ncol(broadBel)+1):ncol(dummiesDirectModelPre))]
 dummiesDirectModel = as.data.frame(dummiesDirectModel)
 rm(dummiesDirectModelPre); rm(variablesDirectModel)
 
