@@ -61,8 +61,10 @@ ThresholdingAlgo = function(y,lag,threshold,influence) {
 
 # Tuning variables
 lag = 30
-threshold = 5
-influence = 0
+threshold = 6
+influence = 0.8
+
+# Settings from progress report: lag=30, threshold=6, influence=0.8
 
 # Choose data
 #y = as.numeric(dayVisits$visitsWebNet)    # only pick one day 
@@ -85,12 +87,6 @@ plot(result$signals,type="S",col="red",ylab="",xlab="",ylim=c(-1.5,1.5),lwd=2)
 ###             ANALYISE THE RESULTS NL (181 days)
 ### ===============================================================
 
-# Signal analysis
-print(paste0("Nr. of positive spikes: ", sum(result$signals==1)))
-print(paste0("Percentage of positive spikes: ", sum(result$signals==1)/(1440*181)))
-print(paste0("Nr. of negative spikes: ", sum(result$signals==-1)))
-print(paste0("Percentage of negative spikes: ", sum(result$signals==-1)/(1440*181)))
-
 # Create indicator for commercials on the large line
 commercialIndicator = matrix(0, nrow = 1440*181)
 for (i in 1:nrow(broadNet)) {
@@ -104,31 +100,29 @@ for (i in 1:nrow(broadNet)) {
 sum(commercialIndicator)
 
 # Find for which positive spikes there was a commercial before
-posSpikes = (result$signals==1)
+posSpikes = which(result$signals==1) # gives TRUE indices
 broadNet['useful'] = 0
-for (i in 5:length(posSpikes)) {
-  # look 5 minutes prior
-  if (posSpikes[i] == TRUE) {
-    if (commercialIndicator[i] > 0) {
-      ind = match(i, broadNet$minute_in_year)
-      broadNet$useful[ind] = 1
-    } 
-    if (commercialIndicator[i-1] > 0) {
-      ind = match(i-1, broadNet$minute_in_year)
-      broadNet$useful[ind] = 1
-    }
-    if (commercialIndicator[i-2] > 0) {
-      ind = match(i-2, broadNet$minute_in_year)
-      broadNet$useful[ind] = 1
-    }
-    if (commercialIndicator[i-3] > 0) {
-      ind = match(i-3, broadNet$minute_in_year)
-      broadNet$useful[ind] = 1
-    }
-    if (commercialIndicator[i-4] > 0) {
-      ind = match(i-4, broadNet$minute_in_year)
-      broadNet$useful[ind] = 1
-    }
+for (i in posSpikes) { # TODO make more efficient
+  checker = 0
+  if (commercialIndicator[i] > 0) {
+    ind = match(i, broadNet$minute_in_year)
+    broadNet$useful[ind] = 1
+  } 
+  if (commercialIndicator[i-1] > 0) {
+    ind = match(i-1, broadNet$minute_in_year)
+    broadNet$useful[ind] = 1
+  }
+  if (commercialIndicator[i-2] > 0) {
+    ind = match(i-2, broadNet$minute_in_year)
+    broadNet$useful[ind] = 1
+  }
+  if (commercialIndicator[i-3] > 0) {
+    ind = match(i-3, broadNet$minute_in_year)
+    broadNet$useful[ind] = 1
+  }
+  if (commercialIndicator[i-4] > 0) {
+    ind = match(i-4, broadNet$minute_in_year)
+    broadNet$useful[ind] = 1
   }
 }
 # Correct for double commercials on the same minute
@@ -138,9 +132,107 @@ for (i in 1:(nrow(broadNet)-1)) {
     broadNet$useful[i+1] = 1
   }
 }
-print(paste0("Num. of useful commercials: ", sum(broadNet$useful), " (out of ", nrow(broadNet), " commercials.)"))
 
-# TODO print number of spikes which did not have a commercial in 5 minutes prior
+# Calculate number of false spikes
+numFalseSpikes = length(posSpikes) - sum(broadNet$useful)
+
+# Print results
+print(paste0("Nr. of positive spikes web: ", sum(result$signals==1), " (", 
+             format((100*sum(result$signals==1)/(1440*181)), digits=2), "%)"))
+print(paste0("Nr. of negative spikes web: ", sum(result$signals==-1), " (", 
+             format((100*sum(result$signals==-1)/(1440*181)), digits=2), "%)"))
+print(paste0("Num. of useful commercials web: ", sum(broadNet$useful), " / ", 
+             nrow(broadNet), " (", format((sum(broadNet$useful)/nrow(broadNet))*100, digits=2), "%)"))
+print(paste0("Num of false spikes web: ", numFalseSpikes, " / ", length(posSpikes), 
+             " (", format((numFalseSpikes/length(posSpikes))*100, digits=3), "%)"))
 
 # Subset on useful commercials
-usefulCommercials <- subset(broadNet, useful==1)
+usefulCommercials = subset(broadNet, useful==1)
+summary(usefulCommercials)
+sort(summary(as.factor(usefulCommercials$channel)))
+sort(summary(as.factor(usefulCommercials$position_in_break_3option)))
+sort(summary(as.factor(usefulCommercials$length_of_spot)))
+sort(summary(usefulCommercials$gross_rating_point))
+summary(broadNet$gross_rating_point)
+quantile(broadNet$gross_rating_point, probs=seq(0,1,0.01))
+sort(summary(as.factor(usefulCommercials$weekdays)))
+
+### ===============================================================
+###       RUN IF YOU WANT THE SAME ANALYSIS VOOR APP DATA
+### ===============================================================
+
+# Choose data
+yApp = as.numeric(visitorsSum$visitsAppNet) # apply on concatenated data
+
+# Run algorithm 
+resultApp = ThresholdingAlgo(yApp,lag,threshold,influence)
+
+# Create indicator for commercials on the large line
+commercialIndicatorApp = matrix(0, nrow = 1440*181)
+for (i in 1:nrow(broadNet)) {
+  minuteInYear = broadNet$minute_in_year[i]
+  if (commercialIndicatorApp[minuteInYear] > 0) {
+    commercialIndicatorApp[minuteInYear] = commercialIndicatorApp[minuteInYear] + 1
+  } else {
+    commercialIndicatorApp[minuteInYear] = 1 
+  }
+}
+sum(commercialIndicatorApp)
+
+# Find for which positive spikes there was a commercial before
+posSpikesApp = which(resultApp$signals==1) # gives TRUE indices
+broadNet['usefulApp'] = 0
+numFalseSpikesApp = 0
+for (i in posSpikesApp) { # TODO make more efficient
+  checker = 0
+  if (commercialIndicatorApp[i] > 0) {
+    ind = match(i, broadNet$minute_in_year)
+    broadNet$usefulApp[ind] = 1
+  } 
+  if (commercialIndicatorApp[i-1] > 0) {
+    ind = match(i-1, broadNet$minute_in_year)
+    broadNet$usefulApp[ind] = 1
+  }
+  if (commercialIndicatorApp[i-2] > 0) {
+    ind = match(i-2, broadNet$minute_in_year)
+    broadNet$usefulApp[ind] = 1
+  }
+  if (commercialIndicatorApp[i-3] > 0) {
+    ind = match(i-3, broadNet$minute_in_year)
+    broadNet$usefulApp[ind] = 1
+  }
+  if (commercialIndicatorApp[i-4] > 0) {
+    ind = match(i-4, broadNet$minute_in_year)
+    broadNet$usefulApp[ind] = 1
+  }
+}
+# Correct for double commercials on the same minute
+for (i in 1:(nrow(broadNet)-1)) {
+  # if commercial is useful and the next commercial has the same minute_in_year
+  if (broadNet$usefulApp[i] == 1 && broadNet$minute_in_year[i] == broadNet$minute_in_year[i+1]) {
+    broadNet$usefulApp[i+1] = 1
+  }
+}
+
+# Calculate how many useful Web commercials also show a spike in App data
+numUsefulWebAndApp = 0
+for (i in 1:nrow(broadNet)) {
+  if (broadNet$useful[i] == 1 && broadNet$usefulApp[i] == 1) {
+    numUsefulWebAndApp = numUsefulWebAndApp + 1
+  }
+}
+
+# Calculate number of false spikes
+numFalseSpikesApp = length(posSpikesApp) - sum(broadNet$usefulApp)
+
+# Print results
+print(paste0("Nr. of positive spikes app: ", sum(resultApp$signals==1), " (", 
+             format((100*sum(resultApp$signals==1)/(1440*181)), digits=2), "%)"))
+print(paste0("Nr. of negative spikes app: ", sum(resultApp$signals==-1), " (", 
+             format((100*sum(resultApp$signals==-1)/(1440*181)), digits=2), "%)"))
+print(paste0("Num. of useful commercials app: ", sum(broadNet$usefulApp), " / ", 
+             nrow(broadNet), " (", format((sum(broadNet$usefulApp)/nrow(broadNet))*100, digits=2), "%)"))
+print(paste0("Num of false spikes app: ", numFalseSpikesApp, " / ", length(posSpikesApp), 
+             " (", format((numFalseSpikesApp/length(posSpikesApp))*100, digits=3), "%)"))
+print(paste0("Num commercials useful web AND app: ", numUsefulWebAndApp, " / ", nrow(usefulCommercials), 
+             " (", format((numUsefulWebAndApp/nrow(usefulCommercials))*100, digits=3), "%)"))
