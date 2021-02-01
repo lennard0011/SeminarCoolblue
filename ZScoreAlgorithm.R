@@ -61,8 +61,8 @@ ThresholdingAlgo = function(y,lag,threshold,influence) {
 
 # Tuning variables
 lag = 30
-threshold = 5
-influence = 0
+threshold = 6
+influence = 0.8
 
 # Choose data
 #y = as.numeric(dayVisits$visitsWebNet)    # only pick one day 
@@ -144,3 +144,4 @@ print(paste0("Num. of useful commercials: ", sum(broadNet$useful), " (out of ", 
 
 # Subset on useful commercials
 usefulCommercials <- subset(broadNet, useful==1)
+
