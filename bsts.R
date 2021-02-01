@@ -66,17 +66,47 @@ for (i in 1:amountDays){
 weekdayDummy = dummy_cols(weekdays)[, 2:8]
 
 #bsts for entire time periods
-#1-29 4-14
+#211-406
 #website
-data = zoo(cbind(sumVisitIndexNet, sumVisitIndexBel, avg_gross_rating_point_Bel, avg_gross_rating_point_Net, weekdayDummy), c(1:amountDays))
+data = zoo(cbind(sumVisitIndexNet, sumVisitIndexBel, weekdayDummy), c(1:amountDays))
+commercialBegin = "2019-02-11"
+yday_commercialBegin = yday(commercialBegin)
+pre.period = c("2019-02-01", "2019-02-10") #1-29--2-10
+yday_pre.period = yday(pre.period)
+post.period = c("2019-02-11", "2019-04-06")
+yday_post.period = yday(post.period)
+
+entireImpact1 = CausalImpact(data, yday_pre.period, yday_post.period)
+plot(entireImpact1)
+entireImpact1$summary
+entireImpact1$report
+
+#520-603
+#website
+data = zoo(cbind(sumVisitIndexNet, sumVisitIndexBel, weekdayDummy), c(1:amountDays))
 commercialBegin = "2019-05-20"
 yday_commercialBegin = yday(commercialBegin)
-pre.period = c("2019-04-21", "2019-05-19")
+pre.period = c("2019-04-22", "2019-05-19")
 yday_pre.period = yday(pre.period)
 post.period = c("2019-05-20", "2019-06-03")
 yday_post.period = yday(post.period)
 
-entireImpact = CausalImpact(data, yday_pre.period, yday_post.period)
-plot(entireImpact)
-entireImpact$summary
-entireImpact$report
+entireImpact2 = CausalImpact(data, yday_pre.period, yday_post.period)
+plot(entireImpact2)
+entireImpact2$summary
+entireImpact2$report
+
+#617-630
+#website
+data = zoo(cbind(sumVisitIndexNet, sumVisitIndexBel, weekdayDummy), c(1:amountDays))
+commercialBegin = "2019-06-17"
+yday_commercialBegin = yday(commercialBegin)
+pre.period = c("2019-06-04", "2019-06-16")
+yday_pre.period = yday(pre.period)
+post.period = c("2019-06-17", "2019-06-30")
+yday_post.period = yday(post.period)
+
+entireImpact3 = CausalImpact(data, yday_pre.period, yday_post.period)
+plot(entireImpact3)
+entireImpact3$summary
+entireImpact3$report
