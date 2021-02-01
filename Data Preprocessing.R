@@ -107,7 +107,32 @@ print(paste0("Missing pairs App-Belgium (incl. summer time): ", maxPairs-nrow(vi
 
 visitorsSum = merge(merge(visWebNetSum, visAppNetSum, all = TRUE), merge(visWebBelSum, visAppBelSum, all = TRUE), all = TRUE)
 visitorsSum[is.na(visitorsSum)] = 0
-# insert summer time na obs. 128280 (wie hier zin in heeft mag het doen)
+# insert summertime for completeness 
+summerTime = matrix(0.0, nrow = 60, ncol = 6)
+colnames(summerTime) <- colnames(visitorsSum)
+summerTime[,1] = "2019-03-31"
+for (i in 1:60) {
+  summerTime[i,2] = 119+i
+}
+summerTime[,3] = visitorsSum[128279,3]
+summerTime[,4] = visitorsSum[128279,4]
+summerTime[,5] = visitorsSum[128279,5]
+summerTime[,6] = visitorsSum[128279,6]
+visitorsSum = rbind(visitorsSum[1:128279,], summerTime, visitorsSum[128280:nrow(visitorsSum),])
+row.names(visitorsSum) <- NULL
+rm(summerTime)
+nrow(visitorsSum)
+# insert 2 remaining missing values
+visitorsSum = rbind(visitorsSum[1:118393,], c("2019-03-24",313,0.0,0.0,0.0,0.0), visitorsSum[118394:nrow(visitorsSum),])
+visitorsSum = rbind(visitorsSum[1:148547,], c("2019-04-14",228,0.0,0.0,0.0,0.0), visitorsSum[148548:nrow(visitorsSum),])
+row.names(visitorsSum) <- NULL
+
+# detect missing obsv.
+for (i in 2:nrow(visitorsSum)) {
+  if (as.numeric(visitorsSum$time_min[i]) != (as.numeric(visitorsSum$time_min[i-1])+1) && as.numeric(visitorsSum$time_min[i]) != 0) {
+    print(i)
+  }
+}
 
 ## Aggregate visit density over the days, 4 pairs of combinations
 uniqueDates = unique(traffic$date) 
@@ -137,9 +162,6 @@ trafficBel = subset(traffic, country == 'Belgium')
 broadNet = subset(broad, country == 'Netherlands')
 broadBel = subset(broad, country == 'Belgium')
 
-# amount of days in time-frame
-amountDays = 31 + 28 + 31 + 30 + 31 + 30
-# amountDays = amountDays op 27-01 verwijderen
 # set of unique advertising dates
 uniqueDates = unique(broad$date)
 uniqueDatesBel = unique(broadBel$date)
@@ -147,13 +169,6 @@ uniqueDatesNet = unique(broadNet$date)
 uniqueDatesBoth = base::intersect(uniqueDatesBel, uniqueDatesNet) # adverts in both on certain day
 uniqueDatesOnlyBel = base::setdiff(uniqueDatesBel, uniqueDatesBoth) # adverts only in Belgium on certain day
 uniqueDatesOnlyNet = base::setdiff(uniqueDatesNet, uniqueDatesBoth) # adverts only in Netherlands on certain day
-
-# calculate average for different searches
-# visitorsSum$time_min = 60 * 24 * as.numeric(times(substr(visitorsSum[, 1], 12, 19))) delete 27-01
-maxWebsiteNet = max(visitorsSum$visitsWebNet)
-maxAppNet = max(visitorsSum$visitsAppNet)
-maxWebsiteBel = max(visitorsSum$visitsWebBel)
-maxAppBel = max(visitorsSum$visitsAppBel)
 
 # Data for plot average of hour over the days
 # calculate average for different searches -- Netherlands - website
@@ -394,13 +409,19 @@ broadBel = broadBel[order(as.numeric(row.names(broadBel))),]
 
 # We will continue with Web-NL
 broadNet = subset(broad, country == "Netherlands")
-broadBel = subset(broad, country == "Belgium")
 
-# dummiesDirectModel contains the treatment variables
-variablesDirectModel = c("product_category","channel","length_of_spot", "position_in_break_3option", "weekdays", "overlapBefore", "overlapAfter")
-variablesDirectModel = c("channel", "position_in_break_3option", "weekdays", "overlapBefore", "overlapAfter")
+
+# dummiesDirectModel Netherlands contains the treatment variables
+variablesDirectModel = c("product_category", "channel", "length_of_spot", "position_in_break_3option", "weekdays", "overlapBefore", "overlapAfter")
 dummiesDirectModelPre = dummy_cols(.data = broadNet, select_columns = variablesDirectModel, remove_most_frequent_dummy = T)
 dummiesDirectModel = dummiesDirectModelPre[,((ncol(broadNet)+1):ncol(dummiesDirectModelPre))]
+dummiesDirectModel = as.data.frame(dummiesDirectModel)
+rm(dummiesDirectModelPre); rm(variablesDirectModel)
+
+# dummiesDirectModel for Belgium
+variablesDirectModel = c("channel", "position_in_break_3option", "weekdays", "overlapBefore", "overlapAfter") # waarom missen 2 dummie-var?
+dummiesDirectModelPre = dummy_cols(.data = broadBel, select_columns = variablesDirectModel, remove_most_frequent_dummy = T)
+dummiesDirectModel = dummiesDirectModelPre[,((ncol(broadBel)+1):ncol(dummiesDirectModelPre))]
 dummiesDirectModel = as.data.frame(dummiesDirectModel)
 rm(dummiesDirectModelPre); rm(variablesDirectModel)
 

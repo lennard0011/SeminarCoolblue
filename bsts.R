@@ -2,9 +2,9 @@
 #make avg_gross_rating_point variable - Net
 total_gross_rating_point = matrix(0, amountDays)
 amount_broadcast = matrix(0, amountDays)
-for (i in 1:NROW(broad_net)){
-  dayNr = yday(broad_net$date[i])
-  gross_rating_point = broad_net$gross_rating_point[i]
+for (i in 1:NROW(broadNet)){
+  dayNr = yday(broadNet$date[i])
+  gross_rating_point = broadNet$gross_rating_point[i]
   total_gross_rating_point[dayNr] = total_gross_rating_point[dayNr] + gross_rating_point
   amount_broadcast[dayNr] = amount_broadcast[dayNr] + 1
 }
@@ -18,9 +18,9 @@ for (i in 1:NROW(avg_gross_rating_point_Net)){
 #make avg_gross_rating_point variable - Bel
 total_gross_rating_point = matrix(0, amountDays)
 amount_broadcast = matrix(0, amountDays)
-for (i in 1:NROW(broad_bel)){
-  dayNr = yday(broad_bel$date[i])
-  gross_rating_point = broad_bel$gross_rating_point[i]
+for (i in 1:NROW(broadBel)){
+  dayNr = yday(broadBel$date[i])
+  gross_rating_point = broadBel$gross_rating_point[i]
   total_gross_rating_point[dayNr] = total_gross_rating_point[dayNr] + gross_rating_point
   amount_broadcast[dayNr] = amount_broadcast[dayNr] + 1
 }
@@ -31,16 +31,82 @@ for (i in 1:NROW(avg_gross_rating_point_Bel)){
   }
 }
 
+# sum of visit_index -- Net
+visWebNet$yday = yday(visWebNet$date)
+sumVisitIndexNet = matrix(0, amountDays)
+for (i in 1:amountDays){
+  print(i)
+  trafficSubset = subset(visWebNet, yday == i)
+  sumVisitIndexNet[i] = sum(trafficSubset$visits_index)
+}
+visWebNet = subset(visWebNet, select = -yday)
+
+
+# sum of visit_index -- Bel
+visWebBel$yday = yday(visWebBel$date)
+sumVisitIndexBel = matrix(0, amountDays)
+for (i in 1:amountDays){
+  print(i)
+  trafficSubset = subset(visWebBel, yday == i)
+  sumVisitIndexBel[i] = sum(trafficSubset$visits_index)
+}
+visWebBel = subset(visWebBel, select = -yday)
+
+# weekdays
+weekdays = matrix(NA, amountDays)
+for (i in 1:amountDays){
+  print(i)
+  for (j in 1:nrow(visWebBel)){
+    if (yday(visWebNet$date[j]) == i){
+      weekdays[i] = weekdays(as.Date(visWebNet$date[j]))
+      break
+    }
+  }
+}
+weekdayDummy = dummy_cols(weekdays)[, 2:8]
+
 #bsts for entire time periods
-#1-29 4-14
-data = zoo(cbind(trafAmountNet, trafAmountBel, avg_gross_rating_point_Net - avg_gross_rating_point_Bel), c(1:amountDays))
+#211-406
+#website
+data = zoo(cbind(sumVisitIndexNet, sumVisitIndexBel, weekdayDummy), c(1:amountDays))
+commercialBegin = "2019-02-11"
+yday_commercialBegin = yday(commercialBegin)
+pre.period = c("2019-02-01", "2019-02-10") #1-29--2-10
+yday_pre.period = yday(pre.period)
+post.period = c("2019-02-11", "2019-04-06")
+yday_post.period = yday(post.period)
+
+entireImpact1 = CausalImpact(data, yday_pre.period, yday_post.period)
+plot(entireImpact1)
+entireImpact1$summary
+entireImpact1$report
+
+#520-603
+#website
+data = zoo(cbind(sumVisitIndexNet, sumVisitIndexBel, weekdayDummy), c(1:amountDays))
 commercialBegin = "2019-05-20"
 yday_commercialBegin = yday(commercialBegin)
-pre.period = c("2019-04-21", "2019-05-19")
+pre.period = c("2019-04-22", "2019-05-19")
 yday_pre.period = yday(pre.period)
 post.period = c("2019-05-20", "2019-06-03")
 yday_post.period = yday(post.period)
 
-entireImpact = CausalImpact(data, yday_pre.period, yday_post.period)
-plot(entireImpact)
-entireImpact$summary
+entireImpact2 = CausalImpact(data, yday_pre.period, yday_post.period)
+plot(entireImpact2)
+entireImpact2$summary
+entireImpact2$report
+
+#617-630
+#website
+data = zoo(cbind(sumVisitIndexNet, sumVisitIndexBel, weekdayDummy), c(1:amountDays))
+commercialBegin = "2019-06-17"
+yday_commercialBegin = yday(commercialBegin)
+pre.period = c("2019-06-04", "2019-06-16")
+yday_pre.period = yday(pre.period)
+post.period = c("2019-06-17", "2019-06-30")
+yday_post.period = yday(post.period)
+
+entireImpact3 = CausalImpact(data, yday_pre.period, yday_post.period)
+plot(entireImpact3)
+entireImpact3$summary
+entireImpact3$report
