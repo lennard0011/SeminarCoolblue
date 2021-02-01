@@ -105,34 +105,30 @@ visAppBelSum = aggregate(visits_index ~ date + time_min + date, data = visAppBel
 names(visAppBelSum) = cbind("date", "time_min", "visitsAppBel")
 print(paste0("Missing pairs App-Belgium (incl. summer time): ", maxPairs-nrow(visAppBelSum)))
 
+# Concetenate all 4 pairs
 visitorsSum = merge(merge(visWebNetSum, visAppNetSum, all = TRUE), merge(visWebBelSum, visAppBelSum, all = TRUE), all = TRUE)
 visitorsSum[is.na(visitorsSum)] = 0
-# insert summertime for completeness 
+
+# Insert summertime for completeness (same pattern as day before)
 summerTime = matrix(0.0, nrow = 60, ncol = 6)
 colnames(summerTime) <- colnames(visitorsSum)
 summerTime[,1] = "2019-03-31"
 for (i in 1:60) {
   summerTime[i,2] = 119+i
+  summerTime[i,3] = visitorsSum[(128279+i-1440),3]
+  summerTime[i,4] = visitorsSum[(128279+i-1440),4]
+  summerTime[i,5] = visitorsSum[(128279+i-1440),5]
+  summerTime[i,6] = visitorsSum[(128279+i-1440),6]
 }
-summerTime[,3] = visitorsSum[128279,3]
-summerTime[,4] = visitorsSum[128279,4]
-summerTime[,5] = visitorsSum[128279,5]
-summerTime[,6] = visitorsSum[128279,6]
 visitorsSum = rbind(visitorsSum[1:128279,], summerTime, visitorsSum[128280:nrow(visitorsSum),])
-row.names(visitorsSum) <- NULL
+row.names(visitorsSum) <- NULL # resets rownrs
 rm(summerTime)
 nrow(visitorsSum)
-# insert 2 remaining missing values
+
+# Insert 2 remaining missing values
 visitorsSum = rbind(visitorsSum[1:118393,], c("2019-03-24",313,0.0,0.0,0.0,0.0), visitorsSum[118394:nrow(visitorsSum),])
 visitorsSum = rbind(visitorsSum[1:148547,], c("2019-04-14",228,0.0,0.0,0.0,0.0), visitorsSum[148548:nrow(visitorsSum),])
 row.names(visitorsSum) <- NULL
-
-# detect missing obsv.
-for (i in 2:nrow(visitorsSum)) {
-  if (as.numeric(visitorsSum$time_min[i]) != (as.numeric(visitorsSum$time_min[i-1])+1) && as.numeric(visitorsSum$time_min[i]) != 0) {
-    print(i)
-  }
-}
 
 ## Aggregate visit density over the days, 4 pairs of combinations
 uniqueDates = unique(traffic$date) 
@@ -150,10 +146,10 @@ for (i in 1:nrow(visitorsSum)) { # takes at most 2min to run
   if (is.na(visitIndexWebBel)) {visitIndexWebBel = 0.0}
   visitIndexAppBel = visitorsSum$visitsAppBel[i]
   if (is.na(visitIndexAppBel)) {visitIndexAppBel = 0.0}
-  daysVisitorsSum[day, 2] = as.numeric(daysVisitorsSum[day, 2]) + visitIndexWebNet
-  daysVisitorsSum[day, 3] = as.numeric(daysVisitorsSum[day, 3]) + visitIndexAppNet
-  daysVisitorsSum[day, 4] = as.numeric(daysVisitorsSum[day, 4]) + visitIndexWebBel
-  daysVisitorsSum[day, 5] = as.numeric(daysVisitorsSum[day, 5]) + visitIndexAppBel
+  daysVisitorsSum[day, 2] = as.numeric(daysVisitorsSum[day, 2]) + as.numeric(visitIndexWebNet)
+  daysVisitorsSum[day, 3] = as.numeric(daysVisitorsSum[day, 3]) + as.numeric(visitIndexAppNet)
+  daysVisitorsSum[day, 4] = as.numeric(daysVisitorsSum[day, 4]) + as.numeric(visitIndexWebBel)
+  daysVisitorsSum[day, 5] = as.numeric(daysVisitorsSum[day, 5]) + as.numeric(visitIndexAppBel)
 }
 
 # Further country specific variables + Aggregate clicks no a day
@@ -170,6 +166,7 @@ uniqueDatesBoth = base::intersect(uniqueDatesBel, uniqueDatesNet) # adverts in b
 uniqueDatesOnlyBel = base::setdiff(uniqueDatesBel, uniqueDatesBoth) # adverts only in Belgium on certain day
 uniqueDatesOnlyNet = base::setdiff(uniqueDatesNet, uniqueDatesBoth) # adverts only in Netherlands on certain day
 
+# TODO: this code doesn't work ATM.
 # Data for plot average of hour over the days
 # calculate average for different searches -- Netherlands - website
 avTrafficDayNetWebsite = matrix(NA, 24)
@@ -203,7 +200,6 @@ for (i in 1:24){
 avBroadDayNet = matrix(NA, 24)
 broadNet = broadNet[order(broadNet$date),]
 for (i in 1:24){
-  print(i)
   broadSubset = subset(broadNet, (time_min >= (i - 1) * 60) & (time_min < i * 60))
   avBroadDayNet[i] = nrow(broadSubset)/amountDays
 }
@@ -213,11 +209,11 @@ broadNet = broadNet[order(as.numeric(row.names(broadNet))),]
 avBroadDayBel = matrix(NA, 24)
 broadBel = broadBel[order(broadBel$date),]
 for (i in 1:24){
-  print(i)
   broadSubset = subset(broadBel, (time_min >= (i - 1) * 60) & (time_min < i * 60))
   avBroadDayBel[i] = nrow(broadSubset)/amountDays
 }
 broadBel = broadBel[order(as.numeric(row.names(broadBel))),]
+
 
 # amount of advertisements per day -- Total
 adAmount = matrix(0, amountDays) 
@@ -418,6 +414,7 @@ dummiesDirectModel = as.data.frame(dummiesDirectModel)
 rm(dummiesDirectModelPre); rm(variablesDirectModel)
 
 # dummiesDirectModel for Belgium
+# TODO: overlap dummies komen niet in Belgische data
 variablesDirectModel = c("channel", "position_in_break_3option", "weekdays", "overlapBefore", "overlapAfter") # waarom missen 2 dummie-var?
 dummiesDirectModelPre = dummy_cols(.data = broadBel, select_columns = variablesDirectModel, remove_most_frequent_dummy = T)
 dummiesDirectModel = dummiesDirectModelPre[,((ncol(broadBel)+1):ncol(dummiesDirectModelPre))]
