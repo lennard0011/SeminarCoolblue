@@ -110,6 +110,7 @@ entireImpact3$summary
 entireImpact3$report
 
 #test for imaginary period
+#205-210
 #website
 commercialBegin = "2019-02-05"
 yday_commercialBegin = yday(commercialBegin)
