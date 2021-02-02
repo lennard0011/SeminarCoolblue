@@ -56,7 +56,7 @@ visWebBel = subset(visWebBel, select = -yday)
 weekdays = matrix(NA, amountDays)
 for (i in 1:amountDays){
   print(i)
-  for (j in 1:nrow(visWebBel)){
+  for (j in 1:nrow(visWebNet)){
     if (yday(visWebNet$date[j]) == i){
       weekdays[i] = weekdays(as.Date(visWebNet$date[j]))
       break
@@ -83,7 +83,6 @@ entireImpact1$report
 
 #520-603
 #website
-data = zoo(cbind(sumVisitIndexNet, sumVisitIndexBel), c(1:amountDays))
 commercialBegin = "2019-05-20"
 yday_commercialBegin = yday(commercialBegin)
 pre.period = c("2019-04-22", "2019-05-19")
@@ -98,7 +97,6 @@ entireImpact2$report
 
 #617-630
 #website
-data = zoo(cbind(sumVisitIndexNet, sumVisitIndexBel), c(1:amountDays))
 commercialBegin = "2019-06-17"
 yday_commercialBegin = yday(commercialBegin)
 pre.period = c("2019-06-04", "2019-06-16")
@@ -110,3 +108,17 @@ entireImpact3 = CausalImpact(data, yday_pre.period, yday_post.period, model.args
 plot(entireImpact3)
 entireImpact3$summary
 entireImpact3$report
+
+#test for imaginary period
+#website
+commercialBegin = "2019-02-05"
+yday_commercialBegin = yday(commercialBegin)
+pre.period = c("2019-01-29", "2019-02-04")
+yday_pre.period = yday(pre.period)
+post.period = c("2019-02-05", "2019-02-10")
+yday_post.period = yday(post.period)
+
+entireImpact4 = CausalImpact(data, yday_pre.period, yday_post.period, model.args = list(niter = 5000, nseasons = 7))
+plot(entireImpact4)
+entireImpact4$summary
+entireImpact4$report
