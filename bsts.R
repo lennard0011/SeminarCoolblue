@@ -41,7 +41,6 @@ for (i in 1:amountDays){
 }
 visWebNet = subset(visWebNet, select = -yday)
 
-
 # sum of visit_index -- Bel
 visWebBel$yday = yday(visWebBel$date)
 sumVisitIndexBel = matrix(0, amountDays)
@@ -51,19 +50,6 @@ for (i in 1:amountDays){
   sumVisitIndexBel[i] = sum(trafficSubset$visits_index)
 }
 visWebBel = subset(visWebBel, select = -yday)
-
-# weekdays
-weekdays = matrix(NA, amountDays)
-for (i in 1:amountDays){
-  print(i)
-  for (j in 1:nrow(visWebNet)){
-    if (yday(visWebNet$date[j]) == i){
-      weekdays[i] = weekdays(as.Date(visWebNet$date[j]))
-      break
-    }
-  }
-}
-weekdayDummy = dummy_cols(weekdays, remove_most_frequent_dummy = TRUE)[, 2:7]
 
 #bsts for entire time periods
 #211-406
@@ -112,11 +98,11 @@ entireImpact3$report
 #test for imaginary period
 #205-210
 #website
-commercialBegin = "2019-02-05"
+commercialBegin = "2019-02-04"
 yday_commercialBegin = yday(commercialBegin)
-pre.period = c("2019-01-29", "2019-02-04")
+pre.period = c("2019-01-29", "2019-02-03")
 yday_pre.period = yday(pre.period)
-post.period = c("2019-02-05", "2019-02-10")
+post.period = c("2019-02-04", "2019-02-10")
 yday_post.period = yday(post.period)
 
 entireImpact4 = CausalImpact(data, yday_pre.period, yday_post.period, model.args = list(niter = 5000, nseasons = 7))
