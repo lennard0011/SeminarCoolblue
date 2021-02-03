@@ -61,16 +61,16 @@ ThresholdingAlgo = function(y,lag,threshold,influence) {
 
 # Tuning variables
 lag = 30
-threshold = 6
-influence = 0.8
+threshold = 5
+influence = 1
 
 # Settings from progress report: lag=30, threshold=6, influence=0.8
 >>>>>>> 2be79ac29ac880de5b5adbf204b1cc50480a20f8
 
 # Choose data
-#y = as.numeric(dayVisits$visitsWebNet)    # only pick one day 
+y = as.numeric(dayVisits$visitsWebNet)    # only pick one day 
 # !make sure that visitorsSum has length 260640!
-y = as.numeric(visitorsSum$visitsWebNet) # apply on concatenated data
+# y = as.numeric(visitorsSum$visitsWebNet) # apply on concatenated data
 
 # Run algorithm 
 result = ThresholdingAlgo(y,lag,threshold,influence)
