@@ -62,6 +62,18 @@ yday_pre.period = yday(pre.period)
 post.period = c("2019-02-11", "2019-04-06")
 yday_post.period = yday(post.period)
 
+y = sumVisitIndexNet
+x1 = sumVisitIndexBel
+post.period.response = y[yday_post.period[1] : yday_post.period[2]]
+y[yday_post.period[1] : yday_post.period[2]] = NA
+#llt = AddLocalLinearTrend(list(), data[,1])
+ll = AddLocalLevel(list(), y)
+ss = AddSeasonal(ll, y, nseasons = 7) 
+ss2 = AddSeasonal(ss, y, nseasons = 30)
+bsts.model = bsts(y ~ x1, ss2, niter = 1000)
+impact = CausalImpact(bsts.model = bsts.model,
+                       post.period.response = post.period.response)
+
 entireImpact1 = CausalImpact(data, yday_pre.period, yday_post.period, model.args = list(niter = 5000))
 plot(entireImpact1)
 entireImpact1$summary
