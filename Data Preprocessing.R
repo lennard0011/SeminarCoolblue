@@ -109,9 +109,9 @@ print(paste0("Missing pairs App-Belgium (incl. summer time): ", maxPairs-nrow(vi
 visitorsSum = merge(merge(visWebNetSum, visAppNetSum, all = TRUE), merge(visWebBelSum, visAppBelSum, all = TRUE), all = TRUE)
 visitorsSum[is.na(visitorsSum)] = 0
 
-## ============================================================
-##  Insert summertime + 2 missing observations to visitorsSum
-## ============================================================
+## ========================================================
+## Insert summertime + 2 missing observations to visitorsSum
+## ========================================================
 
 summerTime = matrix(0.0, nrow = 60, ncol = 6)
 colnames(summerTime) <- colnames(visitorsSum)
@@ -232,13 +232,13 @@ for (i in 1:amountDays){
   adAmount[i] = adsIDate
 }
 
-# amount of advertisements per day
+# amount of advertisements per day 
 adAmountNet = as.matrix(table(broadNet$date))
 adAmountBel = as.matrix(table(broadBel$date))
 
-## =======================================================
-##    CREATING DUMMIES FOR DAILY TRAFFIC (time series)
-## =======================================================
+## ========================================================
+##      CREATING DUMMIES FOR DAILY TRAFFIC (time series)
+## ========================================================
 
 #national holidays
 holidaysNames = c("Nieuwjaarsdag", "Goede Vrijdag", "Eerste Paasdag", 
