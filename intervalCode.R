@@ -11,7 +11,7 @@ broad['preVisitorsWeb'] = 0
 broad['postVisitorsWeb'] = 0
 broad['preVisitorsApp'] = 0
 broad['postVisitorsApp'] = 0
-intervalSize
+intervalSize = 5
 
 start = Sys.time()
 for (i in 1:nBroad) { # nBroad
