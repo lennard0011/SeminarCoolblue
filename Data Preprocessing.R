@@ -1,7 +1,7 @@
-# Seminar Coolblue 2021 -- Data Preprocessing (variables, dummies)
-# @authors:
+# Seminar Coolblue 2021 -- Data Preprocessing
+# @authors: Lennard van der Plas, Erik van der Heide, Marjolein de Width, Daniël Buijs
 
-# Installing packages (only once, commented such that you can run full code at once)
+# install packages (uncomment to install a package)
 #install.packages("chron")
 #install.packages("ggplot2")
 #install.packages("lubridate")
@@ -14,7 +14,7 @@
 #install.packages("BIC")
 #install.packages("Metrics")
 
-# Adding packages
+# loading packages
 library("chron")
 library("ggplot2")
 library("lubridate")
@@ -31,24 +31,30 @@ library("stats") # AIC, BIC
 library("Metrics") # rmse calc
 library("plyr")
 
-# loading the data
+## ====================================================
+##         Loading & subsetting the data
+## ====================================================
+
+# loading data
 traffic = read.csv(file.choose(), header = T)
 broad = read.csv(file.choose(), header = T)
 
-# option to leave out bounces
-traffic = subset(traffic, bounces != 1 | is.na(bounces))
-# option to leave out zero gross rating points
-broad = broad[broad[, "gross_rating_point"] > 0,]
+# subset data
+traffic = subset(traffic, bounces != 1 | is.na(bounces)) # leave out bounces=1
+broad = broad[broad[, "gross_rating_point"] > 0,]  # leave out GRP=0
 
 nTraffic = nrow(traffic)
 nBroad = nrow(broad)
 
-
 # now that packages and data have been loaded, we start by creating new features and set the data up in a nice and usable way
 # First we add the column time_min to traffic and broad, which is the time in a scale of minutes (from 0 to 24*60= 1440)
 # Also we add the column date to traffic
-# add date+time to every broadcast
 
+## ============================================================
+##      Data manipulation: Calculate minute of day
+## ============================================================
+
+# add date+time to every broadcast
 broad$date_time = 0
 for (i in 1:nBroad){
   broad$date_time[i] = paste(broad$date[i], broad$time[i], sep = " ")
@@ -63,6 +69,7 @@ for (i in 1:nBroad) { # nBroad
 }
 rm(timeMinute)
 rm(time)
+
 # add time_min and date to every travel
 traffic['time_min'] = 0
 traffic$date_time = as.character(traffic$date_time)
@@ -75,44 +82,49 @@ rm(trafficDateSplitWhole)
 rm(trafficDateSplitUnlist)
 rm(traffictime)
 
-# Separate the data in website/app and Netherlands/Belgium
+## ========================================================
+##   Separate Web/App/Net/Bel and aggregate visit_index
+## ========================================================
+
+# separate in four combination
 visWebNet = traffic[traffic$medium == "website" & traffic$country == "Netherlands" & traffic$visit_source != "push notification", ]
 visAppNet = traffic[traffic$medium == "app" & traffic$country == "Netherlands" & traffic$visit_source != "push notification", ]
 visWebBel = traffic[traffic$medium == "website" & traffic$country == "Belgium" & traffic$visit_source != "push notification", ]
 visAppBel = traffic[traffic$medium == "app" & traffic$country == "Belgium" & traffic$visit_source != "push notification", ]
 
-# Aggregate the visit_index per minute
+# aggregate the visit_index per minute
 amountDays = 31 + 28 + 31 + 30 + 31 + 30
 maxPairs = amountDays * 1440
-maxPairs
-# Netherlands - Website
+
+# website - Netherlands
 visWebNetSum = aggregate(visits_index ~ date + time_min, data = visWebNet, FUN=sum, simplify = TRUE, drop = TRUE)
 names(visWebNetSum) = cbind("date", "time_min", "visitsWebNet")
 print(paste0("Missing pairs Website-Netherlands (incl. summer time): ", maxPairs-nrow(visWebNetSum)))
 
-# Netherlands - App
+# app - Netherlands
 visAppNetSum = aggregate(visits_index ~ date +  time_min + date, data = visAppNet, FUN=sum, simplify = TRUE, drop = TRUE)
 names(visAppNetSum) = cbind("date", "time_min", "visitsAppNet")
 print(paste0("Missing pairs App-Netherlands (incl. summer time): ", maxPairs-nrow(visAppNetSum)))
 
-# Belgium - Website
+# website - Belgium
 visWebBelSum = aggregate(visits_index ~ date + time_min + date, data = visWebBel, FUN=sum, simplify = TRUE, drop = TRUE)
 names(visWebBelSum) = cbind("date", "time_min", "visitsWebBel")
 print(paste0("Missing pairs Website-Belgium (incl. summer time): ", maxPairs-nrow(visWebBelSum)))
 
-# Belgium - App
+# app - Belgium
 visAppBelSum = aggregate(visits_index ~ date + time_min + date, data = visAppBel, FUN=sum, simplify = TRUE, drop = TRUE)
 names(visAppBelSum) = cbind("date", "time_min", "visitsAppBel")
 print(paste0("Missing pairs App-Belgium (incl. summer time): ", maxPairs-nrow(visAppBelSum)))
 
-# Concetenate all 4 pairs
+# concatenate all 4 pairs in visitorsSum
 visitorsSum = merge(merge(visWebNetSum, visAppNetSum, all = TRUE), merge(visWebBelSum, visAppBelSum, all = TRUE), all = TRUE)
 visitorsSum[is.na(visitorsSum)] = 0
 
-## ========================================================
-## Insert summertime + 2 missing observations to visitorsSum
-## ========================================================
+## ============================================================
+##  Insert summertime + missing observations to visitorsSum
+## ============================================================
 
+# include summertime by taking the value of previous day
 summerTime = matrix(0.0, nrow = 60, ncol = 6)
 colnames(summerTime) <- colnames(visitorsSum)
 summerTime[,1] = "2019-03-31"
@@ -128,42 +140,40 @@ row.names(visitorsSum) <- NULL # resets rownrs
 rm(summerTime)
 nrow(visitorsSum)
 
-# Insert 2 remaining missing values
+# insert 2 remaining missing values
 visitorsSum = rbind(visitorsSum[1:118393,], c("2019-03-24",313,0.0,0.0,0.0,0.0), visitorsSum[118394:nrow(visitorsSum),])
 visitorsSum = rbind(visitorsSum[1:148547,], c("2019-04-14",228,0.0,0.0,0.0,0.0), visitorsSum[148548:nrow(visitorsSum),])
 row.names(visitorsSum) <- NULL
 
-# Convert non-numeric vectors to doubles
+# convert non-numeric vectors to doubles
+visitorsSum$time_min = as.numeric(visitorsSum$time_min)
 visitorsSum$visitsWebNet = as.numeric(visitorsSum$visitsWebNet)
 visitorsSum$visitsAppNet = as.numeric(visitorsSum$visitsAppNet)
 visitorsSum$visitsWebBel = as.numeric(visitorsSum$visitsWebBel)
 visitorsSum$visitsAppBel = as.numeric(visitorsSum$visitsAppBel)
 
-## Aggregate visit density over the days, 4 pairs of combinations
+## ===============================================
+##   Aggregate visit densities over the days
+## ===============================================
+
+#Aggregate visit density over the days, 4 pairs of combinations
 uniqueDates = unique(traffic$date) 
 uniqueDates = sort(uniqueDates)
 daysVisitorsSum = matrix(0.0, nrow = amountDays, ncol = 5)
-colnames(daysVisitorsSum) = cbind("date", "visitsWebNetDay", "visitsAppNetDay", "visitsWebBelDay", "visitsAppBelDay")
+colnames(daysVisitorsSum) = c("date", "visitsWebNetDay", "visitsAppNetDay", "visitsWebBelDay", "visitsAppBelDay")
 daysVisitorsSum[,1] = uniqueDates
 for (i in 1:nrow(visitorsSum)) { # takes at most 2min to run
   day = yday(visitorsSum$date[i])
-  visitIndexWebNet = visitorsSum$visitsWebNet[i]
-  if (is.na(visitIndexWebNet)) {visitIndexWebNet = 0.0}
-  visitIndexAppNet = visitorsSum$visitsAppNet[i]
-  if (is.na(visitIndexAppNet)) {visitIndexAppNet = 0.0}
-  visitIndexWebBel = visitorsSum$visitsWebBel[i]
-  if (is.na(visitIndexWebBel)) {visitIndexWebBel = 0.0}
-  visitIndexAppBel = visitorsSum$visitsAppBel[i]
-  if (is.na(visitIndexAppBel)) {visitIndexAppBel = 0.0}
-  daysVisitorsSum[day, 2] = as.numeric(daysVisitorsSum[day, 2]) + as.numeric(visitIndexWebNet)
-  daysVisitorsSum[day, 3] = as.numeric(daysVisitorsSum[day, 3]) + as.numeric(visitIndexAppNet)
-  daysVisitorsSum[day, 4] = as.numeric(daysVisitorsSum[day, 4]) + as.numeric(visitIndexWebBel)
-  daysVisitorsSum[day, 5] = as.numeric(daysVisitorsSum[day, 5]) + as.numeric(visitIndexAppBel)
+  daysVisitorsSum[day, 2] = as.numeric(daysVisitorsSum[day, 2]) + visitorsSum$visitsWebNet[i]
+  daysVisitorsSum[day, 3] = as.numeric(daysVisitorsSum[day, 3]) + visitorsSum$visitsAppNet[i]
+  daysVisitorsSum[day, 4] = as.numeric(daysVisitorsSum[day, 4]) + visitorsSum$visitsWebBel[i]
+  daysVisitorsSum[day, 5] = as.numeric(daysVisitorsSum[day, 5]) + visitorsSum$visitsAppBel[i]
 }
 
-# Further country specific variables + Aggregate clicks no a day
-trafficNet = subset(traffic, country == 'Netherlands')
-trafficBel = subset(traffic, country == 'Belgium')
+## ==========================================
+##     Calculate averages for Net & Bel
+## ==========================================
+
 broadNet = subset(broad, country == 'Netherlands')
 broadBel = subset(broad, country == 'Belgium')
 
@@ -223,7 +233,6 @@ for (i in 1:24){
 }
 broadBel = broadBel[order(as.numeric(row.names(broadBel))),]
 
-
 # amount of advertisements per day -- Total
 adAmount = matrix(0, amountDays) 
 for (i in 1:amountDays){
@@ -240,7 +249,7 @@ adAmountBel = as.matrix(table(broadBel$date))
 ##      CREATING DUMMIES FOR DAILY TRAFFIC (time series)
 ## ========================================================
 
-#national holidays
+# national holidays
 holidaysNames = c("Nieuwjaarsdag", "Goede Vrijdag", "Eerste Paasdag", 
                   "Tweede Paasdag", "Koningsdag", "Bevrijdingsdag", 
                   "Hemelvaartsdag", "Eerste Pinksterdag", 
@@ -248,14 +257,13 @@ holidaysNames = c("Nieuwjaarsdag", "Goede Vrijdag", "Eerste Paasdag",
 holidaysDates = c("2019-01-01", "2019-04-19", "2019-04-21", "2019-04-22", 
                   "2019-04-27", "2019-05-05", "2019-05-30", "2019-06-09",
                   "2019-06-10")
-dummyHolidays = matrix(rep(0), nrow = amountDays)
+dummyHolidays = matrix(0, nrow = amountDays)
 for (i in 1:length(holidaysDates)) {
   index = yday(holidaysDates[i])
   dummyHolidays[index] = 1
 }
-indexHemelvaart = yday(holidaysDates[7])
-dummyHemelvaartsdag = matrix(rep(0), nrow = amountDays)
-dummyHemelvaartsdag[indexHemelvaart] = 1
+dummyHemelvaartsdag = matrix(0, nrow = amountDays)
+dummyHemelvaartsdag[yday(holidaysDates[7])] = 1
 
 # weekday and week dummies
 allDates = sort(unique(traffic$date))
@@ -291,7 +299,7 @@ colnames(dummyAds) = c("Ads Total","Ads Netherlands","Ads Belgium")
 rm(dummyAdsTot); rm(dummyAdsNet); rm(dummyAdsBel)
 
 ## ========================================================
-##    ADDING DUMMIES FOR COMMERCIALS (direct effects)
+##    Create dummies for commercials (direct effects)
 ## ========================================================
 
 # Weekdays dummiess
@@ -384,15 +392,17 @@ broad = broad[order(as.numeric(row.names(broad))),]
 broadNet = broadNet[order(as.numeric(row.names(broadNet))),]
 broadBel = broadBel[order(as.numeric(row.names(broadBel))),]
 
-## CREATING MATRICES WITH DUMMIES ##########################################
+## =================================================
+##   Create matrices with dummies (direct effects)
+## =================================================
 
 # Include in baseline models
-# preVisitors
-# hour (7-1)
-# weekday (23-1)
+  # preVisitors
+  # hour (7-1)
+  # weekday (23-1)
 
-# Include in full model
-# The dummies we include in the treatment effect (we EXCLUDE the most freq. dummy)
+# Include in full model (treatment effect) 
+# we exclude the most freq. dummy for biggest set of commercials (WebNet, WebBel)
   # 1. Product category: (3-1) ("wasmachines", "televisies", "laptops")
   # 2. TV channel (max. 51-1)
   # 2. Length of spot: (3-1) ("30", "30+10", "30+10+5")
@@ -418,7 +428,7 @@ dummiesDirectModel = dummiesDirectModelPre[,((ncol(broadBel)+1):ncol(dummiesDire
 dummiesDirectModel = as.data.frame(dummiesDirectModel)
 rm(dummiesDirectModelPre); rm(variablesDirectModel)
 
-# automate with non singular names \/
+# automate with non singular names (wordt dit nog gebruikt?)
 removeNonSingular <- function(model, data) {
   naCoef = names(which(is.na(coef(model))))
   naCoef = gsub('`', '', naCoef)
