@@ -109,7 +109,10 @@ print(paste0("Missing pairs App-Belgium (incl. summer time): ", maxPairs-nrow(vi
 visitorsSum = merge(merge(visWebNetSum, visAppNetSum, all = TRUE), merge(visWebBelSum, visAppBelSum, all = TRUE), all = TRUE)
 visitorsSum[is.na(visitorsSum)] = 0
 
-# Insert summertime for completeness (same pattern as day before)
+## ============================================================
+##  Insert summertime + 2 missing observations to visitorsSum
+## ============================================================
+
 summerTime = matrix(0.0, nrow = 60, ncol = 6)
 colnames(summerTime) <- colnames(visitorsSum)
 summerTime[,1] = "2019-03-31"
@@ -129,6 +132,12 @@ nrow(visitorsSum)
 visitorsSum = rbind(visitorsSum[1:118393,], c("2019-03-24",313,0.0,0.0,0.0,0.0), visitorsSum[118394:nrow(visitorsSum),])
 visitorsSum = rbind(visitorsSum[1:148547,], c("2019-04-14",228,0.0,0.0,0.0,0.0), visitorsSum[148548:nrow(visitorsSum),])
 row.names(visitorsSum) <- NULL
+
+# Convert non-numeric vectors to doubles
+visitorsSum$visitsWebNet = as.numeric(visitorsSum$visitsWebNet)
+visitorsSum$visitsAppNet = as.numeric(visitorsSum$visitsAppNet)
+visitorsSum$visitsWebBel = as.numeric(visitorsSum$visitsWebBel)
+visitorsSum$visitsAppBel = as.numeric(visitorsSum$visitsAppBel)
 
 ## Aggregate visit density over the days, 4 pairs of combinations
 uniqueDates = unique(traffic$date) 
@@ -223,25 +232,13 @@ for (i in 1:amountDays){
   adAmount[i] = adsIDate
 }
 
-# amount of advertisements per day -- Netherlands
+# amount of advertisements per day
 adAmountNet = as.matrix(table(broadNet$date))
-
-# amount of advertisements per day -- Belgium
 adAmountBel = as.matrix(table(broadBel$date))
 
-# amount of traffic per day -- Netherlands (approx. running time 5 seconds)
-# trafAmountNet = as.matrix(table(traffic_net$date)) # how much traffic per day DOES NOT WORK CORRECTLY
-
-# amount of traffic per day -- Belgium (approx. running time 5 seconds)
-# trafAmountBel = as.matrix(table(traffic_bel$date)) DOES NOT WORK CORRECTLY
-
-# amount of traffic per day -- Total
-# NOTE: you can only run this if you have run both Net and Bel
-# trafAmount = trafAmountNet + trafAmountBel
-
-
-## ADDING DUMMIES FOR DAILY TRAFFIC (time series) #########################
-
+## =======================================================
+##    CREATING DUMMIES FOR DAILY TRAFFIC (time series)
+## =======================================================
 
 #national holidays
 holidaysNames = c("Nieuwjaarsdag", "Goede Vrijdag", "Eerste Paasdag", 
@@ -295,7 +292,7 @@ rm(dummyAdsTot); rm(dummyAdsNet); rm(dummyAdsBel)
 
 ## ========================================================
 ##    ADDING DUMMIES FOR COMMERCIALS (direct effects)
-## ## =====================================================
+## ========================================================
 
 # Weekdays dummiess
 broad$weekdays = 0
