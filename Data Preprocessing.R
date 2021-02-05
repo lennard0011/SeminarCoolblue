@@ -241,13 +241,13 @@ for (i in 1:amountDays){
   adAmount[i] = adsIDate
 }
 
-# amount of advertisements per day
+# amount of advertisements per day 
 adAmountNet = as.matrix(table(broadNet$date))
 adAmountBel = as.matrix(table(broadBel$date))
 
-## =======================================================
-##     Create dummies for daily traffic (time series)
-## =======================================================
+## ========================================================
+##      CREATING DUMMIES FOR DAILY TRAFFIC (time series)
+## ========================================================
 
 # national holidays
 holidaysNames = c("Nieuwjaarsdag", "Goede Vrijdag", "Eerste Paasdag", 
