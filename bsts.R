@@ -3,6 +3,9 @@ Sys.setenv(TZ = "Europe/Amsterdam")
 mediaMarktTrends = gtrends(keyword = "mediamarkt", geo = "NL", time = "2019-01-01 2019-06-30")
 interestVectorMed = mediaMarktTrends$interest_over_time
 
+BCCTrends = gtrends(keyword = "bcc", geo = "NL", time = "2019-01-01 2019-06-30")
+interestVectorBCC = BCCTrends$interest_over_time
+
 # laptopTrends = gtrends(keyword = "laptop", geo = "NL", time = "2019-01-01 2019-06-30")
 # interestVectorLap = laptopTrends$interest_over_time
 # 
@@ -72,7 +75,8 @@ visWebBel = subset(visWebBel, select = -yday)
 #bsts for entire time periods
 #211-406
 #website
-data = zoo(cbind(sumVisitIndexNet, sumVisitIndexBel, interestVectorMed[,2]), c(1:amountDays))
+set.seed(11)
+data = zoo(cbind(sumVisitIndexNet, sumVisitIndexBel, interestVectorMed[,2], interestVectorBCC[,2]), c(1:amountDays))
 commercialBegin = "2019-02-11"
 yday_commercialBegin = yday(commercialBegin)
 pre.period = c("2019-02-01", "2019-02-10") #1-29--2-10
@@ -134,9 +138,9 @@ plot(entireImpact3$model$bsts.model, "coef")
 #website
 commercialBegin = "2019-02-04"
 yday_commercialBegin = yday(commercialBegin)
-pre.period = c("2019-01-29", "2019-02-03")
+pre.period = c("2019-01-29", "2019-02-02")
 yday_pre.period = yday(pre.period)
-post.period = c("2019-02-04", "2019-02-10")
+post.period = c("2019-02-03", "2019-02-10")
 yday_post.period = yday(post.period)
 
 entireImpact4 = CausalImpact(data, yday_pre.period, yday_post.period, model.args = list(niter = 5000, nseasons = 7))
