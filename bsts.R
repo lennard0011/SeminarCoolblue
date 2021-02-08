@@ -1,3 +1,24 @@
+# Google Trends
+Sys.setenv(TZ = "Europe/Amsterdam")
+mediaMarktTrends = gtrends(keyword = "mediamarkt", geo = "NL", time = "2019-01-01 2019-06-30")
+interestVectorMed = mediaMarktTrends$interest_over_time
+
+BCCTrends = gtrends(keyword = "bcc", geo = "NL", time = "2019-01-01 2019-06-30")
+interestVectorBCC = BCCTrends$interest_over_time
+
+# laptopTrends = gtrends(keyword = "laptop", geo = "NL", time = "2019-01-01 2019-06-30")
+# interestVectorLap = laptopTrends$interest_over_time
+# 
+# washingMachineTrends = gtrends(keyword = "wasmachine", geo = "NL", time = "2019-01-01 2019-06-30")
+# interestVectorWash= washingMachineTrends$interest_over_time
+# 
+# tvTrends = gtrends(keyword = "tv", geo = "NL", time = "2019-01-01 2019-06-30")
+# interestVectorTV= tvTrends$interest_over_time
+# 
+# televisionTrends = gtrends(keyword = "televisie", geo = "NL", time = "2019-01-01 2019-06-30")
+# interestVectorTelevision= televisionTrends$interest_over_time
+
+
 #bsts
 #make avg_gross_rating_point variable - Net
 total_gross_rating_point = matrix(0, amountDays)
@@ -54,7 +75,8 @@ visWebBel = subset(visWebBel, select = -yday)
 #bsts for entire time periods
 #211-406
 #website
-data = zoo(cbind(sumVisitIndexNet, sumVisitIndexBel), c(1:amountDays))
+set.seed(11)
+data = zoo(cbind(sumVisitIndexNet, sumVisitIndexBel, interestVectorMed[,2], interestVectorBCC[,2]), c(1:amountDays))
 commercialBegin = "2019-02-11"
 yday_commercialBegin = yday(commercialBegin)
 pre.period = c("2019-02-01", "2019-02-10") #1-29--2-10
@@ -62,22 +84,24 @@ yday_pre.period = yday(pre.period)
 post.period = c("2019-02-11", "2019-04-06")
 yday_post.period = yday(post.period)
 
-y = sumVisitIndexNet
-x1 = sumVisitIndexBel
-post.period.response = y[yday_post.period[1] : yday_post.period[2]]
-y[yday_post.period[1] : yday_post.period[2]] = NA
-#llt = AddLocalLinearTrend(list(), data[,1])
-ll = AddLocalLevel(list(), y)
-ss = AddSeasonal(ll, y, nseasons = 7) 
-ss2 = AddSeasonal(ss, y, nseasons = 30)
-bsts.model = bsts(y ~ x1, ss2, niter = 1000)
-impact = CausalImpact(bsts.model = bsts.model,
-                       post.period.response = post.period.response)
+# y = sumVisitIndexNet
+# x1 = sumVisitIndexBel
+# x2 = interestVector[,2]
+# post.period.response = y[yday_post.period[1] : yday_post.period[2]]
+# y[yday_post.period[1] : yday_post.period[2]] = NA
+# #llt = AddLocalLinearTrend(list(), data[,1])
+# ll = AddLocalLevel(list(), y)
+# ss = AddSeasonal(ll, y, nseasons = 7) 
+# ss2 = AddSeasonal(ss, y, nseasons = 30)
+# bsts.model = bsts(y ~ x1 + x2, ss2, niter = 1000)
+# impact = CausalImpact(bsts.model = bsts.model,
+#                        post.period.response = post.period.response)
 
 entireImpact1 = CausalImpact(data, yday_pre.period, yday_post.period, model.args = list(niter = 5000))
 plot(entireImpact1)
 entireImpact1$summary
 entireImpact1$report
+plot(entireImpact1$model$bsts.model, "coef")
 
 #520-603
 #website
@@ -92,6 +116,7 @@ entireImpact2 = CausalImpact(data, yday_pre.period, yday_post.period, model.args
 plot(entireImpact2)
 entireImpact2$summary
 entireImpact2$report
+plot(entireImpact2$model$bsts.model, "coef")
 
 #617-630
 #website
@@ -106,18 +131,20 @@ entireImpact3 = CausalImpact(data, yday_pre.period, yday_post.period, model.args
 plot(entireImpact3)
 entireImpact3$summary
 entireImpact3$report
+plot(entireImpact3$model$bsts.model, "coef")
 
 #test for imaginary period
 #205-210
 #website
 commercialBegin = "2019-02-04"
 yday_commercialBegin = yday(commercialBegin)
-pre.period = c("2019-01-29", "2019-02-03")
+pre.period = c("2019-01-29", "2019-02-02")
 yday_pre.period = yday(pre.period)
-post.period = c("2019-02-04", "2019-02-10")
+post.period = c("2019-02-03", "2019-02-10")
 yday_post.period = yday(post.period)
 
 entireImpact4 = CausalImpact(data, yday_pre.period, yday_post.period, model.args = list(niter = 5000, nseasons = 7))
 plot(entireImpact4)
 entireImpact4$summary
 entireImpact4$report
+plot(entireImpact4$model$bsts.model, "coef")
