@@ -27,8 +27,6 @@ for (i in 1:nrow(broadNet)) {
   broadNet$minute_in_year[i] = ((dayCom-1)*1440)+dayTime+1
 }
 
-# BE: TODO
-
 # Basic Z Score Algorithm (function which does signalling)
   # lag = lag of moving window (5 = use 5 last obsv)
   # threshold = the z-score at which the algorithm signals (e.g. 3.5 stdev away)
@@ -91,29 +89,36 @@ ThresholdingAlgoReversed = function(y, lag, threshold, influence) {
 ### ===============================================================
 
 # Tuning variables
-lag = 20
-threshold = 6
-influence = 0.5
+lag = 10
+threshold = 5
+influence = 1
 
+# Z_2 = lag=10, threshold=5,influence=: 6 pos. spikes
+# Z_3 = lag=40, threshold=5,influence=0: 4 pos. spikes
+# Z_2 = lag=10, threshold=8,influence=0: 2 pos. signals
+# Z_2 = lag=10, threshold=5,influence=1: 4 pos. signals
 # Settings from progress report: lag=30, threshold=6, influence=0.8
 
 # Choose data
 # !make sure that visitorsSum has length 260640!
-y = as.numeric(visitorsSum$visitsWebNet) # apply on concatenated data
-#y = as.numeric(dayVisits$visitsWebNet)    # only pick one day 
+#y = as.numeric(visitorsSum$visitsWebNet) # apply on concatenated data
+y = as.numeric(dayVisits$visitsWebNet)    # only pick one day 
 
 # Run algorithm 
 result = ThresholdingAlgo(y,lag,threshold,influence)
-resultReversed = ThresholdingAlgoReversed(y,lag,threshold,influence)
+#resultReversed = ThresholdingAlgoReversed(y,lag,threshold,influence)
 
 # Plot result
 par(mfrow = c(2,1),oma = c(2,2,0,0)+0.1, mar = c(0,0,2,1)+0.2)
-plot(1:length(y),y,type="l",ylab="",xlab="")
-#abline(v = broad[1,]$time_min, col = 'blue') #only for single day
-lines(1:length(y),result$avgFilter,type="l",col="cyan",lwd=2)
-lines(1:length(y),result$avgFilter+threshold*result$stdFilter,type="l",col="green",lwd=2)
-lines(1:length(y),result$avgFilter-threshold*result$stdFilter,type="l",col="green",lwd=2)
+#plot(1:length(y),y,type="l",xaxt='n', yaxt = 'n', ann=FALSE)
+#abline(v=broad[1,]$time_min, col = 'grey') #only for single day
+#par(new=TRUE)
+plot(1:length(y),y,type="l",ylab="Visit density",xlab="Time (minutes)")
+lines(1:length(y),result$avgFilter,type="l",col="cyan",lwd=1.5)
+lines(1:length(y),result$avgFilter+threshold*result$stdFilter,type="l",col="green",lwd=1.8)
+lines(1:length(y),result$avgFilter-threshold*result$stdFilter,type="l",col="green",lwd=1.8)
 plot(result$signals,type="S",col="red",ylab="",xlab="",ylim=c(-1.5,1.5),lwd=2)
+sum(result$signals==1)
 
 ### ===============================================================
 ###             ANALYISE THE RESULTS NL (181 days)
@@ -305,6 +310,11 @@ usefulCommercials = usefulCommercials[order(usefulCommercials$relativePeak, decr
 
 # TODO calculate the number of overlapping commercials in a 5 minute interval
 
+
 # ===============================================================
-# Find overlapping commercials 
+#               Find overlapping commercials 
 # ===============================================================
+
+
+# ===============================================================
+#     Perform reversed algorithm and find overlap

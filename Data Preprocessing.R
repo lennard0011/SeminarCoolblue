@@ -425,11 +425,11 @@ rm(dummiesDirectModelPre); rm(variablesDirectModel)
 
 # dummiesDirectModel for Belgium
 # TODO: overlap dummies komen niet in Belgische data
-variablesDirectModel = c("channel", "position_in_break_3option", "weekdays", "overlapBefore", "overlapAfter") # waarom missen 2 dummie-var?
-dummiesDirectModelPre = dummy_cols(.data = broadBel, select_columns = variablesDirectModel, remove_most_frequent_dummy = T)
-dummiesDirectModel = dummiesDirectModelPre[,((ncol(broadBel)+1):ncol(dummiesDirectModelPre))]
-dummiesDirectModel = as.data.frame(dummiesDirectModel)
-rm(dummiesDirectModelPre); rm(variablesDirectModel)
+variablesDirectModelBel = c("channel", "position_in_break_3option", "weekdays", "overlapBefore", "overlapAfter") # waarom missen 2 dummie-var?
+dummiesDirectModelPreBel = dummy_cols(.data = broadBel, select_columns = variablesDirectModelBel, remove_most_frequent_dummy = T)
+dummiesDirectModelBel = dummiesDirectModelPreBel[,((ncol(broadBel)+1):ncol(dummiesDirectModelPreBel))]
+dummiesDirectModelBel = as.data.frame(dummiesDirectModelBel)
+rm(dummiesDirectModelPreBel); rm(variablesDirectModelBel)
 
 # automate with non singular names (wordt dit nog gebruikt?)
 removeNonSingular <- function(model, data) {
