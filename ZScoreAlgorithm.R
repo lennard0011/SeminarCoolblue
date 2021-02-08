@@ -6,6 +6,8 @@
 ###                   PRE-WORK
 ### =====================================================
 
+options(max.print=1500)
+
 # NL: Subsetting day of the biggest commercial [2019-04-30 21:55:00]
 broad = broad[order(broad$gross_rating_point, decreasing=T),]
 dayCommercials = subset(broad, date == "2019-04-30")
@@ -31,7 +33,7 @@ for (i in 1:nrow(broadNet)) {
   # lag = lag of moving window (5 = use 5 last obsv)
   # threshold = the z-score at which the algorithm signals (e.g. 3.5 stdev away)
   # influence = the influence (between 0 and 1) of new signals on the mean and standard deviation (?)
-ThresholdingAlgo = function(y,lag,threshold,influence) {
+ThresholdingAlgo = function(y, lag, threshold, influence) {
   signals = rep(0,length(y))
   filteredY = y[0:lag]
   avgFilter = NULL
@@ -56,27 +58,56 @@ ThresholdingAlgo = function(y,lag,threshold,influence) {
   return(list("signals"=signals,"avgFilter"=avgFilter,"stdFilter"=stdFilter))
 }
 
+# Same algorithm in reversed order
+ThresholdingAlgoReversed = function(y, lag, threshold, influence) { 
+  signals = rep(0,length(y))
+  filteredY = y
+  avgFilter = rep(NA, length(y))
+  stdFilter = rep(NA, length(y))
+  avgFilter[length(y)-lag+1] = mean(y[(length(y)-lag+1):length(y)], na.rm=TRUE)
+  stdFilter[length(y)-lag+1] = sd(y[(length(y)-lag+1):length(y)], na.rm=TRUE)
+  for ( i in (length(y)-lag):1 ) {
+    if (abs(y[i]-avgFilter[i+1]) > threshold*stdFilter[i+1]) {
+        if (y[i] > avgFilter[i+1]) {
+          signals[i] = 1
+         } else {
+          signals[i] = -1
+         }
+      filteredY[i] = influence * y[i] + (1 - influence) * filteredY[i+1]
+      avgFilter[i] = mean(filteredY[i:(i+lag)])
+      stdFilter[i] = sd(filteredY[i:(i+lag)])
+    } else {
+    signals[i] = 0
+    filteredY[i] = y[i]
+    avgFilter[i] = mean(filteredY[i:(i+lag)])
+    stdFilter[i] = sd(filteredY[i:(i+lag)])
+    }
+  }
+  return(list("signals"=signals,"avgFilter"=avgFilter,"stdFilter"=stdFilter))
+}
+
 ### ===============================================================
 ###                  TUNING, RUNNING, PLOTTING
 ### ===============================================================
 
 # Tuning variables
-lag = 30
+lag = 20
 threshold = 6
-influence = 0.8
+influence = 0.5
 
 # Settings from progress report: lag=30, threshold=6, influence=0.8
 
 # Choose data
 # !make sure that visitorsSum has length 260640!
 y = as.numeric(visitorsSum$visitsWebNet) # apply on concatenated data
-### y = as.numeric(dayVisits$visitsWebNet)    # only pick one day 
+#y = as.numeric(dayVisits$visitsWebNet)    # only pick one day 
 
 # Run algorithm 
 result = ThresholdingAlgo(y,lag,threshold,influence)
+resultReversed = ThresholdingAlgoReversed(y,lag,threshold,influence)
 
 # Plot result
-par(mfrow = c(2,1),oma = c(2,2,0,0) + 0.1,mar = c(0,0,2,1) + 0.2)
+par(mfrow = c(2,1),oma = c(2,2,0,0)+0.1, mar = c(0,0,2,1)+0.2)
 plot(1:length(y),y,type="l",ylab="",xlab="")
 #abline(v = broad[1,]$time_min, col = 'blue') #only for single day
 lines(1:length(y),result$avgFilter,type="l",col="cyan",lwd=2)
@@ -101,7 +132,8 @@ for (i in 1:nrow(broadNet)) {
 sum(commercialIndicator)
 
 # Find for which positive spikes there was a commercial before
-posSpikes = which(result$signals==1) # gives TRUE indices
+#posSpikes = which(result$signals==1) # gives TRUE indices
+posSpikes =  which(resultReversed$signals==1)
 broadNet['usefulWeb'] = 0
 for (i in posSpikes) { # TODO make more efficient
   checker = 0
@@ -156,7 +188,8 @@ print(paste0("Num of false spikes web: ", numFalseSpikes, " / ", length(posSpike
 yApp = as.numeric(visitorsSum$visitsAppNet) # apply on concatenated data
 
 # Run algorithm 
-resultApp = ThresholdingAlgo(yApp,lag,threshold,influence)
+#resultApp = ThresholdingAlgo(yApp,lag,threshold,influence)
+resultAppReversed = ThresholdingAlgoReversed(yApp,lag,threshold,influence)
 
 # Create indicator for commercials on the large line
 commercialIndicatorApp = matrix(0, nrow = 1440*181)
@@ -171,7 +204,8 @@ for (i in 1:nrow(broadNet)) {
 sum(commercialIndicatorApp)
 
 # Find for which positive spikes there was a commercial before
-posSpikesApp = which(resultApp$signals==1) # gives TRUE indices
+#posSpikesApp = which(resultApp$signals==1) # gives TRUE indices
+posSpikesApp = which(resultAppReversed$signals==1)
 broadNet['usefulApp'] = 0
 numFalseSpikesApp = 0
 for (i in posSpikesApp) { # TODO make more efficient
@@ -256,6 +290,7 @@ sort(summary(as.factor(usefulCommercials$weekdays)))
 # Calculate the biggest relative increase after broadcast time
 # max i+1, i+2, i+3, i+4, i+5 (can also be i-1 vs. i, i+1, ...)
 usefulCommercials['relativePeak'] = 0
+usefulCommercials['timeTilPeak'] = 0
 for (i in 1:nrow(usefulCommercials)) {
   comTime = usefulCommercials$minute_in_year[i]
   comTraf = visitorsSum$visitsWebNet[comTime]
@@ -264,7 +299,12 @@ for (i in 1:nrow(usefulCommercials)) {
     afterTraf[j] = visitorsSum$visitsWebNet[comTime+j]
   }
   usefulCommercials$relativePeak[i] = max(afterTraf) - comTraf
+  usefulCommercials$timeTilPeak[i] = match(max(afterTraf), afterTraf)
 }
 usefulCommercials = usefulCommercials[order(usefulCommercials$relativePeak, decreasing=T),]
 
-# TODO: er zijn nog 2 commercials die negatief zijn
+# TODO calculate the number of overlapping commercials in a 5 minute interval
+
+# ===============================================================
+# Find overlapping commercials 
+# ===============================================================
