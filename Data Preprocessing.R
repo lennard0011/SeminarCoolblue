@@ -13,6 +13,7 @@
 #install.packages("AIC")
 #install.packages("BIC")
 #install.packages("Metrics")
+#install.packages("gtrendsR")
 
 # loading packages
 library("chron")
@@ -30,6 +31,7 @@ library("sandwich") # computes robust covariance matrix estimators
 library("stats") # AIC, BIC
 library("Metrics") # rmse calc
 library("plyr")
+library("gtrendsR")
 
 ## ====================================================
 ##         Loading & subsetting the data
