@@ -31,10 +31,13 @@ broadInterval = 20
 visitNetDumm['broadAmount'] = 0
 for (i in broadInterval:nrow(broadNet)) {
   visitTime = broadNet$minute_in_year[i] 
-  if(visitTime < 128280) { # zomertijd starts
-    visitNetDumm$broadAmount[(visitTime-broadInterval):visitTime] = visitNetDumm$broadAmount[(visitTime-broadInterval):visitTime] + 1 
-  }
+  visitNetDumm$broadAmount[(visitTime-broadInterval):visitTime] = visitNetDumm$broadAmount[(visitTime-broadInterval):visitTime] + 1 
 }
+
+sapply(visitNetDumm$minute_in_year, )
+
+broadCastCounter = 
+
 
 visitNet['broadAmount'] = 
 visitNet['broadGPR'] = 

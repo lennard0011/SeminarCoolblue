@@ -2,9 +2,11 @@
 Sys.setenv(TZ = "Europe/Amsterdam")
 mediaMarktTrends = gtrends(keyword = "mediamarkt", geo = "NL", time = "2019-01-01 2019-06-30")
 interestVectorMed = mediaMarktTrends$interest_over_time
+plot(interestVectorMed$hits, type = 'l')
 
 BCCTrends = gtrends(keyword = "bcc", geo = "NL", time = "2019-01-01 2019-06-30")
 interestVectorBCC = BCCTrends$interest_over_time
+plot(interestVectorBCC$hits, type = 'l')
 
 # laptopTrends = gtrends(keyword = "laptop", geo = "NL", time = "2019-01-01 2019-06-30")
 # interestVectorLap = laptopTrends$interest_over_time
