@@ -14,6 +14,8 @@
 #install.packages("BIC")
 #install.packages("Metrics")
 #install.packages("gtrendsR")
+#install.packages("seastests")
+#install.packages("pastecs")
 
 # loading packages
 library("chron")
@@ -32,6 +34,9 @@ library("stats") # AIC, BIC
 library("Metrics") # rmse calc
 library("plyr")
 library("gtrendsR")
+library("tseries")
+library("seastests")
+library("pastecs")
 
 ## ====================================================
 ##         Loading & subsetting the data

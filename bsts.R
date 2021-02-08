@@ -61,6 +61,7 @@ for (i in 1:amountDays){
   sumVisitIndexNet[i] = sum(trafficSubset$visits_index)
 }
 visWebNet = subset(visWebNet, select = -yday)
+for (i in 1:amountDays){}
 
 # sum of visit_index -- Bel
 visWebBel$yday = yday(visWebBel$date)
@@ -72,11 +73,26 @@ for (i in 1:amountDays){
 }
 visWebBel = subset(visWebBel, select = -yday)
 
-#bsts for entire time periods
-#211-406
-#website
+
+# some tests
+# unit root test
+unitRoot = adf.test(sumVisitIndexNet, alternative = "s") # is not stationary
+unitRoot
+
+# seasonality test
+seasTest = wo(sumVisitIndexNet, freq = 7)
+summary(seasTest) # weekly seasonality; does contain seasonality
+
+# trend test
+trendTest = trend.test(sumVisitIndexNet) # no trend
+trendTest
+
+
+# bsts for entire time periods
+# 211-406
+# website
 set.seed(11)
-data = zoo(cbind(sumVisitIndexNet, sumVisitIndexBel, interestVectorMed[,2], interestVectorBCC[,2]), c(1:amountDays))
+data = zoo(cbind(sumVisitIndexNet, sumVisitIndexBel, interestVectorMed[, 2], interestVectorBCC[, 2]), c(1:181))
 commercialBegin = "2019-02-11"
 yday_commercialBegin = yday(commercialBegin)
 pre.period = c("2019-02-01", "2019-02-10") #1-29--2-10
@@ -84,27 +100,14 @@ yday_pre.period = yday(pre.period)
 post.period = c("2019-02-11", "2019-04-06")
 yday_post.period = yday(post.period)
 
-# y = sumVisitIndexNet
-# x1 = sumVisitIndexBel
-# x2 = interestVector[,2]
-# post.period.response = y[yday_post.period[1] : yday_post.period[2]]
-# y[yday_post.period[1] : yday_post.period[2]] = NA
-# #llt = AddLocalLinearTrend(list(), data[,1])
-# ll = AddLocalLevel(list(), y)
-# ss = AddSeasonal(ll, y, nseasons = 7) 
-# ss2 = AddSeasonal(ss, y, nseasons = 30)
-# bsts.model = bsts(y ~ x1 + x2, ss2, niter = 1000)
-# impact = CausalImpact(bsts.model = bsts.model,
-#                        post.period.response = post.period.response)
-
 entireImpact1 = CausalImpact(data, yday_pre.period, yday_post.period, model.args = list(niter = 5000))
 plot(entireImpact1)
 entireImpact1$summary
 entireImpact1$report
 plot(entireImpact1$model$bsts.model, "coef")
 
-#520-603
-#website
+# 520-603
+# website
 commercialBegin = "2019-05-20"
 yday_commercialBegin = yday(commercialBegin)
 pre.period = c("2019-04-22", "2019-05-19")
@@ -118,8 +121,8 @@ entireImpact2$summary
 entireImpact2$report
 plot(entireImpact2$model$bsts.model, "coef")
 
-#617-630
-#website
+# 617-630
+# website
 commercialBegin = "2019-06-17"
 yday_commercialBegin = yday(commercialBegin)
 pre.period = c("2019-06-04", "2019-06-16")
@@ -133,9 +136,9 @@ entireImpact3$summary
 entireImpact3$report
 plot(entireImpact3$model$bsts.model, "coef")
 
-#test for imaginary period
-#205-210
-#website
+# test for imaginary period
+# 203-210
+# website
 commercialBegin = "2019-02-04"
 yday_commercialBegin = yday(commercialBegin)
 pre.period = c("2019-01-29", "2019-02-02")
