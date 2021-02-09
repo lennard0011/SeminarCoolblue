@@ -11,7 +11,7 @@ broad['preVisitorsWeb'] = 0
 broad['postVisitorsWeb'] = 0
 broad['preVisitorsApp'] = 0
 broad['postVisitorsApp'] = 0
-intervalSize = 5
+intervalSize
 
 start = Sys.time()
 for (i in 1:nBroad) { # nBroad
@@ -35,7 +35,7 @@ for (i in 1:nBroad) { # nBroad
     broad$preVisitorsApp[[i]] = sum(subset(visitorsSum, date == broadDate & time_min < broadTime & time_min >= broadTime - intervalSize)$visitsAppBel) + preVisitorsAppExtra
     broad$preVisitorsWeb[[i]] = sum(subset(visitorsSum, date == broadDate & time_min < broadTime & time_min >= broadTime - intervalSize)$visitsWebBel) + preVisitorsWebExtra
     
-    broad$postVisitorsApp[[i]] = sum(subset(visitorsSum, date == broadDate & time_min >= broadTime & time_min < broadTime + intervalSize)$visitsAppBel) + postVisitorsAppExtra
+    broad$postVisitorsApp[[i]] = sum(subset(visitorsSum, date == broadDate  & time_min >= broadTime & time_min < broadTime + intervalSize)$visitsAppBel) + postVisitorsAppExtra
     broad$postVisitorsWeb[[i]] = sum(subset(visitorsSum, date == broadDate & time_min >= broadTime & time_min < broadTime + intervalSize)$visitsWebBel) + postVisitorsWebExtra
     
   } else if(broadCountry == "Netherlands") {
