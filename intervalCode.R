@@ -137,58 +137,15 @@ summary(simpleModelApp)
 
 biggestAds = subset(broad, postVisitorsWeb-preVisitorsWeb > 0.6)
 
-
 ## ========================================================
-##            Parallel trends assumption
-## ========================================================
-
-# test parallel trends -- website
-set.seed(21)
-minutes = 20
-broadNetRelevant = subset(broadNet1, broadNet1$gross_rating_point > 0.5)
-trendsMatrix = matrix(NA, nrow(broadNetRelevant), minutes)
-for (i in 1:nrow(broadNetRelevant)){
-  print(i)
-  date = broadNet$date[i]
-  daysNet = which(as.character(visWebNet$date) == date)
-  daysBel = which(as.character(visWebBel$date) == date)
-  datetime = broadNet$date_time[i]
-  datetime = as.POSIXct(datetime)
-  oneEarlier = datetime - 60 * 60
-  for (j in 0:(minutes - 1)){
-    minute = oneEarlier + j * 60
-    minuteSub = substr(minute, 12, 19)
-    if (minuteSub == ""){
-      minuteSub = "00:00:00"
-    }
-    timeMin = 60 * 24 * as.numeric(times(minuteSub))
-    visitIndexNet = sum(visWebNet$visits_index[daysNet[visWebNet$time_min[daysNet] == timeMin]])
-    visitIndexBel = sum(visWebBel$visits_index[daysBel[visWebBel$time_min[daysBel] == timeMin]])
-    trendsMatrix[i, j + 1] = visitIndexNet - visitIndexBel
-  }
-}
-
-peakMatrix = matrix(0, nrow(broadNetRelevant), minutes)
-for (i in 1:nrow(broadNetRelevant)){
-  sdPeak = sd(trendsMatrix[i, ])
-  meanPeak = mean(trendsMatrix[i, ])
-  for (j in 1:minutes){
-    if (meanPeak - 2 * sdPeak <= trendsMatrix[i, j] & trendsMatrix[i, j] <= meanPeak + 2 * sdPeak){
-      peakMatrix[i, j] = 1
-    }
-  }
-}
-sum(peakMatrix)/(nrow(broadNetRelevant) * minutes) * 100
-
-## ========================================================
-##            REGRESSION MODELS 2-minute model
+##            REGRESSION MODELS 5-minute model
 ## ========================================================
 
 # function for model summary
 getModelSumm <- function(model, coef) {
   if(coef) {
-    print(model)
-   # print(coeftest(model, vcov = vcovHC(model, type="HC1"))) # robust se
+    #print(model)
+    print(coeftest(model, vcov = vcovHC(model, type="HC1"))) # robust se
   }
   print(paste("R^2: ", summary(model)$r.squared))
   hist(model$residuals, breaks = 50)
@@ -196,14 +153,9 @@ getModelSumm <- function(model, coef) {
   print(paste("BIC: ", BIC(model)))
 }
 
-
 # Baseline models
 baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours) + weekdays, data = broadNet)
 getModelSumm(baselineModel, TRUE)
-
-# Treatment effect only models -- NL
-treatmentOnlyModel = lm(broadNet$postVisitorsWeb ~ ., data = dummiesDirectModel)
-getModelSumm(treatmentOnlyModel, TRUE)
 
 # Full model 
 fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(broadNet$hours) + broadNet$gross_rating_point + ., data = dummiesDirectModel)
@@ -213,12 +165,8 @@ getModelSumm(fullModel, T)
 baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours) + weekdays, data = broadBel)
 getModelSumm(baselineModel, TRUE)
 
-# Treatment effect only models -- BE WEB
-treatmentOnlyModel = lm(broadBel$postVisitorsWeb ~ ., data = dummiesDirectModel)
-getModelSumm(treatmentOnlyModel, TRUE)
-
 # Full model -- BE WEB
-fullModel = lm(broadBel$postVisitorsWeb ~ broadBel$preVisitorsWeb + factor(broadBel$hours) + broadBel$gross_rating_point +., data = dummiesDirectModel)
+fullModel = lm(broadBel$postVisitorsWeb ~ broadBel$preVisitorsWeb + factor(broadBel$hours) + broadBel$gross_rating_point +., data = dummiesDirectModelBel)
 getModelSumm(fullModel, T)
 
 ## ========================================================
@@ -281,12 +229,16 @@ mean(avFullTestError)
 baselineModel = lm(postVisitorsApp ~ preVisitorsApp + factor(hours) + weekdays, data = broadNet)
 getModelSumm(baselineModel, TRUE)
 
-# Treatment effect only models
-#treatmentOnlyModel = lm(broadNet$postVisitorsApp ~ ., data = dummiesDirectModel)
-#getModelSumm(treatmentOnlyModel, TRUE)
-
 # Full model 
 fullModel = lm(broadNet$postVisitorsApp ~ broadNet$preVisitorsApp + factor(broadNet$hours) + broadNet$gross_rating_point + ., data = dummiesDirectModel)
+getModelSumm(fullModel, T)
+
+# Baseline models -- BE APP
+baselineModel = lm(postVisitorsApp ~ preVisitorsApp + factor(hours) + weekdays, data = broadBel)
+getModelSumm(baselineModel, TRUE)
+
+# Full model -- BE APP
+fullModel = lm(broadBel$postVisitorsApp ~ broadBel$preVisitorsApp + factor(broadBel$hours) + broadBel$gross_rating_point + ., data = dummiesDirectModelBel)
 getModelSumm(fullModel, T)
 
 ## ========================================================
