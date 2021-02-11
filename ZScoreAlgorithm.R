@@ -27,8 +27,6 @@ for (i in 1:nrow(broadNet)) {
   broadNet$minute_in_year[i] = ((dayCom-1)*1440)+dayTime+1
 }
 
-# BE: TODO
-
 # Basic Z Score Algorithm (function which does signalling)
   # lag = lag of moving window (5 = use 5 last obsv)
   # threshold = the z-score at which the algorithm signals (e.g. 3.5 stdev away)
@@ -58,34 +56,6 @@ ThresholdingAlgo = function(y, lag, threshold, influence) {
   return(list("signals"=signals,"avgFilter"=avgFilter,"stdFilter"=stdFilter))
 }
 
-# Same algorithm in reversed order
-ThresholdingAlgoReversed = function(y, lag, threshold, influence) { 
-  signals = rep(0,length(y))
-  filteredY = y
-  avgFilter = rep(NA, length(y))
-  stdFilter = rep(NA, length(y))
-  avgFilter[length(y)-lag+1] = mean(y[(length(y)-lag+1):length(y)], na.rm=TRUE)
-  stdFilter[length(y)-lag+1] = sd(y[(length(y)-lag+1):length(y)], na.rm=TRUE)
-  for ( i in (length(y)-lag):1 ) {
-    if (abs(y[i]-avgFilter[i+1]) > threshold*stdFilter[i+1]) {
-        if (y[i] > avgFilter[i+1]) {
-          signals[i] = 1
-         } else {
-          signals[i] = -1
-         }
-      filteredY[i] = influence * y[i] + (1 - influence) * filteredY[i+1]
-      avgFilter[i] = mean(filteredY[i:(i+lag)])
-      stdFilter[i] = sd(filteredY[i:(i+lag)])
-    } else {
-    signals[i] = 0
-    filteredY[i] = y[i]
-    avgFilter[i] = mean(filteredY[i:(i+lag)])
-    stdFilter[i] = sd(filteredY[i:(i+lag)])
-    }
-  }
-  return(list("signals"=signals,"avgFilter"=avgFilter,"stdFilter"=stdFilter))
-}
-
 ### ===============================================================
 ###                  TUNING, RUNNING, PLOTTING
 ### ===============================================================
@@ -93,8 +63,12 @@ ThresholdingAlgoReversed = function(y, lag, threshold, influence) {
 # Tuning variables
 lag = 20
 threshold = 6
-influence = 0.5
+influence = 0.75
 
+# Z_2 = lag=10, threshold=5,influence=: 6 pos. spikes
+# Z_3 = lag=40, threshold=5,influence=0: 4 pos. spikes
+# Z_4 = lag=10, threshold=8,influence=0: 2 pos. signals
+# Z_5 = lag=10, threshold=5,influence=1: 4 pos. signals
 # Settings from progress report: lag=30, threshold=6, influence=0.8
 
 # Choose data
@@ -104,16 +78,18 @@ y = as.numeric(visitorsSum$visitsWebNet) # apply on concatenated data
 
 # Run algorithm 
 result = ThresholdingAlgo(y,lag,threshold,influence)
-resultReversed = ThresholdingAlgoReversed(y,lag,threshold,influence)
 
 # Plot result
 par(mfrow = c(2,1),oma = c(2,2,0,0)+0.1, mar = c(0,0,2,1)+0.2)
-plot(1:length(y),y,type="l",ylab="",xlab="")
-#abline(v = broad[1,]$time_min, col = 'blue') #only for single day
-lines(1:length(y),result$avgFilter,type="l",col="cyan",lwd=2)
-lines(1:length(y),result$avgFilter+threshold*result$stdFilter,type="l",col="green",lwd=2)
-lines(1:length(y),result$avgFilter-threshold*result$stdFilter,type="l",col="green",lwd=2)
+#plot(1:length(y),y,type="l",xaxt='n', yaxt = 'n', ann=FALSE)
+#abline(v=broad[1,]$time_min, col = 'grey') #only for single day
+#par(new=TRUE)
+plot(1:length(y),y,type="l",ylab="Visit density",xlab="Time (minutes)")
+lines(1:length(y),result$avgFilter,type="l",col="cyan",lwd=1.5)
+lines(1:length(y),result$avgFilter+threshold*result$stdFilter,type="l",col="green",lwd=1.8)
+lines(1:length(y),result$avgFilter-threshold*result$stdFilter,type="l",col="green",lwd=1.8)
 plot(result$signals,type="S",col="red",ylab="",xlab="",ylim=c(-1.5,1.5),lwd=2)
+sum(result$signals==1)
 
 ### ===============================================================
 ###             ANALYISE THE RESULTS NL (181 days)
@@ -132,8 +108,15 @@ for (i in 1:nrow(broadNet)) {
 sum(commercialIndicator)
 
 # Find for which positive spikes there was a commercial before
-#posSpikes = which(result$signals==1) # gives TRUE indices
-posSpikes =  which(resultReversed$signals==1)
+posSpikes = which(result$signals==1) # gives TRUE indices
+length(posSpikes)
+for (i in 1:length(posSpikes)) {
+  if ((posSpikes[i] %% 1440) == 1) {
+    posSpikes[i] = NA
+  }
+}
+posSpikes = subset(posSpikes, !is.na(posSpikes))
+length(posSpikes)
 broadNet['usefulWeb'] = 0
 for (i in posSpikes) { # TODO make more efficient
   checker = 0
@@ -171,14 +154,15 @@ for (i in 1:(nrow(broadNet)-1)) {
 }
 
 # Print results
-print(paste0("Nr. of positive spikes web: ", sum(result$signals==1), " (", 
-             format((100*sum(result$signals==1)/(1440*181)), digits=2), "%)"))
+print(paste0("Nr. of positive spikes web: ", length(posSpikes), " (", 
+             format((100*length(posSpikes)/(1440*181)), digits=2), "%)"))
 print(paste0("Nr. of negative spikes web: ", sum(result$signals==-1), " (", 
              format((100*sum(result$signals==-1)/(1440*181)), digits=2), "%)"))
 print(paste0("Num. of useful commercials web: ", sum(broadNet$usefulWeb), " / ", 
              nrow(broadNet), " (", format((sum(broadNet$usefulWeb)/nrow(broadNet))*100, digits=2), "%)"))
 print(paste0("Num of false spikes web: ", numFalseSpikes, " / ", length(posSpikes), 
              " (", format((numFalseSpikes/length(posSpikes))*100, digits=3), "%)"))
+#print(paste0("Percentage of positive spikes within commercial periods:", ...))
 
 ### ===============================================================
 ###       RUN IF YOU WANT THE SAME ANALYSIS VOOR APP DATA
@@ -188,8 +172,7 @@ print(paste0("Num of false spikes web: ", numFalseSpikes, " / ", length(posSpike
 yApp = as.numeric(visitorsSum$visitsAppNet) # apply on concatenated data
 
 # Run algorithm 
-#resultApp = ThresholdingAlgo(yApp,lag,threshold,influence)
-resultAppReversed = ThresholdingAlgoReversed(yApp,lag,threshold,influence)
+resultApp = ThresholdingAlgo(yApp,lag,threshold,influence)
 
 # Create indicator for commercials on the large line
 commercialIndicatorApp = matrix(0, nrow = 1440*181)
@@ -204,8 +187,15 @@ for (i in 1:nrow(broadNet)) {
 sum(commercialIndicatorApp)
 
 # Find for which positive spikes there was a commercial before
-#posSpikesApp = which(resultApp$signals==1) # gives TRUE indices
-posSpikesApp = which(resultAppReversed$signals==1)
+posSpikesApp = which(resultApp$signals==1) # gives TRUE indices
+length(posSpikesApp)
+for (i in 1:length(posSpikesApp)) {
+  if ((posSpikesApp[i] %% 1440) == 1) {
+    posSpikesApp[i] = NA
+  }
+}
+posSpikesApp = subset(posSpikesApp, !is.na(posSpikesApp))
+length(posSpikesApp)
 broadNet['usefulApp'] = 0
 numFalseSpikesApp = 0
 for (i in posSpikesApp) { # TODO make more efficient
@@ -227,18 +217,11 @@ for (i in posSpikesApp) { # TODO make more efficient
     broadNet$usefulApp[ind] = 1
   }
   if (commercialIndicatorApp[i-5] > 0) {
-    ind = match(i-5, broadNet$minute_in_year)
+    ind = match(i, broadNet$minute_in_year)
     broadNet$usefulApp[ind] = 1
   }
 }
 
-# Calculate how many useful Web commercials also show a spike in App data
-numUsefulWebAndApp = 0
-for (i in 1:nrow(broadNet)) {
-  if (broadNet$usefulWeb[i] == 1 && broadNet$usefulApp[i] == 1) {
-    numUsefulWebAndApp = numUsefulWebAndApp + 1
-  }
-}
 
 # Calculate number of false spikes (before double commercial correction)
 numFalseSpikesApp = length(posSpikesApp) - sum(broadNet$usefulApp)
@@ -260,8 +243,8 @@ for (i in 1:nrow(broadNet)) {
 }
 
 # Print results
-print(paste0("Nr. of positive spikes app: ", sum(resultApp$signals==1), " (", 
-             format((100*sum(resultApp$signals==1)/(1440*181)), digits=2), "%)"))
+print(paste0("Nr. of positive spikes app: ", length(posSpikesApp), " (", 
+             format((100*length(posSpikesApp)/(1440*181)), digits=2), "%)"))
 print(paste0("Nr. of negative spikes app: ", sum(resultApp$signals==-1), " (", 
              format((100*sum(resultApp$signals==-1)/(1440*181)), digits=2), "%)"))
 print(paste0("Num. of useful commercials app: ", sum(broadNet$usefulApp), " / ", 
@@ -305,6 +288,7 @@ usefulCommercials = usefulCommercials[order(usefulCommercials$relativePeak, decr
 
 # TODO calculate the number of overlapping commercials in a 5 minute interval
 
-# ===============================================================
-# Find overlapping commercials 
-# ===============================================================
+# TODO what time sloths are commercials broadcast?
+
+# TODO what is the commercial-spike-density if we only look at commercial campaign periods
+# (especially important for BE)
