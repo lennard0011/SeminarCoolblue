@@ -1,4 +1,4 @@
-install_keras()
+#install_keras()
 
 library(keras)
 library(tensorflow)
@@ -22,53 +22,85 @@ visitNet['visitsLag1Min'] = dplyr::lag(visitNet$visitsWebNet, 1)
 visitNet['visitsLag1Hour'] = dplyr::lag(visitNet$visitsWebNet, 60)
 visitNet['visitsLag1Week'] = dplyr::lag(visitNet$visitsWebNet, 60*24*7)
 visitNetDumm = cbind(visitNet, dummy_cols(weekdays(as.Date(visitNet$date)), remove_most_frequent_dummy = TRUE, remove_selected_columns = TRUE))
-#visitsNetDumm = cbind(visitsNetDumm, dummy_cols(months(as.Date(visitNet$date)), remove_most_frequent_dummy = TRUE, remove_selected_columns = TRUE))
 visitNetDumm = cbind(visitNetDumm, dummy_cols(floor(visitNet$time_min / 60), remove_most_frequent_dummy = TRUE, remove_selected_columns = TRUE))
 
 #adding broadcast specific data
-broadInterval = 20
-
+broadInterval = 5
+#aggregate grp and broadAmount over minute_in_year
 broadGRP = aggregate(gross_rating_point ~ minute_in_year, data = broadNet, FUN=sum, simplify = TRUE, drop = TRUE)
 broadAmount = as.data.frame(table(broadNet$minute_in_year))
 names(broadAmount) = cbind("minute_in_year", "broadAmount")
 
-visitNetDummBroad = merge(merge(broadGRP, broadAmount, all = TRUE), visitNetDumm, all = TRUE)
+#make channel dummies
+channeldummys = dummy_cols(broadNet$channel, remove_most_frequent_dummy = TRUE, remove_selected_columns = TRUE)
+#aggregate channels on minute_in_year
+channeldummys2 = aggregate(. ~ broadNet$minute_in_year, data = channeldummys, FUN = sum, simplify = TRUE, drop = TRUE)
+#namechange of minute_in_year
+channeldummys2['minute_in_year'] = channeldummys2['broadNet$minute_in_year']; channeldummys2['broadNet$minute_in_year'] = NULL 
+channeldummys3 = merge(visitNet['minute_in_year'], channeldummys2, all = TRUE)
+channeldummys3[is.na(channeldummys3)] = 0
+channeldummys3$minute_in_year = NULL
+channeldummys4 = rollsum(channeldummys3, k = broadInterval, fill = NA, align = "right")
+channeldummys5 = cbind(visitNet['minute_in_year'], channeldummys4)
 
+
+#merge grp and broadAmount with visitNetDumm 
+visitNetDummBroad = merge(merge(broadGRP, broadAmount, all = TRUE), visitNetDumm, all = TRUE)
+#set missing grp and broadamount to zero
 visitNetDummBroad$broadAmount[is.na(visitNetDummBroad$broadAmount)] = 0
 visitNetDummBroad$gross_rating_point[is.na(visitNetDummBroad$gross_rating_point)] = 0
+#make 20 minute average which is right alligned
+visitNetDummBroad$broadAmount = rollmean(visitNetDummBroad$broadAmount, k = broadInterval, fill = NA, align = "right")
+visitNetDummBroad$gross_rating_point = rollmean(visitNetDummBroad$gross_rating_point, broadInterval, fill = NA, align = "right")
 
-visitNetDummBroad$broadAmount = rollmean(visitNetDummBroad$broadAmount, broadInterval, fill = NA)
-visitNetDummBroad$gross_rating_point = rollmean(visitNetDummBroad$gross_rating_point, broadInterval, fill = NA)
+visitNetDummBroad = merge(visitNetDummBroad, channeldummys5, all=TRUE)
 
 visitNetDummBroad = na.omit(visitNetDummBroad)
+visitNetDummBroad['time_min'] = NULL; visitNetDummBroad['date'] = NULL
 
-View(visitNetDummBroad)
+names(visitNetDummBroad)
 
 rm(broadGRP)
 rm(broadAmount)
 
 # Make train and testset. Testset is last month.
 visitTrain = visitNetDummBroad[visitNetDummBroad$minute_in_year <= 217440,]
-visitTest = visitNetDummBroad[visitNetDummBroad$minute_in_year > 217440,]
-
-# Quick prediction error for randomwalk estimator. 
-randomWalkEstimate = mean(visitTrain$visitsWebNet)
-mean((visitTest$visitsWebNet - randomWalkEstimate)^2)
+visitVal = visitNetDummBroad[visitNetDummBroad$minute_in_year > 217440,]
 
 # Neural network
-model <- keras_model_sequential()
+model <- keras_model_sequential() 
 model %>%
-  layer_dense(units = 3, activation = 'relu', input_shape = ncol(visitsNetDumm))%>%
+  layer_dense(units = 3, activation = 'relu', input_shape = c(63))%>%
+  layer_dense(units = 3, activation = 'relu')%>%
   layer_dense(units = 1, activation = 'linear')
+
+summary(model)
+
 model %>% compile(
-  optimizer = "adam",
+  optimizer = optimizer_rmsprop(),
   loss = 'mean_squared_error'
 )
 
-xTrain = cbind(dplyr::lag(visitTrain$visitsWebNet, 1), visitTrain$time_min)
-yTrain = visitTrain$visitsWebNet
 
-xVal = 
-yVal = 
+xTrain = as.matrix(subset(visitTrain, select = -c(visitsWebNet)))
+yTrain = as.vector(visitTrain$visitsWebNet)
 
-history <- model %>% fit(x, y, epochs = 4)
+xVal = as.matrix(subset(visitVal, select = -c(visitsWebNet)))
+yVal = as.vector(visitVal$visitsWebNet)
+
+history <- model %>% fit(
+  xTrain, 
+  yTrain, 
+  epochs = 10
+)
+
+plot(history)
+
+predictionsxVal = predict(model, xVal)
+mean((yVal - predictionsxVal)^2)
+
+# Quick prediction error for randomwalk estimator. The neural network should be able to bea this... or there would be overfitting
+randomWalkEstimate = mean(visitTrain$visitsWebNet)
+mean((yVal - randomWalkEstimate)^2) 
+
+
