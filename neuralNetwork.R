@@ -17,7 +17,6 @@ dayCom = yday(broadNet$date)
 dayTime = broadNet$time_min
 broadNet$minute_in_year = ((dayCom-1)*1440)+dayTime+1
 
-
 # time specific feature adding
 visitNet['visitsLag1Min'] = dplyr::lag(visitNet$visitsWebNet, 1)
 visitNet['visitsLag1Hour'] = dplyr::lag(visitNet$visitsWebNet, 60)
@@ -28,27 +27,29 @@ visitNetDumm = cbind(visitNetDumm, dummy_cols(floor(visitNet$time_min / 60), rem
 
 #adding broadcast specific data
 broadInterval = 20
-visitNetDumm['broadAmount'] = 0
-for (i in broadInterval:nrow(broadNet)) {
-  visitTime = broadNet$minute_in_year[i] 
-  visitNetDumm$broadAmount[(visitTime-broadInterval):visitTime] = visitNetDumm$broadAmount[(visitTime-broadInterval):visitTime] + 1 
-}
 
-sapply(visitNetDumm$minute_in_year, )
+broadGRP = aggregate(gross_rating_point ~ minute_in_year, data = broadNet, FUN=sum, simplify = TRUE, drop = TRUE)
+broadAmount = as.data.frame(table(broadNet$minute_in_year))
+names(broadAmount) = cbind("minute_in_year", "broadAmount")
 
-broadCastCounter = 
+visitNetDummBroad = merge(merge(broadGRP, broadAmount, all = TRUE), visitNetDumm, all = TRUE)
 
+visitNetDummBroad$broadAmount[is.na(visitNetDummBroad$broadAmount)] = 0
+visitNetDummBroad$gross_rating_point[is.na(visitNetDummBroad$gross_rating_point)] = 0
 
-visitNet['broadAmount'] = 
-visitNet['broadGPR'] = 
+visitNetDummBroad$broadAmount = rollmean(visitNetDummBroad$broadAmount, broadInterval, fill = NA)
+visitNetDummBroad$gross_rating_point = rollmean(visitNetDummBroad$gross_rating_point, broadInterval, fill = NA)
 
-#Take out rows with missing values.
-visitNetDumm = na.omit(visitNetDumm)
+visitNetDummBroad = na.omit(visitNetDummBroad)
+
+View(visitNetDummBroad)
+
+rm(broadGRP)
+rm(broadAmount)
 
 # Make train and testset. Testset is last month.
-sampleSplit = sample.split(visitNet$date, SplitRatio = 0.8)
-visitTrain = visitNet[visitNet$minute_in_year <= 217440,]
-visitTest = visitNet[visitNet$minute_in_year > 217440,]
+visitTrain = visitNetDummBroad[visitNetDummBroad$minute_in_year <= 217440,]
+visitTest = visitNetDummBroad[visitNetDummBroad$minute_in_year > 217440,]
 
 # Quick prediction error for randomwalk estimator. 
 randomWalkEstimate = mean(visitTrain$visitsWebNet)
@@ -70,4 +71,4 @@ yTrain = visitTrain$visitsWebNet
 xVal = 
 yVal = 
 
-history <- model %>% fit(x, y, validation_split = 0.2, epochs = 4)
+history <- model %>% fit(x, y, epochs = 4)
