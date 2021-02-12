@@ -135,6 +135,7 @@ for (i in posSpikesBel) { # TODO make more efficient
 # Calculate number of false spikes (before double commercial correction)
 numFalseSpikesBel = length(posSpikesBel) - sum(broadBel$usefulWeb)
 
+print(paste0("Number of explained peaks web: ", sum(broadBel$usefulWeb)))
 # Correct for double commercials on the same minute
 for (i in 1:(nrow(broadBel)-1)) {
   # if commercial is useful and the next commercial has the same minute_in_year
@@ -153,7 +154,13 @@ print(paste0("Num. of useful commercials web: ", sum(broadBel$usefulWeb), " / ",
 print(paste0("Num of false spikes web: ", numFalseSpikesBel, " / ", length(posSpikesBel), 
              " (", format((numFalseSpikesBel/length(posSpikesBel))*100, digits=3), "%)"))
 
-# TODO: what is the percentage within the add period?
+# Only look at commercials in commercial period
+posSpikesInCampaignPeriod <- as.double(ceiling(posSpikesBel/1440))
+uniqueDatesBelDay <- as.double(sort(yday(uniqueDatesBel)))
+setDifference <- posSpikesInCampaignPeriod[!posSpikesInCampaignPeriod %in% uniqueDatesBelDay]
+print(paste0("Num. of peaks in commercial period: ", (length(posSpikesBel)-length(setDifference))))
+rm(posSpikesInCampaignPeriod); rm(uniqueDatesBelDay)
+
 
 ### ===============================================================
 ###       RUN IF YOU WANT THE SAME ANALYSIS VOOR APP DATA
@@ -164,6 +171,15 @@ yAppBel = as.numeric(visitorsSum$visitsAppBel) # apply on concatenated data
 
 # Run algorithm 
 resultAppBel = ThresholdingAlgo(yAppBel,lag,threshold,influence)
+
+# Plot result
+#par(mfrow = c(2,1),oma = c(2,2,0,0)+0.1, mar = c(0,0,2,1)+0.2)
+#plot(1:length(y),y,type="l",ylab="Visit density",xlab="Time (minutes)")
+#lines(1:length(y),resultAppBel$avgFilter,type="l",col="cyan",lwd=1.5)
+#lines(1:length(y),resultAppBel$avgFilter+threshold*result$stdFilter,type="l",col="green",lwd=1.8)
+#lines(1:length(y),resultAppBel$avgFilter-threshold*result$stdFilter,type="l",col="green",lwd=1.8)
+#plot(resultAppBel$signals,type="S",col="red",ylab="",xlab="",ylim=c(-1.5,1.5),lwd=2)
+#sum(resultAppBel$signals==1)
 
 # Create indicator for commercials on the large line
 commercialIndicatorAppBel = matrix(0, nrow = 1440*181)
@@ -212,7 +228,6 @@ for (i in posSpikesAppBel) { # TODO make more efficient
     broadBel$usefulApp[ind] = 1
   }
 }
-
 
 # Calculate number of false spikes (before double commercial correction)
 numFalseSpikesAppBel = length(posSpikesAppBel) - sum(broadBel$usefulApp)
@@ -274,10 +289,6 @@ for (i in 1:nrow(usefulCommercialsBel)) {
   usefulCommercialsBel$timeTilPeak[i] = match(max(afterTraf), afterTraf)
 }
 usefulCommercialsBel = usefulCommercialsBel[order(usefulCommercialsBel$relativePeak, decreasing=T),]
-
-# TODO calculate the number of overlapping commercials in a 5 minute interval
-
-# TODO what time sloths are commercials broadcast?
 
 # TODO what is the commercial-spike-density if we only look at commercial campaign periods
 # (especially important for BE)

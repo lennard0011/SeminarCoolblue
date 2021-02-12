@@ -145,6 +145,7 @@ for (i in posSpikes) { # TODO make more efficient
 # Calculate number of false spikes (before double commercial correction)
 numFalseSpikes = length(posSpikes) - sum(broadNet$usefulWeb)
 
+print(paste0("Number of explained peaks web: ", sum(broadNet$usefulWeb)))
 # Correct for double commercials on the same minute
 for (i in 1:(nrow(broadNet)-1)) {
   # if commercial is useful and the next commercial has the same minute_in_year
@@ -162,7 +163,13 @@ print(paste0("Num. of useful commercials web: ", sum(broadNet$usefulWeb), " / ",
              nrow(broadNet), " (", format((sum(broadNet$usefulWeb)/nrow(broadNet))*100, digits=2), "%)"))
 print(paste0("Num of false spikes web: ", numFalseSpikes, " / ", length(posSpikes), 
              " (", format((numFalseSpikes/length(posSpikes))*100, digits=3), "%)"))
-#print(paste0("Percentage of positive spikes within commercial periods:", ...))
+
+# Only look at commercials in commercial period
+posSpikesInCampaignPeriod <- as.double(ceiling(posSpikes/1440))
+uniqueDatesNetDay <- as.double(sort(yday(uniqueDatesNet)))
+setDifference <- posSpikesInCampaignPeriod[!posSpikesInCampaignPeriod %in% uniqueDatesNetDay]
+print(paste0("Num. of peaks in commercial period: ", (length(posSpikes)-length(setDifference))))
+rm(posSpikesInCampaignPeriod); rm(uniqueDatesNetDay)
 
 ### ===============================================================
 ###       RUN IF YOU WANT THE SAME ANALYSIS VOOR APP DATA
@@ -226,6 +233,7 @@ for (i in posSpikesApp) { # TODO make more efficient
 # Calculate number of false spikes (before double commercial correction)
 numFalseSpikesApp = length(posSpikesApp) - sum(broadNet$usefulApp)
 
+print(paste0("Number of explained peaks app: ", sum(broadNet$usefulApp)))
 # Correct for double commercials on the same minute
 for (i in 1:(nrow(broadNet)-1)) {
   # if commercial is useful and the next commercial has the same minute_in_year
@@ -267,8 +275,10 @@ sort(summary(as.factor(usefulCommercials$position_in_break_3option)))
 sort(summary(as.factor(usefulCommercials$length_of_spot)))
 sort(summary(usefulCommercials$gross_rating_point))
 summary(broadNet$gross_rating_point)
-#quantile(broadNet$gross_rating_point, probs=seq(0,1,0.01))
+sd(broadNet$gross_rating_point)
+quantile(broadNet$gross_rating_point, probs=seq(0,1,0.01))
 sort(summary(as.factor(usefulCommercials$weekdays)))
+summary(usefulCommercials$hours)
 
 # Calculate the biggest relative increase after broadcast time
 # max i+1, i+2, i+3, i+4, i+5 (can also be i-1 vs. i, i+1, ...)
@@ -286,9 +296,7 @@ for (i in 1:nrow(usefulCommercials)) {
 }
 usefulCommercials = usefulCommercials[order(usefulCommercials$relativePeak, decreasing=T),]
 
-# TODO calculate the number of overlapping commercials in a 5 minute interval
-
-# TODO what time sloths are commercials broadcast?
+sum(usefulCommercials$timeTilPeak == 5)
 
 # TODO what is the commercial-spike-density if we only look at commercial campaign periods
 # (especially important for BE)
