@@ -16,6 +16,7 @@ visitNet$minute_in_year = ((dayCom-1)*1440)+dayTime+1
 dayCom = yday(broadNet$date)
 dayTime = broadNet$time_min
 broadNet$minute_in_year = ((dayCom-1)*1440)+dayTime+1
+broadNet$date = NULL
 
 # time specific feature adding
 visitNet['visitsLag1Min'] = dplyr::lag(visitNet$visitsWebNet, 1)
@@ -64,43 +65,58 @@ rm(broadGRP)
 rm(broadAmount)
 
 # Make train and testset. Testset is last month.
-visitTrain = visitNetDummBroad[visitNetDummBroad$minute_in_year <= 217440,]
-visitVal = visitNetDummBroad[visitNetDummBroad$minute_in_year > 217440,]
+visitNetDummBroad = visitNetDumm
+scaledvisitNetDummBroad = scale(visitNetDummBroad)
+
+visitTrain = scaledvisitNetDummBroad[visitNetDummBroad$minute_in_year <= 217440,]
+visitVal = scaledvisitNetDummBroad[visitNetDummBroad$minute_in_year > 217440,]
 
 # Neural network
 model <- keras_model_sequential() 
 model %>%
-  layer_dense(units = 3, activation = 'relu', input_shape = c(63))%>%
-  layer_dense(units = 3, activation = 'relu')%>%
-  layer_dense(units = 1, activation = 'linear')
+  layer_dense(units = 1, activation = 'linear', input_shape = c(ncol(visitTrain)-1))%>%
+  #layer_dense(units = 20, activation = 'relu', input_shape = c(63))%>%
+  #layer_dropout(rate = 0.5) %>%
+  #layer_dense(units = 20, activation = 'relu')%>%
+  #layer_dropout(rate = 0.5) %>%
+  #layer_dense(units = 1, activation = 'linear')
 
 summary(model)
 
 model %>% compile(
-  optimizer = optimizer_rmsprop(),
+  optimizer = 'adam',
   loss = 'mean_squared_error'
 )
 
 
 xTrain = as.matrix(subset(visitTrain, select = -c(visitsWebNet)))
-yTrain = as.vector(visitTrain$visitsWebNet)
+yTrain = as.matrix(subset(visitTrain, select = c(visitsWebNet)))
 
 xVal = as.matrix(subset(visitVal, select = -c(visitsWebNet)))
-yVal = as.vector(visitVal$visitsWebNet)
+yVal = as.matrix(subset(visitVal, select = c(visitsWebNet)))
 
 history <- model %>% fit(
   xTrain, 
   yTrain, 
-  epochs = 10
+  epochs = 8
 )
 
 plot(history)
 
 predictionsxVal = predict(model, xVal)
 mean((yVal - predictionsxVal)^2)
+plot(yVal, type = "l")
+lines(predictionsxVal)
 
-# Quick prediction error for randomwalk estimator. The neural network should be able to bea this... or there would be overfitting
+
+# Quick prediction error for randomwalk estimator. The neural network should be able to beat this... or there would be overfitting
 randomWalkEstimate = mean(visitTrain$visitsWebNet)
 mean((yVal - randomWalkEstimate)^2) 
 
+linearModel = lm(yTrain ~ as.data.frame(xTrain))
+summary(linearModel)
+predictionsxVal = predict(linearModel, as.data.frame(xVal))
+mean((yVal - predictionsxVal)^2)
+plot(yVal, type = "l")
+lines(predictionsxVal)
 
