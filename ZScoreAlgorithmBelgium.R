@@ -289,6 +289,7 @@ for (i in 1:nrow(usefulCommercialsBel)) {
   usefulCommercialsBel$timeTilPeak[i] = match(max(afterTraf), afterTraf)
 }
 usefulCommercialsBel = usefulCommercialsBel[order(usefulCommercialsBel$relativePeak, decreasing=T),]
+row.names(usefulCommercialsBel) <- NULL # resets rownrs
 
 # TODO what is the commercial-spike-density if we only look at commercial campaign periods
 # (especially important for BE)
