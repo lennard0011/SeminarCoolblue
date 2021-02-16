@@ -77,9 +77,73 @@ axis(side =1, at=c(ceiling(0+(31-0)/2), ceiling(31+(59-31)/2), ceiling(59+(90-59
      labels= c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'), tick = FALSE)
 
 
+## Barplot of total Broadcasts, per hour [Marjolein]
+avBroadDayNet = matrix(0, 25)
+for (i in 1:24){
+  totBroadDayNetSubset = subset(broadNet, (time_min >= (i - 1) * 60) & (time_min < i * 60))
+  avBroadDayNet[i] = nrow(totBroadDayNetSubset)
+}
+avBroadDayBel = matrix(0, 25)
+for (i in 1:24){
+  totBroadDayBelSubset = subset(broadBel, (time_min >= (i - 1) * 60) & (time_min < i * 60))
+  avBroadDayBel[i] = nrow(totBroadDayBelSubset)
+}
+
+cat_net = rep("Netherlands", 25)
+cat_bel = rep("Belgium", 25)
+categories = c(cat_net, cat_bel)
+hours = c("00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00", "24:00")
+value = c(avBroadDayNet, avBroadDayBel)
+data = data.frame(categories, hours, value)
+hourly_traffic = ggplot(data, aes(fill=categories, y=value, x=hours)) + scale_fill_grey(start = 0.7, end = 0.4)  +  geom_bar(position="dodge", stat="identity")
+print(hourly_traffic + 
+        labs(fill = "Countries", title = "Total amount of broadcasts per hour", y = "Total amount of broadcasts", x = "Hour of the day")) + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(axis.title.x = element_text(vjust = -0.5)) + 
+  theme(axis.ticks = element_blank()) + 
+  theme(axis.text.x = element_text(color=c("black","transparent","transparent","transparent", "transparent","transparent", "black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent", "black"))) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"))
+
+
+# Data for plot average of hour over the days
+# calculate average for different searches -- Netherlands - website
+avTrafficDayNetWebsite = matrix(0, 25)
+maxHourVisitors = 0
+for (i in 1:24){
+  print(i)
+  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))
+  hourVisitors = matrix(NA, amountDays)
+  for (j in 1:amountDays){
+    dateJ = as.Date(j - 1, origin = "2019-01-01")
+    hourVisitors[j] = sum(visitorsSumSubset[visitorsSumSubset$date == dateJ,]$visitsWebNet)
+    if (hourVisitors[j] > maxHourVisitors){
+      maxHourVisitors = hourVisitors[j]
+    }
+  }
+  avTrafficDayNetWebsite[i] = mean(hourVisitors)
+}
+avTrafficDayNetWebsite = avTrafficDayNetWebsite/maxHourVisitors
+
+# calculate average for different searches -- Belgium - website
+avTrafficDayBelWebsite = matrix(0, 25)
+maxHourVisitors = 0
+for (i in 1:24){
+  print(i)
+  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))
+  hourVisitors = matrix(NA, amountDays)
+  for (j in 1:amountDays){
+    dateJ = as.Date(j - 1, origin = "2019-01-01")
+    hourVisitors[j] = sum(visitorsSumSubset[visitorsSumSubset$date == dateJ,]$visitsWebBel)
+    if (hourVisitors[j] > maxHourVisitors){
+      maxHourVisitors = hourVisitors[j]
+    }
+  }
+  avTrafficDayBelWebsite[i] = mean(hourVisitors)
+}
+avTrafficDayBelWebsite = avTrafficDayBelWebsite/maxHourVisitors
+
 # we moeten nog steeds bepalen of het zin heeft om dit te laten zien -- interpretatie is vaag
 ## Barplot of total Website traffic, per hour [Marjolein]
-hours = c("00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00")
 value = c(avTrafficDayNetWebsite, avTrafficDayBelWebsite)
 data = data.frame(categories, hours, value)
 hourlyTraffic = ggplot(data, aes(fill=categories, y=value, x=hours)) + scale_fill_grey(start = 0.7, end = 0.4)  +  geom_bar(position="dodge", stat="identity")
@@ -88,7 +152,7 @@ print(hourlyTraffic +
   theme(plot.title = element_text(hjust = 0.5)) +
   theme(axis.title.x = element_text(vjust = -0.5)) + 
   theme(axis.ticks = element_blank()) + 
-  theme(axis.text.x = element_text(color=c("black","transparent","transparent","transparent", "transparent","transparent", "black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent"))) +
+  theme(axis.text.x = element_text(color=c("black","transparent","transparent","transparent", "transparent","transparent", "black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent", "black"))) +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"))
 
 
@@ -98,22 +162,6 @@ data = data.frame(categories, hours, value)
 hourly_traffic = ggplot(data, aes(fill=categories, y=value, x=hours)) + scale_fill_grey(start = 0.7, end = 0.4)  +  geom_bar(position="dodge", stat="identity")
 print(hourly_traffic + 
         labs(fill = "Countries", title = "Average amount of app visitors per hour", y = "Average amount of app visitors", x = "Hour of the day")) + 
-  theme(plot.title = element_text(hjust = 0.5)) +
-  theme(axis.title.x = element_text(vjust = -0.5)) + 
-  theme(axis.ticks = element_blank()) + 
-  theme(axis.text.x = element_text(color=c("black","transparent","transparent","transparent", "transparent","transparent", "black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent"))) +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"))
-
-
-## Barplot of total Broadcasts, per hour [Marjolein]
-cat_net = rep("Netherlands", 24)
-cat_bel = rep("Belgium", 24)
-categories = c(cat_net, cat_bel)
-value = c(av_broad_day_net, av_broad_day_bel)
-data = data.frame(categories, hours, value)
-hourly_traffic = ggplot(data, aes(fill=categories, y=value, x=hours)) + scale_fill_grey(start = 0.7, end = 0.4)  +  geom_bar(position="dodge", stat="identity")
-print(hourly_traffic + 
-        labs(fill = "Countries", title = "Average amount of broadcasts per hour", y = "Average amount of broadcasts", x = "Hour of the day")) + 
   theme(plot.title = element_text(hjust = 0.5)) +
   theme(axis.title.x = element_text(vjust = -0.5)) + 
   theme(axis.ticks = element_blank()) + 
