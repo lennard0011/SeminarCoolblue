@@ -142,13 +142,12 @@ for (i in 1:24){
 }
 avTrafficDayBelWebsite = avTrafficDayBelWebsite/maxHourVisitors
 
-# we moeten nog steeds bepalen of het zin heeft om dit te laten zien -- interpretatie is vaag
 ## Barplot of total Website traffic, per hour [Marjolein]
 value = c(avTrafficDayNetWebsite, avTrafficDayBelWebsite)
 data = data.frame(categories, hours, value)
 hourlyTraffic = ggplot(data, aes(fill=categories, y=value, x=hours)) + scale_fill_grey(start = 0.7, end = 0.4)  +  geom_bar(position="dodge", stat="identity")
 print(hourlyTraffic + 
-        labs(fill = "Countries", title = "Average amount of website visitors per hour", y = "Average amount of website visitors", x = "Hour of the day")) + 
+        labs(fill = "Countries", title = "Average visit density per hour", y = "Average visit density", x = "Hour of the day")) + 
   theme(plot.title = element_text(hjust = 0.5)) +
   theme(axis.title.x = element_text(vjust = -0.5)) + 
   theme(axis.ticks = element_blank()) + 
