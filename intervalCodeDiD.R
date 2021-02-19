@@ -194,3 +194,59 @@ mean(avFullTrainError)
 mean(avFullTestError)
 
 
+## ========================================================
+##            Parallel trends assumption
+## ========================================================
+
+# test parallel trends -- website
+set.seed(21)
+minutes = 20
+trendsMatrix = matrix(NA, nrow(broadNet1), minutes)
+for (i in 1:nrow(broadNet1)){
+  print(i)
+  date = broadNet1$date[i]
+  daysNet = which(as.character(visWebNet$date) == date)
+  daysBel = which(as.character(visWebBel$date) == date)
+  datetime = broadNet1$date_time[i]
+  datetime = as.POSIXct(datetime)
+  twentyEarlier = datetime - 20 * 60
+  for (j in 1:minutes){
+    minute = twentyEarlier + (j - 1) * 60
+    minuteSub = substr(minute, 12, 19)
+    if (minuteSub == ""){
+      minuteSub = "00:00:00"
+    }
+    timeMin = 60 * 24 * as.numeric(times(minuteSub))
+    visitIndexNet = sum(visWebNet$visits_index[daysNet[visWebNet$time_min[daysNet] == timeMin]])
+    visitIndexBel = sum(visWebBel$visits_index[daysBel[visWebBel$time_min[daysBel] == timeMin]])
+    trendsMatrix[i, j] = visitIndexNet - visitIndexBel
+  }
+}
+
+peakMatrix = matrix(0, nrow(broadNet1), minutes)
+for (i in 1:nrow(broadNet1)){
+  sdPeak = sd(trendsMatrix[i, ])
+  meanPeak = mean(trendsMatrix[i, ])
+  for (j in 1:minutes){
+    # if (meanPeak - 2 * sdPeak <= trendsMatrix[i, j] & trendsMatrix[i, j] <= meanPeak + 2 * sdPeak){
+    #   peakMatrix[i, j] = 1
+    # }
+    if (meanPeak - 0.1 <= trendsMatrix[i, j] & trendsMatrix[i, j] <= meanPeak + 0.1){
+      peakMatrix[i, j] = 1
+    }
+  }
+}
+
+nTotal = nrow(peakMatrix) * ncol(peakMatrix)
+withinTwo = sum(peakMatrix)/nTotal
+
+max = which(as.character(broadNet1$gross_rating_point) == max(broadNet1$gross_rating_point))
+sdPeak = sd(trendsMatrix[max, ])
+meanPeak = mean(trendsMatrix[max, ])
+df = data.frame(x = 1:20, F = trendsMatrix[max, ], L = meanPeak - 0.1, U = meanPeak + 0.1)
+plot(df$x, df$F, ylim = c(0, 0.4), type = "l", main = "Common trends assumption", xlab = "Minute", ylab = "Difference")
+lines(df$x, df$F, lwd = 2)
+#add red lines to plot
+lines(df$x, df$U, col="red",lty=2)
+lines(df$x, df$L, col="red",lty=2)
+## ========================================================

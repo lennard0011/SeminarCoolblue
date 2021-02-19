@@ -63,7 +63,6 @@ for (i in 1:amountDays){
   sumVisitIndexNet[i] = sum(trafficSubset$visits_index)
 }
 visWebNet = subset(visWebNet, select = -yday)
-for (i in 1:amountDays){}
 
 # sum of visit_index -- Bel
 visWebBel$yday = yday(visWebBel$date)
@@ -112,6 +111,33 @@ maxFun(56)
 maxFun(57)
 maxFun(69)
 maxFun(70)
+
+# 211-407
+# website
+# televisions
+data = zoo(cbind(sumVisitIndexNet, sumVisitIndexBel, interestVectorMed[, 2], interestVectorBCC[, 2]), c(1:181))
+set.seed(11)
+commercialBegin = as.Date(42 - 1, origin = "2019-01-01")
+commercialEnd = as.Date(97 - 1, origin = "2019-01-01")
+yday_commercialBegin = yday(commercialBegin)
+pre.period = c("2019-02-01", "2019-02-10") #1-29--2-10
+yday_pre.period = yday(pre.period)
+post.period = c(commercialBegin, commercialEnd)
+yday_post.period = yday(post.period)
+
+# seasonality test
+seasTest = wo(sumVisitIndexNet[yday_post.period[1]:yday_post.period[2]], freq = 7)
+summary(seasTest)  # seasonality identified
+
+# trend test
+trendTest = trend.test(sumVisitIndexNet[yday_post.period[1]:yday_post.period[2]]) 
+trendTest # trend not identified
+
+entireImpact1.1 = CausalImpact(data, yday_pre.period, yday_post.period, alpha = 0.01, model.args = list(niter = 10000, nseasons = 7))
+plot(entireImpact1.1)
+entireImpact1.1$summary
+entireImpact1.1$report
+plot(entireImpact1.1$model$bsts.model, "coef", inc = .1)
 
 # bsts for entire time periods
 # 211-224
