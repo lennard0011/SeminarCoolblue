@@ -202,17 +202,17 @@ for (i in 1:folds){
   
   # Baseline model
   baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + hours + weekdays_dinsdag + weekdays_donderdag + weekdays_maandag +weekdays_vrijdag + weekdays_woensdag + weekdays_zondag, data = broadTrain)
-  #getModelSumm(baselineModel, TRUE)
+  # getModelSumm(baselineModel, TRUE)
   avBaseTrainError[i] = rmse(broadTrain$postVisitorsWeb, predict(baselineModel, broadTrain))
   avBaseTestError[i] = rmse(broadTest$postVisitorsWeb, predict(baselineModel, broadTest))
   
   # Treatment effects only models
-  #treatmentOnlyModel = lm(postVisitors ~ .-preVisitors, data = broadTrain)
-  #rmse(broadTest$postVisitors, predict(treatmentOnlyModel, broadTest))
+  # treatmentOnlyModel = lm(postVisitors ~ .-preVisitors, data = broadTrain)
+  # rmse(broadTest$postVisitors, predict(treatmentOnlyModel, broadTest))
   
   # Full treatment model
   fullModel = lm(postVisitorsWeb ~ preVisitorsWeb + ., data = broadTrain)
-  #getModelSumm(fullModel, FALSE)
+  # getModelSumm(fullModel, FALSE)
   avFullTrainError[i] = rmse(broadTrain$postVisitorsWeb, predict(fullModel, broadTrain))
   avFullTestError[i] = rmse(broadTest$postVisitorsWeb, predict(fullModel, broadTest))
 }
@@ -281,5 +281,3 @@ mean(avBaseTrainError)
 mean(avBaseTestError)
 mean(avFullTrainError)
 mean(avFullTestError)
-
-
