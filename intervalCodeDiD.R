@@ -80,48 +80,6 @@ for (i in 1:nrow(broadNet1)) {
 }
 
 ## ========================================================
-##            Parallel trends assumption
-## ========================================================
-
-# test parallel trends -- website
-set.seed(21)
-minutes = 20
-broadNetRelevant = subset(broadNet1, broadNet1$gross_rating_point > 0.5)
-trendsMatrix = matrix(NA, nrow(broadNetRelevant), minutes)
-for (i in 1:nrow(broadNetRelevant)){
-  print(i)
-  date = broadNet$date[i]
-  daysNet = which(as.character(visWebNet$date) == date)
-  daysBel = which(as.character(visWebBel$date) == date)
-  datetime = broadNet$date_time[i]
-  datetime = as.POSIXct(datetime)
-  oneEarlier = datetime - 60 * 60
-  for (j in 0:(minutes - 1)){
-    minute = oneEarlier + j * 60
-    minuteSub = substr(minute, 12, 19)
-    if (minuteSub == ""){
-      minuteSub = "00:00:00"
-    }
-    timeMin = 60 * 24 * as.numeric(times(minuteSub))
-    visitIndexNet = sum(visWebNet$visits_index[daysNet[visWebNet$time_min[daysNet] == timeMin]])
-    visitIndexBel = sum(visWebBel$visits_index[daysBel[visWebBel$time_min[daysBel] == timeMin]])
-    trendsMatrix[i, j + 1] = visitIndexNet - visitIndexBel
-  }
-}
-
-peakMatrix = matrix(0, nrow(broadNetRelevant), minutes)
-for (i in 1:nrow(broadNetRelevant)){
-  sdPeak = sd(trendsMatrix[i, ])
-  meanPeak = mean(trendsMatrix[i, ])
-  for (j in 1:minutes){
-    if (meanPeak - 2 * sdPeak <= trendsMatrix[i, j] & trendsMatrix[i, j] <= meanPeak + 2 * sdPeak){
-      peakMatrix[i, j] = 1
-    }
-  }
-}
-sum(peakMatrix)/(nrow(broadNetRelevant) * minutes) * 100
-
-## ========================================================
 ##                    First analysis
 ## ========================================================
 
@@ -136,7 +94,7 @@ print(paste0("Num. WebBel post > pre: ", sum(broadNet1$postVisitorsWebBel>broadN
 biggestAdsNet1 = subset(broadNet1, postVisitorsWebNet-preVisitorsWebNet > 10)
 
 ## ========================================================
-##            REGRESSION MODELS 20-minute model
+##            REGRESSION MODELS 2-minute model
 ## ========================================================
 
 # dummiesDirectModel contains the treatment variables
@@ -188,3 +146,107 @@ fullModelAppNet1 = lm( (broadNet1$postVisitorsAppNet-broadNet1$postVisitorsAppBe
                       factor(broadNet1$hours) + + factor(broadNet1$weekdays) + broadNet1$gross_rating_point + ., data = dummiesDirectModelNet1)
 getModelSumm(fullModelAppNet1, T)
 
+# =============================================================
+#   TEST
+# =============================================================
+
+#Calculate Mean Squared Prediction Error 
+preVisitorsWebNet = broadNet1$preVisitorsWebNet
+postVisitorsWebNet = broadNet1$postVisitorsWebNet
+hours = broadNet1$hours
+weekdays = broadNet1$weekdays
+postVisitorsWebBel = broadNet1$postVisitorsWebBel
+grossRating = broadNet1$gross_rating_point
+minusPreVisitorsWebBel = -1*broadNet1$preVisitorsWebBel
+broadDumm = cbind(postVisitorsWebNet, preVisitorsWebNet, postVisitorsWebBel, hours, minusPreVisitorsWebBel, weekdays, grossRating, dummiesDirectModelNet1)
+
+set.seed(21)
+folds = 100
+avBaseTrainError = vector(length = folds)
+avBaseTestError = vector(length = folds)
+avFullTrainError = vector(length = folds)
+avFullTestError = vector(length = folds)
+for (i in 1:folds){
+  broadTotal = broadDumm
+  
+  sampleSplit = sample.split(broadNet1$postVisitorsWebNet, SplitRatio = 0.8)
+  broadTrain = broadDumm[sampleSplit == TRUE,]
+  broadTest = broadDumm[sampleSplit == FALSE,]
+
+  # Baseline model
+   baselineModelWebNet1 = lm((postVisitorsWebNet - postVisitorsWebBel) ~ preVisitorsWebNet +
+                              minusPreVisitorsWebBel + factor(weekdays) + factor(hours) , data = broadTotal)
+ 
+  avBaseTrainError[i] = rmse((broadTrain$postVisitorsWebNet - broadTrain$postVisitorsWebBel), predict(baselineModelWebNet1, broadTrain))
+  avBaseTestError[i] = rmse((broadTest$postVisitorsWebNet - broadTest$postVisitorsWebBel), predict(baselineModelWebNet1, broadTest))
+  
+ 
+  # Full model
+  fullModel = lm((postVisitorsWebNet - postVisitorsWebBel) ~  ., data = broadTotal)
+
+  avFullTrainError[i] = rmse((broadTrain$postVisitorsWebNet - broadTrain$postVisitorsWebBel), predict(fullModel, broadTrain))
+  avFullTestError[i] = rmse((broadTest$postVisitorsWebNet - broadTest$postVisitorsWebBel), predict(fullModel, broadTest))
+  
+}
+mean(avBaseTrainError)
+mean(avBaseTestError)
+mean(avFullTrainError)
+mean(avFullTestError)
+
+
+## ========================================================
+##            Parallel trends assumption
+## ========================================================
+
+# test parallel trends -- website
+set.seed(21)
+minutes = 20
+trendsMatrix = matrix(NA, nrow(broadNet1), minutes)
+for (i in 1:nrow(broadNet1)){
+  print(i)
+  date = broadNet1$date[i]
+  daysNet = which(as.character(visWebNet$date) == date)
+  daysBel = which(as.character(visWebBel$date) == date)
+  datetime = broadNet1$date_time[i]
+  datetime = as.POSIXct(datetime)
+  twentyEarlier = datetime - 20 * 60
+  for (j in 1:minutes){
+    minute = twentyEarlier + (j - 1) * 60
+    minuteSub = substr(minute, 12, 19)
+    if (minuteSub == ""){
+      minuteSub = "00:00:00"
+    }
+    timeMin = 60 * 24 * as.numeric(times(minuteSub))
+    visitIndexNet = sum(visWebNet$visits_index[daysNet[visWebNet$time_min[daysNet] == timeMin]])
+    visitIndexBel = sum(visWebBel$visits_index[daysBel[visWebBel$time_min[daysBel] == timeMin]])
+    trendsMatrix[i, j] = visitIndexNet - visitIndexBel
+  }
+}
+
+peakMatrix = matrix(0, nrow(broadNet1), minutes)
+for (i in 1:nrow(broadNet1)){
+  sdPeak = sd(trendsMatrix[i, ])
+  meanPeak = mean(trendsMatrix[i, ])
+  for (j in 1:minutes){
+    # if (meanPeak - 2 * sdPeak <= trendsMatrix[i, j] & trendsMatrix[i, j] <= meanPeak + 2 * sdPeak){
+    #   peakMatrix[i, j] = 1
+    # }
+    if (meanPeak - 0.1 <= trendsMatrix[i, j] & trendsMatrix[i, j] <= meanPeak + 0.1){
+      peakMatrix[i, j] = 1
+    }
+  }
+}
+
+nTotal = nrow(peakMatrix) * ncol(peakMatrix)
+withinTwo = sum(peakMatrix)/nTotal
+
+max = which(as.character(broadNet1$gross_rating_point) == max(broadNet1$gross_rating_point))
+sdPeak = sd(trendsMatrix[max, ])
+meanPeak = mean(trendsMatrix[max, ])
+df = data.frame(x = 1:20, F = trendsMatrix[max, ], L = meanPeak - 0.1, U = meanPeak + 0.1)
+plot(df$x, df$F, ylim = c(0, 0.4), type = "l", main = "Common trends assumption", xlab = "Minute", ylab = "Difference")
+lines(df$x, df$F, lwd = 2)
+#add red lines to plot
+lines(df$x, df$U, col="red",lty=2)
+lines(df$x, df$L, col="red",lty=2)
+## ========================================================

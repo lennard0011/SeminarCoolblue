@@ -16,6 +16,7 @@
 #install.packages("gtrendsR")
 #install.packages("seastests")
 #install.packages("pastecs")
+# install.packages("plotrix")
 
 # loading packages
 library("chron")
@@ -37,6 +38,7 @@ library("gtrendsR")
 library("tseries")
 library("seastests")
 library("pastecs")
+library("plotrix")
 
 ## ====================================================
 ##         Loading & subsetting the data
@@ -100,8 +102,9 @@ visWebBel = traffic[traffic$medium == "website" & traffic$country == "Belgium" &
 visAppBel = traffic[traffic$medium == "app" & traffic$country == "Belgium" & traffic$visit_source != "push notification", ]
 
 # aggregate the visit_index per minute
-amountDays = 31 + 28 + 31 + 30 + 31 + 30
-maxPairs = amountDays * 1440
+amountDays = NROW(unique(traffic$date))
+minutesPerDay = 60 * 24
+maxPairs = amountDays * minutesPerDay
 
 # website - Netherlands
 visWebNetSum = aggregate(visits_index ~ date + time_min, data = visWebNet, FUN=sum, simplify = TRUE, drop = TRUE)
