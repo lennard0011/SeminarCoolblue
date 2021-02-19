@@ -192,7 +192,6 @@ uniqueDatesBoth = base::intersect(uniqueDatesBel, uniqueDatesNet) # adverts in b
 uniqueDatesOnlyBel = base::setdiff(uniqueDatesBel, uniqueDatesBoth) # adverts only in Belgium on certain day
 uniqueDatesOnlyNet = base::setdiff(uniqueDatesNet, uniqueDatesBoth) # adverts only in Netherlands on certain day
 
-# TODO: this code doesn't work ATM.
 # Data for plot average of hour over the days
 # calculate average for different searches -- Netherlands - website
 avTrafficDayNetWebsite = matrix(NA, 24)

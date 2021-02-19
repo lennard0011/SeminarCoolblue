@@ -74,20 +74,23 @@ influence = 0.75
 # Choose data
 # !make sure that visitorsSum has length 260640!
 y = as.numeric(visitorsSum$visitsWebNet) # apply on concatenated data
-#y = as.numeric(dayVisits$visitsWebNet)    # only pick one day 
+$y = as.numeric(dayVisits$visitsWebNet)    # only pick one day 
 
 # Run algorithm 
 result = ThresholdingAlgo(y,lag,threshold,influence)
 
 # Plot result
-par(mfrow = c(2,1),oma = c(2,2,0,0)+0.1, mar = c(0,0,2,1)+0.2)
+par(mfrow = c(2,1), oma = c(2,2,0,0)+0.1, mar = c(0,0,2,1)+0.2)
 #plot(1:length(y),y,type="l",xaxt='n', yaxt = 'n', ann=FALSE)
 #abline(v=broad[1,]$time_min, col = 'grey') #only for single day
 #par(new=TRUE)
-plot(1:length(y),y,type="l",ylab="Visit density",xlab="Time (minutes)")
+plot(1:length(y),y,type="l",xaxt='n', ylab="Visit density",xlab="Time (minutes)")
+#axis(side =1, at=c(1,61,121,181,241,301,361,421,481,541,601,661,721,781,841,901,961,1021,
+                   1081,1141,1201,1261,1321,1381,1441), labels= 0:24)
 lines(1:length(y),result$avgFilter,type="l",col="cyan",lwd=1.5)
 lines(1:length(y),result$avgFilter+threshold*result$stdFilter,type="l",col="green",lwd=1.8)
 lines(1:length(y),result$avgFilter-threshold*result$stdFilter,type="l",col="green",lwd=1.8)
+
 plot(result$signals,type="S",col="red",ylab="",xlab="",ylim=c(-1.5,1.5),lwd=2)
 sum(result$signals==1)
 
@@ -298,5 +301,4 @@ usefulCommercials = usefulCommercials[order(usefulCommercials$relativePeak, decr
 row.names(usefulCommercials) <- NULL # resets rownrs
 sum(usefulCommercials$timeTilPeak == 1)
 
-# TODO what is the commercial-spike-density if we only look at commercial campaign periods
-# (especially important for BE)
+usefulCommercials <- cbind(usefulCommercials, 1:109)

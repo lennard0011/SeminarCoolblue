@@ -56,7 +56,7 @@ ThresholdingAlgo = function(y, lag, threshold, influence) {
 
 # Tuning variables
 lag = 20
-threshold = 6
+threshold = 4
 influence = 0.75
 
 # Settings from progress report: lag=30, threshold=6, influence=0.8
@@ -289,7 +289,3 @@ for (i in 1:nrow(usefulCommercialsBel)) {
   usefulCommercialsBel$timeTilPeak[i] = match(max(afterTraf), afterTraf)
 }
 usefulCommercialsBel = usefulCommercialsBel[order(usefulCommercialsBel$relativePeak, decreasing=T),]
-row.names(usefulCommercialsBel) <- NULL # resets rownrs
-
-# TODO what is the commercial-spike-density if we only look at commercial campaign periods
-# (especially important for BE)
