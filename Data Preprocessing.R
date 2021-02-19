@@ -355,7 +355,7 @@ broadBel = broadBel[order(broadBel$date_time),]
 broad$overlapBefore = 0
 broad$overlapAfter = 0
 for (i in 1:nrow(broad)){
-  # en wat bij middernacht?
+  # en wat bij middernacht? 
   if (broad$country[i] == 'Netherlands'){
     iNet = iNet + 1
     #print(i)
@@ -381,7 +381,7 @@ for (i in 1:nrow(broad)){
     #print(i)
     datetime = broad$date_time[i]
     datetime = as.POSIXct(datetime)
-    timeErlier = datetime - intervalSize * 60
+    timeEarlier = datetime - intervalSize * 60
     timeLater = datetime + intervalSize * 60
     # Interval before
     if (iBel > 1){
@@ -400,6 +400,8 @@ for (i in 1:nrow(broad)){
 broad = broad[order(as.numeric(row.names(broad))),]
 broadNet = broadNet[order(as.numeric(row.names(broadNet))),]
 broadBel = broadBel[order(as.numeric(row.names(broadBel))),]
+broadNet = subset(broad, country == 'Netherlands')
+broadBel = subset(broad, country == 'Belgium')
 
 ## =================================================
 ##   Create matrices with dummies (direct effects)

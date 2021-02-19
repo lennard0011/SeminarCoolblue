@@ -155,7 +155,7 @@ getModelSumm <- function(model, coef) {
 
 # Baseline models
 baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours) + weekdays, data = broadNet)
-getModelSumm(baselineModel, TRUE)
+getModelSumm(baselineModel, T)
 
 # Full model 
 fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(broadNet$hours) + broadNet$gross_rating_point + ., data = dummiesDirectModel)
@@ -163,7 +163,7 @@ getModelSumm(fullModel, T)
 
 # Baseline models -- BE WEB
 baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours) + weekdays, data = broadBel)
-getModelSumm(baselineModel, TRUE)
+getModelSumm(baselineModel, T)
 
 # Full model -- BE WEB
 fullModel = lm(broadBel$postVisitorsWeb ~ broadBel$preVisitorsWeb + factor(broadBel$hours) + broadBel$gross_rating_point +., data = dummiesDirectModelBel)

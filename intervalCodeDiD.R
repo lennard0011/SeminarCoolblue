@@ -91,7 +91,7 @@ for (i in 1:nrow(broadNet1)) {
 print(paste0("Num. WebNet post > pre: ", sum(broadNet1$postVisitorsWebNet>broadNet1$preVisitorsWebNet)))
 print(paste0("Num. WebBel post > pre: ", sum(broadNet1$postVisitorsWebBel>broadNet1$preVisitorsWebBel)))
 
-biggestAdsNet1 = subset(broadNet1, postVisitorsWebNet-preVisitorsWebNet > 10)
+biggestAdsNet1 = subset(broadNet1, postVisitorsWebNet - preVisitorsWebNet > 10)
 
 ## ========================================================
 ##            REGRESSION MODELS 2-minute model
@@ -117,33 +117,33 @@ getModelSumm <- function(model, coef) {
 }
 
 # Baseline model
-#web
+# web
 broadNet1['minusPreVisitorsWebBel'] = -1*broadNet1$preVisitorsWebBel
 baselineModelWebNet1 = lm( (postVisitorsWebNet-postVisitorsWebBel) ~ preVisitorsWebNet +
                           minusPreVisitorsWebBel + factor(hours) + factor(weekdays), data = broadNet1)
 getModelSumm(baselineModelWebNet1, T)
 
 # Full model
-#web
+# web
 broadNet1['minusPreVisitorsWebBel'] = -1*broadNet1$preVisitorsWebBel
 fullModelWebNet1 = lm( (broadNet1$postVisitorsWebNet-broadNet1$postVisitorsWebBel) ~ 
                          broadNet1$preVisitorsWebNet + broadNet1$minusPreVisitorsWebBel + 
                          factor(broadNet1$hours) + factor(broadNet1$weekdays) + broadNet1$gross_rating_point +., data = dummiesDirectModelNet1)
 getModelSumm(fullModelWebNet1, T)
 
-#Baseline model
-#app
+# Baseline model
+# app
 broadNet1['minusPreVisitorsAppBel'] = -1*broadNet1$preVisitorsAppBel
 baselineModelAppNet1 = lm( (postVisitorsAppNet-postVisitorsAppBel) ~ preVisitorsAppNet +
                           minusPreVisitorsAppBel + factor(hours) + factor(weekdays), data = broadNet1)
 getModelSumm(baselineModelAppNet1, T)
 
 # Full model
-#app
+# app
 broadNet1['minusPreVisitorsAppBel'] = -1*broadNet1$preVisitorsAppBel
 fullModelAppNet1 = lm( (broadNet1$postVisitorsAppNet-broadNet1$postVisitorsAppBel) ~ 
                       broadNet1$preVisitorsAppNet + broadNet1$minusPreVisitorsAppBel + 
-                      factor(broadNet1$hours) + + factor(broadNet1$weekdays) + broadNet1$gross_rating_point + ., data = dummiesDirectModelNet1)
+                      factor(broadNet1$hours) + factor(broadNet1$weekdays) + broadNet1$gross_rating_point + ., data = dummiesDirectModelNet1)
 getModelSumm(fullModelAppNet1, T)
 
 # =============================================================
@@ -228,9 +228,6 @@ for (i in 1:nrow(broadNet1)){
   sdPeak = sd(trendsMatrix[i, ])
   meanPeak = mean(trendsMatrix[i, ])
   for (j in 1:minutes){
-    # if (meanPeak - 2 * sdPeak <= trendsMatrix[i, j] & trendsMatrix[i, j] <= meanPeak + 2 * sdPeak){
-    #   peakMatrix[i, j] = 1
-    # }
     if (meanPeak - 0.1 <= trendsMatrix[i, j] & trendsMatrix[i, j] <= meanPeak + 0.1){
       peakMatrix[i, j] = 1
     }
