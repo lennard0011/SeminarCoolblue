@@ -64,9 +64,6 @@ for (i in 1:nBroad) { # nBroad
 broadNet = subset(broad, country == 'Netherlands')
 broadBel = subset(broad, country == 'Belgium')
 
-
-
-
 ## ========================================================
 ##                    First analysis
 ## ========================================================
@@ -153,6 +150,24 @@ getModelSumm <- function(model, coef) {
   print(paste("BIC: ", BIC(model)))
 }
 
+# Cross-products
+grpOverlap = matrix(0, nrow(broadNet))
+for (i in 1:nrow(broadNet)){
+  if (dummiesDirectModel$overlapBefore_1[i] == 1){
+    grpOverlap[i] = broadNet$gross_rating_point[i - 1] + broadNet$gross_rating_point[i]
+  }
+  else if (dummiesDirectModel$overlapAfter_1[i] == 1){
+    grpOverlap[i] = broadNet$gross_rating_point[i] + broadNet$gross_rating_point[i + 1]
+  }
+  else{
+    grpOverlap[i] = broadNet$gross_rating_point[i]
+  }
+}
+GRP30 = broadNet$gross_rating_point * dummiesDirectModel$length_of_spot_30
+GRP3010 = broadNet$gross_rating_point * dummiesDirectModel$`length_of_spot_30 + 10`
+GRPbegin = broadNet$gross_rating_point * dummiesDirectModel$position_in_break_3option_begin
+GRPend = broadNet$gross_rating_point * dummiesDirectModel$position_in_break_3option_end
+
 # Baseline models
 baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours) + weekdays, data = broadNet)
 getModelSumm(baselineModel, T)
@@ -160,6 +175,18 @@ getModelSumm(baselineModel, T)
 # Full model 
 fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(broadNet$hours) + broadNet$gross_rating_point + ., data = dummiesDirectModel)
 getModelSumm(fullModel, T)
+
+
+
+# Full model adjusted
+fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(broadNet$hours) + grpOverlap + ., data = dummiesDirectModel)
+getModelSumm(fullModel, T)
+
+# Full model multiplicative
+fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + broadNet$gross_rating_point + factor(broadNet$hours) + GRP30 + GRP3010 + GRPbegin + GRPend + ., data = dummiesDirectModel)
+getModelSumm(fullModel, T)
+
+
 
 # Baseline models -- BE WEB
 baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours) + weekdays, data = broadBel)

@@ -195,34 +195,6 @@ uniqueDatesBoth = base::intersect(uniqueDatesBel, uniqueDatesNet) # adverts in b
 uniqueDatesOnlyBel = base::setdiff(uniqueDatesBel, uniqueDatesBoth) # adverts only in Belgium on certain day
 uniqueDatesOnlyNet = base::setdiff(uniqueDatesNet, uniqueDatesBoth) # adverts only in Netherlands on certain day
 
-# Data for plot average of hour over the days
-# calculate average for different searches -- Netherlands - website
-avTrafficDayNetWebsite = matrix(NA, 24)
-for (i in 1:24){
-  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 3]
-  avTrafficDayNetWebsite[i] = mean(visitorsSumSubset)
-}
-
-# calculate average for different searches -- Netherlands - app
-avTrafficDayNetApp = matrix(NA, 24)
-for (i in 1:24){
-  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 4]
-  avTrafficDayNetApp[i] = mean(visitorsSumSubset)
-}
-
-# calculate average for different searches -- Belgium - website
-avTrafficDayBelWebsite = matrix(NA, 24)
-for (i in 1:24){
-  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 5]
-  avTrafficDayBelWebsite[i] = mean(visitorsSumSubset)
-}
-
-# calculate average for different searches -- Belgium - app
-avTrafficDayBelApp = matrix(NA, 24)
-for (i in 1:24){
-  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 6]
-  avTrafficDayBelApp[i] = mean(visitorsSumSubset)
-}
 
 # calculate average amount of broadcasts -- Netherlands
 avBroadDayNet = matrix(NA, 24)
@@ -345,8 +317,7 @@ for (i in 1:nBroad) {
 # Overlap dummy
 broadNet = subset(broad, country == 'Netherlands')
 broadBel = subset(broad, country == 'Belgium')
-intervalSize = 20
-#intervalSize = 20
+intervalSize = 5
 iNet = 0
 iBel = 0
 broad = broad[order(broad$date_time),]
@@ -355,7 +326,6 @@ broadBel = broadBel[order(broadBel$date_time),]
 broad$overlapBefore = 0
 broad$overlapAfter = 0
 for (i in 1:nrow(broad)){
-  # en wat bij middernacht? 
   if (broad$country[i] == 'Netherlands'){
     iNet = iNet + 1
     #print(i)

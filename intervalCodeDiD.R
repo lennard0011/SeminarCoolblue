@@ -79,6 +79,65 @@ for (i in 1:nrow(broadNet1)) {
   if(i %% 100 == 0) {print(paste(i,Sys.time() - start))}
 }
 
+# Overlap dummy
+broadNet = subset(broad, country == 'Netherlands')
+broadBel = subset(broad, country == 'Belgium')
+intervalSize = 20
+iNet = 0
+iBel = 0
+broad = broad[order(broad$date_time),]
+broadNet = broadNet[order(broadNet$date_time),]
+broadBel = broadBel[order(broadBel$date_time),]
+broad$overlapBefore = 0
+broad$overlapAfter = 0
+for (i in 1:nrow(broad)){
+  if (broad$country[i] == 'Netherlands'){
+    iNet = iNet + 1
+    #print(i)
+    datetime = broad$date_time[i]
+    datetime = as.POSIXct(datetime)
+    timeEarlier = datetime - intervalSize * 60
+    timeLater = datetime + intervalSize * 60
+    # Interval before
+    if (iNet > 1){ # exclude first dutch commercial
+      if (timeEarlier <= broadNet$date_time[iNet - 1] && broadNet$date_time[iNet - 1] <= datetime){
+        broad$overlapBefore[i] = 1
+      }
+    }
+    # Interval after
+    if (iNet < nrow(broadNet)){ # exclude last dutch commercial
+      if (datetime <= broadNet$date_time[iNet + 1] && broadNet$date_time[iNet + 1] <= timeLater){
+        broad$overlapAfter[i] = 1
+      }
+    }
+  }
+  if (broad$country[i] == 'Belgium'){
+    iBel = iBel + 1
+    #print(i)
+    datetime = broad$date_time[i]
+    datetime = as.POSIXct(datetime)
+    timeEarlier = datetime - intervalSize * 60
+    timeLater = datetime + intervalSize * 60
+    # Interval before
+    if (iBel > 1){
+      if (timeEarlier <= broadBel$date_time[iBel - 1] && broadBel$date_time[iBel - 1] <= datetime){
+        broad$overlapBefore[i] = 1
+      }
+    }
+    # Interval after
+    if (iBel < nrow(broadBel)){
+      if (datetime <= broadBel$date_time[iBel + 1] && broadBel$date_time[iBel + 1] <= timeLater){
+        broad$overlapAfter[i] = 1
+      }
+    }
+  }
+}
+broad = broad[order(as.numeric(row.names(broad))),]
+broadNet = broadNet[order(as.numeric(row.names(broadNet))),]
+broadBel = broadBel[order(as.numeric(row.names(broadBel))),]
+broadNet = subset(broad, country == 'Netherlands')
+broadBel = subset(broad, country == 'Belgium')
+
 ## ========================================================
 ##                    First analysis
 ## ========================================================
