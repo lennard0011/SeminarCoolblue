@@ -195,6 +195,34 @@ uniqueDatesBoth = base::intersect(uniqueDatesBel, uniqueDatesNet) # adverts in b
 uniqueDatesOnlyBel = base::setdiff(uniqueDatesBel, uniqueDatesBoth) # adverts only in Belgium on certain day
 uniqueDatesOnlyNet = base::setdiff(uniqueDatesNet, uniqueDatesBoth) # adverts only in Netherlands on certain day
 
+# Data for plot average of hour over the days
+# calculate average for different searches -- Netherlands - website
+avTrafficDayNetWebsite = matrix(NA, 24)
+for (i in 1:24){
+  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 3]
+  avTrafficDayNetWebsite[i] = mean(visitorsSumSubset)
+}
+
+# calculate average for different searches -- Netherlands - app
+avTrafficDayNetApp = matrix(NA, 24)
+for (i in 1:24){
+  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 4]
+  avTrafficDayNetApp[i] = mean(visitorsSumSubset)
+}
+
+# calculate average for different searches -- Belgium - website
+avTrafficDayBelWebsite = matrix(NA, 24)
+for (i in 1:24){
+  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 5]
+  avTrafficDayBelWebsite[i] = mean(visitorsSumSubset)
+}
+
+# calculate average for different searches -- Belgium - app
+avTrafficDayBelApp = matrix(NA, 24)
+for (i in 1:24){
+  visitorsSumSubset = subset(visitorsSum, (time_min >= (i - 1) * 60) & (time_min < i * 60))[, 6]
+  avTrafficDayBelApp[i] = mean(visitorsSumSubset)
+}
 
 # calculate average amount of broadcasts -- Netherlands
 avBroadDayNet = matrix(NA, 24)
