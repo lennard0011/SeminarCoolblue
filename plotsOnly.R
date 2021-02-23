@@ -6,14 +6,14 @@
 visitorsSumDay = subset(visitorsSum, date == "2019-05-01")
 par(mfrow=c(2,2))
 plot(visitorsSumDay$visitsWebNet, type = 'l', main = "Website-Netherlands visits on 2019-05-01",
-     xaxt='n', yaxt = 'n', ann=FALSE)
+     xaxt='n', yaxt = 'n', ann=F)
 # Including "indicators" for commercials (65 only Dutch on 2019-05-01)
 broadDay <- subset(broad, date == "2019-05-01")
 broadDay <- broadDay[order(broadDay$time),]
 for (i in 1:nrow(broadDay)){
   abline(v = as.numeric(broadDay$time_min[i]), col = 'grey')
 }
-par(new=TRUE)
+par(new=T)
 plot(visitorsSumDay$visitsWebNet, type = 'l', main = "Website-Netherlands visits on 2019-05-01",
      xlab ='Time (seconds)', ylab = 'Visit density')
 plot(visitorsSumDay$visitsAppNet, type = 'l', main = "App-Netherlands visits on 2019-05-01",
@@ -28,53 +28,53 @@ rm(visitorsSumDay); rm(broadDay)
 ## Plots of visit density over 6 months (2x2) [Erik]
 par(mfrow=c(2,2))
 # plot Netherlands -- Website
-plot(as.numeric(daysVisitorsSum[,2])/as.numeric(max(daysVisitorsSum[,2])), type = "l", xaxt='n',  yaxt='n', ann=FALSE)
+plot(as.numeric(daysVisitorsSum[,2])/as.numeric(max(daysVisitorsSum[,2])), type = "l", xaxt='n',  yaxt='n', ann=F)
 for (i in 1:length(uniqueDatesNet)){
   abline(v = yday(uniqueDatesNet[i]), col = '#DCDCDC', lwd = 3) # ads
 }
-par(new=TRUE)
+par(new=T)
 plot(as.numeric(daysVisitorsSum[,2])/as.numeric(max(daysVisitorsSum[,2])), las=1, type = "l", xaxt='n', xlab = "Time (months)", 
      ylab="", main = "Website traffic Netherlands (2019)")
 axis(side =1, at=c(0, 31, 59, 90, 120, 151, 181), labels = NA)
 axis(side =1, at=c(ceiling(0+(31-0)/2), ceiling(31+(59-31)/2), ceiling(59+(90-59)/2), 
                    (90+(120-90)/2), ceiling(120+(151-120)/2), ceiling(151+(181-151)/2)), 
-     labels= c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'), tick = FALSE)
+     labels= c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'), tick = F)
 # plot Netherlands -- App
-plot(as.numeric(daysVisitorsSum[,3])/as.numeric(max(daysVisitorsSum[,2])), type = "l", xaxt='n',  yaxt='n', ann=FALSE)
+plot(as.numeric(daysVisitorsSum[,3])/as.numeric(max(daysVisitorsSum[,2])), type = "l", xaxt='n',  yaxt='n', ann=F)
 for (i in 1:length(uniqueDatesNet)){
   abline(v = yday(uniqueDatesNet[i]), col = '#DCDCDC', lwd = 3) # ads
 }
-par(new=TRUE)
+par(new=T)
 plot(as.numeric(daysVisitorsSum[,3])/as.numeric(max(daysVisitorsSum[,2])), las=1, type = "l", xaxt='n', xlab = "Time (months)", 
      ylab = '', main = "App traffic Netherlands (2019)")
 axis(side =1, at=c(0, 31, 59, 90, 120, 151, 181), labels = NA)
 axis(side =1, at=c(ceiling(0+(31-0)/2), ceiling(31+(59-31)/2), ceiling(59+(90-59)/2), 
                    (90+(120-90)/2), ceiling(120+(151-120)/2), ceiling(151+(181-151)/2)), 
-     labels= c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'), tick = FALSE)
+     labels= c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'), tick = F)
 # plot Belgium -- Website
-plot(as.numeric(daysVisitorsSum[,4])/as.numeric(max(daysVisitorsSum[,4])), type = "l", xaxt='n',  yaxt='n', ann=FALSE)
+plot(as.numeric(daysVisitorsSum[,4])/as.numeric(max(daysVisitorsSum[,4])), type = "l", xaxt='n',  yaxt='n', ann=F)
 for (i in 1:length(uniqueDatesNet)){
   abline(v = yday(uniqueDatesBel[i]), col = '#DCDCDC', lwd = 3) # ads
 }
-par(new=TRUE)
+par(new=T)
 plot(as.numeric(daysVisitorsSum[,4])/as.numeric(max(daysVisitorsSum[,4])), las=1, type = "l", xaxt='n', xlab = "Time (months)", 
      ylab = '', main = "Website traffic Belgium (2019)")
 axis(side =1, at=c(0, 31, 59, 90, 120, 151, 181), labels = NA)
 axis(side =1, at=c(ceiling(0+(31-0)/2), ceiling(31+(59-31)/2), ceiling(59+(90-59)/2), 
                    (90+(120-90)/2), ceiling(120+(151-120)/2), ceiling(151+(181-151)/2)), 
-     labels= c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'), tick = FALSE)
+     labels= c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'), tick = F)
 # plot Belgium -- App
-plot(as.numeric(daysVisitorsSum[,5])/as.numeric(max(daysVisitorsSum[,4])), type = "l", xaxt='n',  yaxt='n', ann=FALSE)
+plot(as.numeric(daysVisitorsSum[,5])/as.numeric(max(daysVisitorsSum[,4])), type = "l", xaxt='n',  yaxt='n', ann=F)
 for (i in 1:length(uniqueDatesNet)){
   abline(v = yday(uniqueDatesBel[i]), col = '#DCDCDC', lwd = 3) # ads
 }
-par(new=TRUE)
+par(new=T)
 plot(as.numeric(daysVisitorsSum[,5])/as.numeric(max(daysVisitorsSum[,4])), las=1, type = "l", xaxt='n', xlab = "Time (months)", 
      ylab = '', main = "App traffic Belgium (2019)")
 axis(side =1, at=c(0, 31, 59, 90, 120, 151, 181), labels = NA)
 axis(side =1, at=c(ceiling(0+(31-0)/2), ceiling(31+(59-31)/2), ceiling(59+(90-59)/2), 
                    (90+(120-90)/2), ceiling(120+(151-120)/2), ceiling(151+(181-151)/2)), 
-     labels= c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'), tick = FALSE)
+     labels= c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'), tick = F)
 
 
 ## Barplot of total Broadcasts, per hour [Marjolein]
@@ -170,7 +170,7 @@ print(hourly_traffic +
 
 ## Plots of time before-after commercials with biggest GRP [Daniel]
 library(stringr)
-broad <- broad[order(broad$gross_rating_point, decreasing = TRUE),]
+broad <- broad[order(broad$gross_rating_point, decreasing = T),]
 interval <- 120
 plots = 1
 par(mfrow = c(1,1))
@@ -180,7 +180,7 @@ for(j in 1:plots){
   datecommercial <- broad[j,"date"]
   timecommercial <- broad[j,"time"]
   
-  traffic_datesub <- subset(visitorsSum,grepl(datecommercial, visitorsSum$date) == TRUE)
+  traffic_datesub <- subset(visitorsSum,grepl(datecommercial, visitorsSum$date) == T)
   
   timecommercial <- str_split_fixed(timecommercial, ":", 3)
   colnames(timecommercial) <- c("hour", "minute", "seconds")
@@ -215,22 +215,21 @@ for(j in 1:plots){
   abline(v = interval + 1, col = "red")
   #abline(h = firstMean, col = "darkgrey", lty = 2)
   #abline(h = secondMean, col = "darkgrey", lty = 3)
-
+  
   endMon = 0.5*interval
   if(firstMean > secondMean){
-  for(i in 1:endMon){
-    if(visitsVector[interval + i] > firstMean){
-      rangeValues[j] = rangeValues[j] + 1
+    for(i in 1:endMon){
+      if(visitsVector[interval + i] > firstMean){
+        rangeValues[j] = rangeValues[j] + 1
+      }
     }
   }
-  }
-  
   if(secondMean > firstMean){
     for(i in 1:40){
-    if(visitsVector[interval + i] > secondMean){
-      rangeValues[j] = rangeValues[j] + 1
+      if(visitsVector[interval + i] > secondMean){
+        rangeValues[j] = rangeValues[j] + 1
+      }
     }
-  }
   }
 }
 print(mean(rangeValues))
