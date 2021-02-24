@@ -300,7 +300,7 @@ max = which(as.character(broadNet1$gross_rating_point) == max(broadNet1$gross_ra
 sdPeak = sd(trendsMatrix[max, ])
 meanPeak = mean(trendsMatrix[max, ])
 df = data.frame(x = 1:20, F = trendsMatrix[max, ], L = meanPeak - 0.1, U = meanPeak + 0.1)
-plot(df$x, df$F, ylim = c(0, 0.4), type = "l", main = "Common trends assumption", xlab = "Minute", ylab = "Difference")
+plot(df$x, df$F, ylim = c(0, 0.4), type = "l", main = "", xlab = "Minute", ylab = "Difference")
 lines(df$x, df$F, lwd = 2)
 #add red lines to plot
 lines(df$x, df$U, col="red",lty=2)
