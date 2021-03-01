@@ -423,6 +423,10 @@ broadBel = subset(broad, country == 'Belgium')
 broadNet = subset(broad, country == "Netherlands")
 broadBel = subset(broad, country == "Belgium")
 
+broadNetNoMidnight = subset(broadNet, broadNet$time_min < 1435)
+broadNetNoMidnight = subset(broadNetNoMidnight, broadNetNoMidnight$time_min > 5)
+broadNet = broadNetNoMidnight
+
 # dummiesDirectModel Netherlands contains the treatment variables
 variablesDirectModel = c("product_category", "channel", "length_of_spot", "position_in_break_3option", "weekdays", "overlapBefore", "overlapAfter")
 dummiesDirectModelPre = dummy_cols(.data = broadNet, select_columns = variablesDirectModel, remove_most_frequent_dummy = T)
