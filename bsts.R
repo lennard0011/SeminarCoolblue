@@ -74,7 +74,6 @@ for (i in 1:amountDays){
 }
 visWebBel = subset(visWebBel, select = -yday)
 
-
 # some tests
 # seasonality test
 seasTest = wo(sumVisitIndexNet, freq = 7)

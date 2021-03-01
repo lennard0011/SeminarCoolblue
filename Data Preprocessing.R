@@ -346,7 +346,6 @@ for (i in 1:nBroad) {
 broadNet = subset(broad, country == 'Netherlands')
 broadBel = subset(broad, country == 'Belgium')
 intervalSize = 5
-#intervalSize = 20
 iNet = 0
 iBel = 0
 broad = broad[order(broad$date_time),]
@@ -355,7 +354,6 @@ broadBel = broadBel[order(broadBel$date_time),]
 broad$overlapBefore = 0
 broad$overlapAfter = 0
 for (i in 1:nrow(broad)){
-  # en wat bij middernacht? 
   if (broad$country[i] == 'Netherlands'){
     iNet = iNet + 1
     #print(i)
