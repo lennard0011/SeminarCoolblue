@@ -44,6 +44,8 @@ print(paste0("Number of commercials: ", nrow(broadNet1)))
 broadNet1NoMidnight = subset(broadNet1, broadNet1$time_min < 1420)
 broadNet1NoMidnight = subset(broadNet1NoMidnight, broadNet1NoMidnight$time_min > 20)
 
+broadNet1 = broadNet1NoMidnight
+
 # Calculate pre- and post visitors, Net and Bel, Web and App (1 hour)
 intervalSize = 20
 start = Sys.time()
@@ -86,6 +88,17 @@ for (i in 1:nrow(broadNet1)) {
 # Overlap dummy
 broadNet = subset(broad, country == 'Netherlands')
 broadBel = subset(broad, country == 'Belgium')
+
+broadNetNoMidnight = subset(broadNet, broadNet$time_min < 1435)
+broadNetNoMidnight = subset(broadNetNoMidnight, broadNetNoMidnight$time_min > 5)
+
+broadNet = broadNetNoMidnight
+
+broadBelNoMidnight = subset(broadBel, broadBel$time_min < 1435)
+broadBelNoMidnight = subset(broadBelNoMidnight, broadBelNoMidnight$time_min > 5)
+
+broadBel = broadBelNoMidnight
+
 intervalSize = 20
 iNet = 0
 iBel = 0
@@ -157,7 +170,7 @@ print(paste0("Num. WebBel post > pre: ", sum(broadNet1$postVisitorsWebBel>broadN
 biggestAdsNet1 = subset(broadNet1, postVisitorsWebNet - preVisitorsWebNet > 10)
 
 ## ========================================================
-##            REGRESSION MODELS 2-minute model
+##            REGRESSION MODELS 20-minute model
 ## ========================================================
 
 # dummiesDirectModel contains the treatment variables
