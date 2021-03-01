@@ -287,7 +287,7 @@ for (i in 1:nrow(broadNet1)){
   sdPeak = sd(trendsMatrix[i, ])
   meanPeak = mean(trendsMatrix[i, ])
   for (j in 1:minutes){
-    if (meanPeak - 0.1 <= trendsMatrix[i, j] & trendsMatrix[i, j] <= meanPeak + 0.1){
+    if (meanPeak - 2 * sdPeak <= trendsMatrix[i, j] & trendsMatrix[i, j] <= meanPeak + 2 * sdPeak){
       peakMatrix[i, j] = 1
     }
   }
@@ -299,7 +299,7 @@ withinTwo = sum(peakMatrix)/nTotal
 max = which(as.character(broadNet1$gross_rating_point) == max(broadNet1$gross_rating_point))
 sdPeak = sd(trendsMatrix[max, ])
 meanPeak = mean(trendsMatrix[max, ])
-df = data.frame(x = 1:20, F = trendsMatrix[max, ], L = meanPeak - 0.1, U = meanPeak + 0.1)
+df = data.frame(x = 1:20, F = trendsMatrix[max, ], L = meanPeak - 2 * sdPeak, U = meanPeak + 2 * sdPeak)
 plot(df$x, df$F, ylim = c(0, 0.4), type = "l", main = "", xlab = "Minute", ylab = "Difference")
 lines(df$x, df$F, lwd = 2)
 #add red lines to plot
