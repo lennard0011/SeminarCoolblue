@@ -38,7 +38,11 @@ print(paste0("Number of commercials: ", nrow(broadNet1)))
 # Delete lowest GRP ratios
 broadNet1 = broadNet1[order(broad$gross_rating_point, decreasing = T),]
 broadNet1 = subset(broadNet1, gross_rating_point > 0.5)
+
 print(paste0("Number of commercials: ", nrow(broadNet1)))
+
+broadNet1NoMidnight = subset(broadNet1, broadNet1$time_min < 1420)
+broadNet1NoMidnight = subset(broadNet1NoMidnight, broadNet1NoMidnight$time_min > 20)
 
 # Calculate pre- and post visitors, Net and Bel, Web and App (1 hour)
 intervalSize = 20
