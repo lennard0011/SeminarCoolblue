@@ -11,7 +11,7 @@ broad['preVisitorsWeb'] = 0
 broad['postVisitorsWeb'] = 0
 broad['preVisitorsApp'] = 0
 broad['postVisitorsApp'] = 0
-intervalSize = 5
+intervalSize
 
 start = Sys.time()
 for (i in 1:nBroad) { # nBroad
@@ -35,7 +35,7 @@ for (i in 1:nBroad) { # nBroad
     broad$preVisitorsApp[[i]] = sum(subset(visitorsSum, date == broadDate & time_min < broadTime & time_min >= broadTime - intervalSize)$visitsAppBel) + preVisitorsAppExtra
     broad$preVisitorsWeb[[i]] = sum(subset(visitorsSum, date == broadDate & time_min < broadTime & time_min >= broadTime - intervalSize)$visitsWebBel) + preVisitorsWebExtra
     
-    broad$postVisitorsApp[[i]] = sum(subset(visitorsSum, date == broadDate & time_min >= broadTime & time_min < broadTime + intervalSize)$visitsAppBel) + postVisitorsAppExtra
+    broad$postVisitorsApp[[i]] = sum(subset(visitorsSum, date == broadDate  & time_min >= broadTime & time_min < broadTime + intervalSize)$visitsAppBel) + postVisitorsAppExtra
     broad$postVisitorsWeb[[i]] = sum(subset(visitorsSum, date == broadDate & time_min >= broadTime & time_min < broadTime + intervalSize)$visitsWebBel) + postVisitorsWebExtra
     
   } else if(broadCountry == "Netherlands") {
@@ -64,8 +64,11 @@ for (i in 1:nBroad) { # nBroad
 broadNet = subset(broad, country == 'Netherlands')
 broadBel = subset(broad, country == 'Belgium')
 
+broadNetNoMidnight = subset(broadNet, broadNet$time_min < 1435)
+broadNetNoMidnight = subset(broadNetNoMidnight, broadNetNoMidnight$time_min > 5)
 
-
+broadBelNoMidnight = subset(broadBel, broadBel$time_min < 1435)
+broadBelNoMidnight = subset(broadBelNoMidnight, broadBelNoMidnight$time_min > 5)
 
 ## ========================================================
 ##                    First analysis
@@ -153,9 +156,27 @@ getModelSumm <- function(model, coef) {
   print(paste("BIC: ", BIC(model)))
 }
 
+# Cross-products
+grpOverlap = matrix(0, nrow(broadNet))
+for (i in 1:nrow(broadNet)){
+  if (dummiesDirectModel$overlapBefore_1[i] == 1){
+    grpOverlap[i] = broadNet$gross_rating_point[i - 1] + broadNet$gross_rating_point[i]
+  }
+  else if (dummiesDirectModel$overlapAfter_1[i] == 1){
+    grpOverlap[i] = broadNet$gross_rating_point[i] + broadNet$gross_rating_point[i + 1]
+  }
+  else{
+    grpOverlap[i] = broadNet$gross_rating_point[i]
+  }
+}
+GRP30 = broadNet$gross_rating_point * dummiesDirectModel$length_of_spot_30
+GRP3010 = broadNet$gross_rating_point * dummiesDirectModel$`length_of_spot_30 + 10`
+GRPbegin = broadNet$gross_rating_point * dummiesDirectModel$position_in_break_3option_begin
+GRPend = broadNet$gross_rating_point * dummiesDirectModel$position_in_break_3option_end
+
 # Baseline models
 baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours) + weekdays, data = broadNet)
-getModelSumm(baselineModel, TRUE)
+getModelSumm(baselineModel, T)
 
 # Full model 
 fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(broadNet$hours) + broadNet$gross_rating_point + ., data = dummiesDirectModel)
@@ -163,7 +184,7 @@ getModelSumm(fullModel, T)
 
 # Baseline models -- BE WEB
 baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours) + weekdays, data = broadBel)
-getModelSumm(baselineModel, TRUE)
+getModelSumm(baselineModel, T)
 
 # Full model -- BE WEB
 fullModel = lm(broadBel$postVisitorsWeb ~ broadBel$preVisitorsWeb + factor(broadBel$hours) + broadBel$gross_rating_point +., data = dummiesDirectModelBel)
@@ -202,17 +223,17 @@ for (i in 1:folds){
   
   # Baseline model
   baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + hours + weekdays_dinsdag + weekdays_donderdag + weekdays_maandag +weekdays_vrijdag + weekdays_woensdag + weekdays_zondag, data = broadTrain)
-  #getModelSumm(baselineModel, TRUE)
+  # getModelSumm(baselineModel, TRUE)
   avBaseTrainError[i] = rmse(broadTrain$postVisitorsWeb, predict(baselineModel, broadTrain))
   avBaseTestError[i] = rmse(broadTest$postVisitorsWeb, predict(baselineModel, broadTest))
   
   # Treatment effects only models
-  #treatmentOnlyModel = lm(postVisitors ~ .-preVisitors, data = broadTrain)
-  #rmse(broadTest$postVisitors, predict(treatmentOnlyModel, broadTest))
+  # treatmentOnlyModel = lm(postVisitors ~ .-preVisitors, data = broadTrain)
+  # rmse(broadTest$postVisitors, predict(treatmentOnlyModel, broadTest))
   
   # Full treatment model
   fullModel = lm(postVisitorsWeb ~ preVisitorsWeb + ., data = broadTrain)
-  #getModelSumm(fullModel, FALSE)
+  # getModelSumm(fullModel, FALSE)
   avFullTrainError[i] = rmse(broadTrain$postVisitorsWeb, predict(fullModel, broadTrain))
   avFullTestError[i] = rmse(broadTest$postVisitorsWeb, predict(fullModel, broadTest))
 }
@@ -281,5 +302,3 @@ mean(avBaseTrainError)
 mean(avBaseTestError)
 mean(avFullTrainError)
 mean(avFullTestError)
-
-

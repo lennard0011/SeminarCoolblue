@@ -16,6 +16,7 @@
 #install.packages("gtrendsR")
 #install.packages("seastests")
 #install.packages("pastecs")
+# install.packages("plotrix")
 
 # loading packages
 library("chron")
@@ -37,6 +38,7 @@ library("gtrendsR")
 library("tseries")
 library("seastests")
 library("pastecs")
+library("plotrix")
 
 ## ====================================================
 ##         Loading & subsetting the data
@@ -100,8 +102,9 @@ visWebBel = traffic[traffic$medium == "website" & traffic$country == "Belgium" &
 visAppBel = traffic[traffic$medium == "app" & traffic$country == "Belgium" & traffic$visit_source != "push notification", ]
 
 # aggregate the visit_index per minute
-amountDays = 31 + 28 + 31 + 30 + 31 + 30
-maxPairs = amountDays * 1440
+amountDays = NROW(unique(traffic$date))
+minutesPerDay = 60 * 24
+maxPairs = amountDays * minutesPerDay
 
 # website - Netherlands
 visWebNetSum = aggregate(visits_index ~ date + time_min, data = visWebNet, FUN=sum, simplify = TRUE, drop = TRUE)
@@ -192,7 +195,6 @@ uniqueDatesBoth = base::intersect(uniqueDatesBel, uniqueDatesNet) # adverts in b
 uniqueDatesOnlyBel = base::setdiff(uniqueDatesBel, uniqueDatesBoth) # adverts only in Belgium on certain day
 uniqueDatesOnlyNet = base::setdiff(uniqueDatesNet, uniqueDatesBoth) # adverts only in Netherlands on certain day
 
-# TODO: this code doesn't work ATM.
 # Data for plot average of hour over the days
 # calculate average for different searches -- Netherlands - website
 avTrafficDayNetWebsite = matrix(NA, 24)
@@ -344,7 +346,6 @@ for (i in 1:nBroad) {
 broadNet = subset(broad, country == 'Netherlands')
 broadBel = subset(broad, country == 'Belgium')
 intervalSize = 5
-#intervalSize = 20
 iNet = 0
 iBel = 0
 broad = broad[order(broad$date_time),]
@@ -353,7 +354,6 @@ broadBel = broadBel[order(broadBel$date_time),]
 broad$overlapBefore = 0
 broad$overlapAfter = 0
 for (i in 1:nrow(broad)){
-  # en wat bij middernacht?
   if (broad$country[i] == 'Netherlands'){
     iNet = iNet + 1
     #print(i)
@@ -379,7 +379,7 @@ for (i in 1:nrow(broad)){
     #print(i)
     datetime = broad$date_time[i]
     datetime = as.POSIXct(datetime)
-    timeErlier = datetime - intervalSize * 60
+    timeEarlier = datetime - intervalSize * 60
     timeLater = datetime + intervalSize * 60
     # Interval before
     if (iBel > 1){
@@ -398,6 +398,8 @@ for (i in 1:nrow(broad)){
 broad = broad[order(as.numeric(row.names(broad))),]
 broadNet = broadNet[order(as.numeric(row.names(broadNet))),]
 broadBel = broadBel[order(as.numeric(row.names(broadBel))),]
+broadNet = subset(broad, country == 'Netherlands')
+broadBel = subset(broad, country == 'Belgium')
 
 ## =================================================
 ##   Create matrices with dummies (direct effects)

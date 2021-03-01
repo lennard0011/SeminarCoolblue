@@ -1,49 +1,97 @@
 ## SEMINAR COOLBLUE BA&QM 2021 Team 21
 ## @author: Erik van der Heide
 
-# Descriptive of TRAFFIC (note: this is not worth much)
-head(traffic)
-min(traffic$date_time)
-max(traffic$date_time)
-summary(traffic$visits_index)
-unique(traffic$medium)
-sum(traffic$medium == "app")
-sum(traffic$medium == "website")
-unique(traffic$visit_source)
-sum(traffic$visit_source =="push notification")
-sum(traffic$visit_source =="direct")
-sum(traffic$visit_source =="search")
-sum(traffic$visit_source =="paid search")
-sum(traffic$visit_source =="other")
-unique(traffic$page_category)
-sum(traffic$page_category == "home")
-sum(traffic$page_category == "other")
-sum(traffic$page_category == "product")
-summary(traffic$avg_session_quality)
-summary(traffic$bounces)
-unique(traffic$bounces)
-count_bounces <- traffic$bounces
-sum(na.omit(count_bounces) == "NA")
-unique(traffic$country)
-sum(traffic$country == "Netherlands")
-sum(traffic$country == "Belgium")
+# ===========================================================
+#                 Descriptive of TRAFFIC
+# ===========================================================
 
-# Descriptive of BROAD
+rawTraffic = read.csv(file.choose(), header = T)
+
+# Separate countries
+rawTrafficNet = subset(rawTraffic, country=="Netherlands")
+sum(rawTrafficNet$visits_index)
+rawTrafficBel = subset(rawTraffic, country=="Belgium")
+sum(rawTrafficBel$visits_index)
+
+# Bounces Net
+rawTrafficBounceNet = subset(rawTrafficNet, bounces == 1)
+100 * sum(rawTrafficBounceNet$visits_index) / sum(rawTrafficNet$visits_index)
+
+# Bounces Bel
+rawTrafficBounceBel = subset(rawTrafficBel, bounces == 1)
+100 * sum(rawTrafficBounceBel$visits_index) /sum(rawTrafficBel$visits_index)
+
+# Continue with no-bounce data
+rawTrafficNet = subset(rawTrafficNet, bounces != 1 | is.na(bounces))
+sum(rawTrafficNet$visits_index)
+rawTrafficBel = subset(rawTrafficBel, bounces != 1 | is.na(bounces))
+sum(rawTrafficBel$visits_index)
+
+# Visit source Net
+rawTrafficPushNotificationNet = subset(rawTrafficNet, visit_source == "push notification")
+100 * sum(rawTrafficPushNotificationNet$visits_index) / sum(rawTrafficNet$visits_index)
+
+# Visit source Bel
+rawTrafficPushNotificationBel = subset(rawTrafficBel, visit_source == "push notification")
+100 * sum(rawTrafficPushNotificationBel$visits_index) / sum(rawTrafficBel$visits_index)
+
+# Visit source Net (App only)
+rawTrafficNetApp = subset(rawTrafficNet, medium == "app")
+sum(rawTrafficNetApp$visits_index)
+rawTrafficPushNotificationNetApp = subset(rawTrafficNetApp, visit_source == "push notification")
+100 * sum(rawTrafficPushNotificationNetAoo$visits_index) / sum(rawTrafficNetApp$visits_index)
+
+# Visit source Bel (App only)
+rawTrafficBelApp = subset(rawTrafficBel, medium == "app")
+sum(rawTrafficBelApp$visits_index)
+rawTrafficPushNotificationBelApp = subset(rawTrafficBelApp, visit_source == "push notification")
+100 * sum(rawTrafficPushNotificationBelApp$visits_index) / sum(rawTrafficBelApp$visits_index)
+
+# Continue with no-push data
+rawTrafficNet = subset(rawTrafficNet, visit_source != "push notification")
+sum(rawTrafficNet$visits_index)
+rawTrafficBel = subset(rawTrafficBel, visit_source != "push notification")
+sum(rawTrafficBel$visits_index)
+
+# Medium Net
+rawTrafficWebNet = subset(rawTrafficNet, medium == "website")
+100 * sum(rawTrafficWebNet$visits_index) / sum(rawTrafficNet$visits_index)
+
+# Medium Bel
+rawTrafficWebBel = subset(rawTrafficBel, medium == "website")
+100 * sum(rawTrafficWebBel$visits_index) / sum(rawTrafficBel$visits_index)
+
+# ============================================================
+#                 Descriptive of BROAD
+# ============================================================
+
 head(broad)
-unique(broad$operator)
-unique(broad$channel)
-unique(broad$date)
-unique(broad$time)
-unique(broad$position_in_break)
+
+sort(summary(as.factor(broadNet$channel)))
+sort(summary(as.factor(broadNet$program_before)))
+sort(summary(as.factor(broadNet$program_after)))
+
+sort(summary(as.factor(broadBel$channel)))
+sort(summary(as.factor(broadBel$program_before)))
+sort(summary(as.factor(broadBel$program_after)))
+
+sort(summary(as.factor(broad$position_in_break)))
 sum(broad$position_in_break == "99")
-unique(broad$length_of_spot)
-unique(broad$program_before)
-unique(broad$program_after)
-unique(broad$program_category_before)
-unique(broad$program_category_after)
-summary(broad$gross_rating_point)
-unique(broad$product_category)
-unique(broad$country)
+sort(summary(as.factor(broadBel$position_in_break_3option)))
+
+sort(summary(as.factor(broadNet$length_of_spot)))
+sort(summary(as.factor(broadBel$length_of_spot)))
+
+hist(broadNet$gross_rating_point)
+hist(broadBel$gross_rating_point)
+
+summary(broadNet$gross_rating_point)
+nrow(subset(broadNet, gross_rating_point < 1))
+summary(broadBel$gross_rating_point)
+nrow(subset(broadBel, gross_rating_point < 1))
+
+sort(summary(as.factor(broadNet$product_category)))
+sort(summary(as.factor(broadBel$product_category)))
 
 # Bekijk nog eens de grootste 10 reclames
 broadMostViewed <- broad[order(broad$gross_rating_point, decreasing = T),]
