@@ -77,6 +77,7 @@ sort(summary(as.factor(broadBel$program_after)))
 
 sort(summary(as.factor(broad$position_in_break)))
 sum(broad$position_in_break == "99")
+sort(summary(as.factor(broadBel$position_in_break_3option)))
 
 sort(summary(as.factor(broadNet$length_of_spot)))
 sort(summary(as.factor(broadBel$length_of_spot)))

@@ -62,7 +62,7 @@ ThresholdingAlgo = function(y, lag, threshold, influence) {
 
 # Tuning variables
 lag = 20
-threshold = 6
+threshold = 4
 influence = 0.75
 
 # Z_2 = lag=10, threshold=5,influence=: 6 pos. spikes
@@ -74,7 +74,7 @@ influence = 0.75
 # Choose data
 # !make sure that visitorsSum has length 260640!
 y = as.numeric(visitorsSum$visitsWebNet) # apply on concatenated data
-$y = as.numeric(dayVisits$visitsWebNet)    # only pick one day 
+#y = as.numeric(dayVisits$visitsWebNet)    # only pick one day 
 
 # Run algorithm 
 result = ThresholdingAlgo(y,lag,threshold,influence)
@@ -86,7 +86,7 @@ par(mfrow = c(2,1), oma = c(2,2,0,0)+0.1, mar = c(0,0,2,1)+0.2)
 #par(new=TRUE)
 plot(1:length(y),y,type="l",xaxt='n', ylab="Visit density",xlab="Time (minutes)")
 #axis(side =1, at=c(1,61,121,181,241,301,361,421,481,541,601,661,721,781,841,901,961,1021,
-                   1081,1141,1201,1261,1321,1381,1441), labels= 0:24)
+#                   1081,1141,1201,1261,1321,1381,1441), labels= 0:24)
 lines(1:length(y),result$avgFilter,type="l",col="cyan",lwd=1.5)
 lines(1:length(y),result$avgFilter+threshold*result$stdFilter,type="l",col="green",lwd=1.8)
 lines(1:length(y),result$avgFilter-threshold*result$stdFilter,type="l",col="green",lwd=1.8)
@@ -284,7 +284,7 @@ sort(summary(as.factor(usefulCommercials$weekdays)))
 summary(usefulCommercials$hours)
 
 # Calculate the biggest relative increase after broadcast time
-# max i+1, i+2, i+3, i+4, i+5 (can also be i-1 vs. i, i+1, ...)
+# max i+1, i+2, i+3, i+4, i+5
 usefulCommercials['relativePeak'] = 0
 usefulCommercials['timeTilPeak'] = 0
 for (i in 1:nrow(usefulCommercials)) {
@@ -298,7 +298,45 @@ for (i in 1:nrow(usefulCommercials)) {
   usefulCommercials$timeTilPeak[i] = match(max(afterTraf), afterTraf)
 }
 usefulCommercials = usefulCommercials[order(usefulCommercials$relativePeak, decreasing=T),]
-row.names(usefulCommercials) <- NULL # resets rownrs
+row.names(usefulCommercials) = NULL # resets rownrs
 sum(usefulCommercials$timeTilPeak == 1)
 
-usefulCommercials <- cbind(usefulCommercials, 1:109)
+usefulCommercials = cbind(usefulCommercials, 1:nrow(usefulCommercials))
+
+# Commercials with no peak
+nonUsefulCommercials = setdiff(broadNet, usefulCommercials[-c( (ncol(broadNet)+1):ncol(usefulCommercials) )])
+nonUsefulCommercials = nonUsefulCommercials[order(nonUsefulCommercials$gross_rating_point, decreasing=T),]
+row.names(nonUsefulCommercials) = NULL # resets rownrs
+
+# Again, calculate the biggest relative increase after broadcast time
+# now for the non-peaking commercials
+nonUsefulCommercials['relativePeak'] = 0
+nonUsefulCommercials['timeTilPeak'] = 0
+for (i in 1:nrow(nonUsefulCommercials)) {
+  comTime = nonUsefulCommercials$minute_in_year[i]
+  comTraf = visitorsSum$visitsWebNet[comTime]
+  afterTraf = matrix(0.0, ncol=5)
+  for (j in 1:5) {
+    afterTraf[j] = visitorsSum$visitsWebNet[comTime+j]
+  }
+  nonUsefulCommercials$relativePeak[i] = max(afterTraf) - comTraf
+  nonUsefulCommercials$timeTilPeak[i] = match(max(afterTraf), afterTraf)
+}
+#nonUsefulCommercials = nonUsefulCommercials[order(nonUsefulCommercials$relativePeak, decreasing=T),]
+#row.names(nonUsefulCommercials) = NULL # resets rownrs
+#sum(nonUsefulCommercials$timeTilPeak == 1)
+#nonUsefulCommercials = cbind(nonUsefulCommercials, 1:nrow(nonUsefulCommercials))
+
+# 50 commercials with higest GRP, but no peak
+nonUsefulCommercials50 <- subset(nonUsefulCommercials, nonUsefulCommercials$time_min < 1435)
+nonUsefulCommercials50 <- subset(nonUsefulCommercials50, nonUsefulCommercials50$time_min > 60)
+nonUsefulCommercials50 <- nonUsefulCommercials50[1:50,]
+row.names(nonUsefulCommercials50) = NULL # resets rownrs
+sort(summary(as.factor(nonUsefulCommercials50$channel)))
+sort(summary(as.factor(nonUsefulCommercials50$position_in_break_3option)))
+sort(summary(as.factor(nonUsefulCommercials50$length_of_spot)))
+sort(summary(nonUsefulCommercials50$gross_rating_point))
+summary(broadNet$gross_rating_point)
+sd(broadNet$gross_rating_point)
+sort(summary(as.factor(nonUsefulCommercials50$weekdays)))
+summary(nonUsefulCommercials50$hours)

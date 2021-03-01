@@ -64,8 +64,11 @@ for (i in 1:nBroad) { # nBroad
 broadNet = subset(broad, country == 'Netherlands')
 broadBel = subset(broad, country == 'Belgium')
 
+broadNetNoMidnight = subset(broadNet, broadNet$time_min < 1435)
+broadNetNoMidnight = subset(broadNetNoMidnight, broadNetNoMidnight$time_min > 5)
 
-
+broadBelNoMidnight = subset(broadBel, broadBel$time_min < 1435)
+broadBelNoMidnight = subset(broadBelNoMidnight, broadBelNoMidnight$time_min > 5)
 
 ## ========================================================
 ##                    First analysis
