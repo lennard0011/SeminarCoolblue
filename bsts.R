@@ -22,21 +22,25 @@ plot(interestVectorBCC$hits, type = 'l', xlab = "Day of the year", ylab = "BCC s
 
 
 #bsts
-# #make avg_gross_rating_point variable - Net
-# total_gross_rating_point = matrix(0, amountDays)
-# amount_broadcast = matrix(0, amountDays)
-# for (i in 1:NROW(broadNet)){
-#   dayNr = yday(broadNet$date[i])
-#   gross_rating_point = broadNet$gross_rating_point[i]
-#   total_gross_rating_point[dayNr] = total_gross_rating_point[dayNr] + gross_rating_point
-#   amount_broadcast[dayNr] = amount_broadcast[dayNr] + 1
-# }
+#make avg_gross_rating_point variable - Net
+total_gross_rating_point = matrix(0, amountDays)
+amount_broadcast = matrix(0, amountDays)
+for (i in 1:NROW(broadNet)){
+  dayNr = yday(broadNet$date[i])
+  gross_rating_point = broadNet$gross_rating_point[i]
+  total_gross_rating_point[dayNr] = total_gross_rating_point[dayNr] + gross_rating_point
+  amount_broadcast[dayNr] = amount_broadcast[dayNr] + 1
+}
+mean(total_gross_rating_point[42:97])
+mean(total_gross_rating_point[140:154])
+mean(total_gross_rating_point[168:181])
 # avg_gross_rating_point_Net = total_gross_rating_point/amount_broadcast
 # for (i in 1:NROW(avg_gross_rating_point_Net)){
 #   if (is.nan(avg_gross_rating_point_Net[i])){
 #     avg_gross_rating_point_Net[i] = 0
 #   }
 # }
+
 # 
 # #make avg_gross_rating_point variable - Bel
 # total_gross_rating_point = matrix(0, amountDays)

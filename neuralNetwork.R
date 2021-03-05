@@ -67,6 +67,14 @@ names(visitNetDummBroad)
 rm(broadGRP)
 rm(broadAmount)
 
+#crosseffects with GRP
+for (i in names(visitNetDummBroad)) {
+  if (i != "visitsWebNet" & i != "visitsWebNet"){
+    visitNetDummBroad = cbind(visitNetDummBroad, visitNetDummBroad[i] *  visitNetDummBroad$gross_rating_point)
+  }
+}
+
+
 # Make train and testset. Testset is last month.
 scaledvisitNetDummBroad = scale(visitNetDummBroad)
 center = attr(scaledvisitNetDummBroad, 'scaled:center')
@@ -174,7 +182,6 @@ plot(history)
 predNNWhole = predict(modelWholeOpt, xWhole)
 hist((yWhole - predNNWhole))
 
-xMean = t(as.matrix(colMeans(xTrain)))
 sensAn = function(model, xTrain, depVar, center, scale) {
   stepSize = 1000
   xMean = t(as.matrix(colMeans(xTrain)))
@@ -192,9 +199,33 @@ sensAn = function(model, xTrain, depVar, center, scale) {
   return(highest - lowest)
 }
 
-sensAn(modelWholeOpt, xTrain, "gross_rating_point", center, scale)
-sensAn(modelWholeOpt, xTrain, "broadAmount", center, scale)
-sensAn(modelWholeOpt, xTrain, "visitsLag1Week", center, scale)
+length(colnames(xWhole))
+
+
+
+xWhole[, 62:122] = xWhole[, 62:122] / mean(xWhole[,"gross_rating_point"])
+
+sensAn = function(model, xTrain, depVar, center, scale) {
+  stepSize = 1000
+  xMean = t(as.matrix(colMeans(xTrain)))
+  xMeanMatrix = xMean[rep(seq_len(nrow(xMean)), each = stepSize), ]
+  maxValue = max(xTrain[,depVar])
+  minValue = min(xTrain[,depVar])
+  varTries = seq(from = minValue, to = maxValue, length.out = stepSize)
+  xMeanMatrix[,depVar] = varTries
+  xMeanMatrix[, 62:122] = xMeanMatrix[, 62:122] * varTries
+  predictions = predict(model, xMeanMatrix)
+  visitors = scale["visitsWebNet"]*predictions + center["visitsWebNet"]
+  plot(5*(varTries*scale[depVar] + center[depVar]), visitors, type = "l", xlab = depVar)
+  lowest = visitors[1]
+  highest = visitors[stepSize]
+  
+  return(highest - lowest)
+}
+
+sensAn(modelWholeOpt, xWhole, "gross_rating_point", center, scale)
+sensAn(modelWholeOpt, xWhole, "broadAmount", center, scale)
+sensAn(modelWholeOpt, xWhole, "visitsLag1Week", center, scale)
 #channeleffect
 varNames = colnames(xTrain)
 channelNames = varNames[34:61]
