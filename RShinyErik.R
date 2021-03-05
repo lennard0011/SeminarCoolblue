@@ -16,7 +16,7 @@ channels = c(unique(broadNet$channel))
 ui = fluidPage(
   sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value = 1, min = 0.1, max = 20.0),
   selectInput(inputId = "channels", label = "Choose your channel", choices = channels),
-  sliderInput(inputId = "hour", label = "Choose broadcast time", value = 20, min = 0, max = 23),
+  sliderInput(inputId = "hour", label = "Choose broadcast time", value = 12, min = 0, max = 23),
   selectInput(inputId = "weekday", label = "Choose day of the week", selected = "Monday",
               choices = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")),
   radioButtons(inputId = "length_spot", label = "Choose the spot length", selected = "30",
@@ -109,7 +109,7 @@ server = function(input, output) {
     row.names(frame) = rownames(fullCoef)
     return(frame)
   })
-  output$text = renderPrint({
+  output$text = renderText({
     # print(paste0("GRP: ", input$GRP))
     # print(paste0("Channel: ", input$channels))
     # print(paste0("Hour: ", input$hour))
@@ -117,8 +117,15 @@ server = function(input, output) {
     # print(paste0("Length of spot: ", input$length_spot))
     # print(paste0("Position in break: ", input$pos_break))
     # print(paste0("Product category: ", input$prod_category))
-    print(newCoefficients())
-    paste("The expected extra traffic is", predict(fullModel, newdata = newCoefficients()))getwd()
+    
+    # "Hello you"
+    # print(newCoefficients())
+    if (input$hour >= 2 & input$hour <= 5){
+      paste0("We cannot give information for this time of the day, as we have no data for it.")
+    } else{
+      paste0("We expect the visit index five minutes after the commercial to be ", round(sum(newCoefficients() * fullCoef), 2), " higher than would have been expected without a commercial.") 
+    }
+    # paste("The expected extra traffic is", predict(fullModel, newdata = newCoefficients()))
   })
 }
 shinyApp(ui=ui, server=server)
