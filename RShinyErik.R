@@ -69,19 +69,19 @@ server = function(input, output) {
     # Length of spot
     spotlength = matrix(0, 2)
     if (input$length_spot == 30){
-      spotlength[1] == 1
+      spotlength[1] = 1
     } 
     else if (input$length_spot == '30 + 10'){
-      spotlength[2] == 1
+      spotlength[2] = 1
     }
     
     # Position in break
     breakPos = matrix(0, 2)
     if (input$pos_break == 'begin'){
-      breakPos[1] == 1
+      breakPos[1] = 1
     }
     else if (input$pos_break == 'end'){
-      brekaPos[2] == 1
+      breakPos[2] = 1
     }
     
     # Weekday
@@ -105,7 +105,9 @@ server = function(input, output) {
       weekDay[3] = 1
     }
     
-    as.data.frame(c(1, 0, hours, GRP, prod_cat, channel, spotlength, breakPos, weekDay, 0, 0))
+    frame = as.data.frame(c(1, 0, hours, GRP, prod_cat, channel, spotlength, breakPos, weekDay, 0, 0))
+    row.names(frame) = rownames(fullCoef)
+    return(frame)
   })
   output$text = renderPrint({
     # print(paste0("GRP: ", input$GRP))
@@ -116,7 +118,7 @@ server = function(input, output) {
     # print(paste0("Position in break: ", input$pos_break))
     # print(paste0("Product category: ", input$prod_category))
     print(names(newCoefficients()))
-    #paste("The expected extra traffic is", predict(fullModel, newdata = newCoefficients()))
+    paste("The expected extra traffic is", predict(fullModel, newdata = newCoefficients()))
   })
 }
 shinyApp(ui=ui, server=server)
