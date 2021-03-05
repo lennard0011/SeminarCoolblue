@@ -254,6 +254,7 @@ getModelSumm(baselineModel, TRUE)
 
 # Full model 
 fullModel = lm(broadNet$postVisitorsApp ~ broadNet$preVisitorsApp + factor(broadNet$hours) + broadNet$gross_rating_point + ., data = dummiesDirectModel)
+save(fullModel, file = "my-fitted-boost.rda")
 getModelSumm(fullModel, T)
 
 # Baseline models -- BE APP

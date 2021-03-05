@@ -7,6 +7,9 @@ library("shiny")
 library("stringr")
 
 # Input: regression function
+
+
+#fullModel <- load(file = "C:/Users/Probook/my_fitted_model.rda",.GlobalEnv)
 fullCoef = as.data.frame(fullModel$coefficients)
 channels = c(unique(broadNet$channel))
 
@@ -115,8 +118,12 @@ server = function(input, output) {
     # print(paste0("Position in break: ", input$pos_break))
     # print(paste0("Product category: ", input$prod_category))
     print(newCoefficients())
+<<<<<<< HEAD
     # print(predict(fullModel, newdata = newCoefficients()))
     # paste("The expected extra traffic is", predict(fullModel, newdata = newCoefficients()))
+=======
+    paste("The expected extra traffic is", predict(fullModel, newdata = newCoefficients()))getwd()
+>>>>>>> bf7181742f0ddc743cef4a27fdebd76a0059a3dc
   })
 }
 shinyApp(ui=ui, server=server)
