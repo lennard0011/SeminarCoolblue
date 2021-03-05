@@ -117,25 +117,14 @@ server = function(input, output) {
     # print(paste0("Length of spot: ", input$length_spot))
     # print(paste0("Position in break: ", input$pos_break))
     # print(paste0("Product category: ", input$prod_category))
-<<<<<<< HEAD
-    
-    # "Hello you"
-    # print(newCoefficients())
+
     if (input$hour >= 2 & input$hour <= 5){
       paste0("We cannot give information for this time of the day, as we have no data for it.")
     } else{
       paste0("We expect the visit index five minutes after the commercial to be ", round(sum(newCoefficients() * fullCoef), 2), " higher than would have been expected without a commercial.") 
     }
     # paste("The expected extra traffic is", predict(fullModel, newdata = newCoefficients()))
-=======
-<<<<<<< HEAD
-    print(names(newCoefficients()))
-    paste("The expected extra traffic is", predict(fullModel, newdata = newCoefficients()))
-=======
-    print(newCoefficients())
-    paste("The expected extra traffic is", predict(fullModel, newdata = newCoefficients()))getwd()
->>>>>>> 205baf9266f76f5e418103a0e3a5cf57eea5d5f4
->>>>>>> a64a4e32db1226820faee894d69ae2cd249dd84f
+
   })
 }
 shinyApp(ui=ui, server=server)
