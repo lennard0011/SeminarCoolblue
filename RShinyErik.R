@@ -106,6 +106,7 @@ server = function(input, output) {
     }
     
     frame = as.data.frame(c(1, 0, hours, GRP, prod_cat, channel, spotlength, breakPos, weekDay, 0, 0))
+    print(rownames(fullCoef))
     row.names(frame) = rownames(fullCoef)
     return(frame)
   })
@@ -117,13 +118,8 @@ server = function(input, output) {
     # print(paste0("Length of spot: ", input$length_spot))
     # print(paste0("Position in break: ", input$pos_break))
     # print(paste0("Product category: ", input$prod_category))
-<<<<<<< HEAD
-    print(names(newCoefficients()))
-    paste("The expected extra traffic is", predict(fullModel, newdata = newCoefficients()))
-=======
-    print(newCoefficients())
-    paste("The expected extra traffic is", predict(fullModel, newdata = newCoefficients()))getwd()
->>>>>>> 205baf9266f76f5e418103a0e3a5cf57eea5d5f4
+    print(colnames(newCoefficients()))
+    #paste("The expected extra traffic is", predict(fullModel, newdata = newCoefficients()))
   })
 }
 shinyApp(ui=ui, server=server)
