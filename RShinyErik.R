@@ -65,14 +65,14 @@ fullModel$coefficients
 ui <- fluidPage(
   sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value=1, min=0.1, max =20.0),
   selectInput(inputId = "channels", label = "Choose your channel", choices = c("NPO1", "NPO2", "NPO3")),
-  sliderInput(inputId = "hour", label = "Choose broadcast time", value = 20, min=18, max = 23),
-  checkboxGroupInput(inputId = "weekday", label = "Choose day of the week", selected = "Monday",
+  sliderInput(inputId = "hour", label = "Choose broadcast time", value = 20, min=0, max = 23),
+  selectInput(inputId = "weekday", label = "Choose day of the week", selected = "Monday",
                      choices = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")),
-  checkboxGroupInput(inputId = "length_spot", label = "Choose the spot length", selected = "30",
+  radioButtons(inputId = "length_spot", label = "Choose the spot length", selected = "30",
                      choices = c("30", "30+10", "30+10+5")),
-  checkboxGroupInput(inputId = "pos_break", label = "Choose position in break", selected = "begin",
+  radioButtons(inputId = "pos_break", label = "Choose position in break", selected = "begin",
                      choices = c("begin", "middle", "end")),
-  checkboxGroupInput(inputId = "prod_category", label = "Choose product category", selected = "washing machines",
+  radioButtons(inputId = "prod_category", label = "Choose product category", selected = "washing machines",
                      choices = c("washing_machines", "televisions", "laptops")),
   textOutput(outputId = "text")
 )

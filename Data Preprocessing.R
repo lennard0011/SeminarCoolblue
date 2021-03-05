@@ -1,5 +1,5 @@
 # Seminar Coolblue 2021 -- Data Preprocessing
-# @authors: Lennard van der Plas, Erik van der Heide, Marjolein de Width, Daniël Buijs
+# @authors: Lennard van der Plas, Erik van der Heide, Marjolein de Width, Dani?l Buijs
 
 # install packages (uncomment to install a package)
 #install.packages("chron")
@@ -449,3 +449,4 @@ removeNonSingular <- function(model, data) {
   data = data[, !(names(data) %in% naCoef )]
   data
 }
+
