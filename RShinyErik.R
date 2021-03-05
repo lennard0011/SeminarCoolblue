@@ -11,7 +11,7 @@ library("stringr")
 
 #fullModel <- load(file = "C:/Users/Probook/my_fitted_model.rda",.GlobalEnv)
 fullCoef = as.data.frame(fullModel$coefficients)
-channels = c(unique(broadNet$channel))
+channels = unique(broadNet$channel)
 
 ui = fluidPage(
   sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value = 1, min = 0.1, max = 20.0),
@@ -61,7 +61,7 @@ server = function(input, output) {
         chan = substring(rowname, 9)
       }
       if (chan == input$channels){
-        channel[i - 24] == 1
+        channel[i - 24] = 1
         break
       }
     }
@@ -107,7 +107,7 @@ server = function(input, output) {
     
     as.data.frame(c(1, 0, hours, GRP, prod_cat, channel, spotlength, breakPos, weekDay, 0, 0))
   })
-  output$text = renderText({
+  output$text = renderPrint({
     # print(paste0("GRP: ", input$GRP))
     # print(paste0("Channel: ", input$channels))
     # print(paste0("Hour: ", input$hour))
@@ -115,8 +115,8 @@ server = function(input, output) {
     # print(paste0("Length of spot: ", input$length_spot))
     # print(paste0("Position in break: ", input$pos_break))
     # print(paste0("Product category: ", input$prod_category))
-    print(newCoefficients())
-    paste("The expected extra traffic is", predict(fullModel, newdata = newCoefficients()))getwd()
+    print(names(newCoefficients()))
+    #paste("The expected extra traffic is", predict(fullModel, newdata = newCoefficients()))
   })
 }
 shinyApp(ui=ui, server=server)
