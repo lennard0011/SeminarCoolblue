@@ -122,8 +122,8 @@ server = function(input, output) {
       paste0("We cannot give information for this time of the day, as we have no data for it.")
     } 
     else if (input$hour < 2 || input$hour > 5 & round(sum(newCoefficients() * fullCoef), 3) >= 0){
-      paste0("We expect the visit index five minutes after the commercial to be ", round(sum(newCoefficients() * fullCoef), 3), " higher than would have been expected without a commercial.") 
-    } else{
+      paste0("We expect the visit density five minutes after the commercial to be ", round(sum(newCoefficients() * fullCoef), 3), " higher than would have been expected without a commercial.") 
+    } else {
       paste0("We could not find a significant effect for these settings.")
     }
     # paste("The expected extra traffic is", predict(fullModel, newdata = newCoefficients()))
