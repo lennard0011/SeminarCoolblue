@@ -51,6 +51,8 @@ broad = read.csv(file.choose(), header = T)
 # subset data
 traffic = subset(traffic, bounces != 1 | is.na(bounces)) # leave out bounces=1
 broad = broad[broad[, "gross_rating_point"] > 0,]  # leave out GRP=0
+# quan = quantile(broad$gross_rating_point, 0.95)
+# broad = broad[broad[, "gross_rating_point"] > 0 & broad[, 'gross_rating_point'] <= quan,]
 
 nTraffic = nrow(traffic)
 nBroad = nrow(broad)

@@ -184,6 +184,17 @@ getModelSumm(baselineModel, T)
 fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(broadNet$hours) + broadNet$gross_rating_point + ., data = dummiesDirectModel)
 getModelSumm(fullModel, T)
 
+
+# TRY OUT
+datas = dummiesDirectModel
+for (i in 1:ncol(datas)){
+  datas[, i] = broadNet$gross_rating_point * dummiesDirectModel[, i]
+}
+
+fullModel2 = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(broadNet$hours) + ., data = datas)
+getModelSumm(fullModel2, T)
+
+
 # Baseline models -- BE WEB
 baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours) + weekdays, data = broadBel)
 getModelSumm(baselineModel, T)
