@@ -57,11 +57,17 @@ renderTable()         # Table (from dataframe/matrix)
 renderText()          # Character string
 renderUI()            # Shiny UI element
 
-# ACTUAL PROJECT
+# =======================================================
+#                 Peak Analysis model
+# =======================================================
+
+
+# =======================================================
+#               Start of regression model
+# =======================================================
 
 # Input: regression function
 fullModel$coefficients
-
 ui <- fluidPage(
   sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value=1, min=0.1, max =20.0),
   selectInput(inputId = "channels", label = "Choose your channel", choices = c("NPO1", "NPO2", "NPO3")),
