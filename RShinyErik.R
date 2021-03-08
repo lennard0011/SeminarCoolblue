@@ -9,7 +9,7 @@ library("stringr")
 # Input: regression function
 
 
-#fullModel <- load(file = "C:/Users/Probook/my_fitted_model.rda",.GlobalEnv)
+fullModel <- load(file = "C:/Users/Probook/my_fitted_model.rda",.GlobalEnv)
 fullCoef = as.data.frame(fullModel$coefficients)
 channels = unique(broadNet$channel)
 
@@ -30,7 +30,7 @@ ui = fluidPage(
 server = function(input, output) {
   newCoefficients = reactive({
     # Hour
-    hours = matrix(0, 19)
+    hours = matrix(0, ncol = 19)
     if (input$hour == 1){
       hours[1] = 1
     }
@@ -42,7 +42,7 @@ server = function(input, output) {
     GRP = input$GRP
     
     # Product Category
-    prod_cat = matrix(0, 2)
+    prod_cat = matrix(0, ncol = 2)
     if (input$prod_category == 'Laptops'){
       prod_cat[1] = 1
     }
@@ -51,7 +51,7 @@ server = function(input, output) {
     }
     
     # Channel
-    channel = matrix(0, 28)
+    channel = matrix(0, ncol = 28)
     for (i in 25:52){
       rowname = rownames(fullCoef)[i]
       if (substring(rowname, 1, 1) == "`"){
@@ -67,7 +67,7 @@ server = function(input, output) {
     }
     
     # Length of spot
-    spotlength = matrix(0, 2)
+    spotlength = matrix(0, ncol = 2)
     if (input$length_spot == 30){
       spotlength[1] = 1
     } 
@@ -76,7 +76,7 @@ server = function(input, output) {
     }
     
     # Position in break
-    breakPos = matrix(0, 2)
+    breakPos = matrix(0, ncol = 2)
     if (input$pos_break == 'begin'){
       breakPos[1] = 1
     }
@@ -85,7 +85,7 @@ server = function(input, output) {
     }
     
     # Weekday
-    weekDay = matrix(0, 6)
+    weekDay = matrix(0, ncol = 6)
     if (input$weekday == 'Tuesday'){
       weekDay[1] = 1
     }
@@ -105,11 +105,12 @@ server = function(input, output) {
       weekDay[3] = 1
     }
     
-    frame = as.data.frame(c(1, 0, hours, GRP, prod_cat, channel, spotlength, breakPos, weekDay, 0, 0))
-    row.names(frame) = rownames(fullCoef)
+    frame = as.data.frame(cbind(1, 0, hours, GRP, prod_cat, channel, spotlength, breakPos, weekDay, 0, 0))
+    
+    names(frame) = names(fullModel$coefficients)
     return(frame)
   })
-  output$text = renderText({
+  output$text = renderPrint({
     # print(paste0("GRP: ", input$GRP))
     # print(paste0("Channel: ", input$channels))
     # print(paste0("Hour: ", input$hour))
