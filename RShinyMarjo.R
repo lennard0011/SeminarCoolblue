@@ -2,8 +2,12 @@
 # @ Erik van der Heide
 
 # TEMPLATE
-#install.packages("shiny")
+# install.packages("shiny")
+# install.packages("shinydashboard")
+# install.packages("shinyWidgets")
 library("shiny")
+library("shinydashboard")
+library("shinyWidgets")
 library("stringr")
 
 # Input: regression function
@@ -14,20 +18,75 @@ fullCoef = as.data.frame(fullModel$coefficients)
 # fullCoef = as.data.frame(fullModel2$coefficients)
 channels = append(unique(broadNet$channel), "Slam!TV")
 
-ui = fluidPage(
-  numericInput(inputId = "maxVD", label = "Maximum visit density", value = 100, min = 0, max = 500, step = 10),
-  sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value = 1, min = 0.05, max = 2.75),
-  selectInput(inputId = "channels", label = "Choose your channel", choices = channels),
-  sliderInput(inputId = "hour", label = "Choose broadcast time", value = 12, min = 0, max = 23),
-  selectInput(inputId = "weekday", label = "Choose day of the week",
-              choices = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")),
-  radioButtons(inputId = "length_spot", label = "Choose the spot length", selected = "30",
-               choices = c("30", "30 + 10", "30 + 10 + 5")),
-  radioButtons(inputId = "pos_break", label = "Choose the position in break", selected = "Begin",
-               choices = c("Begin", "Middle", "End")),
-  radioButtons(inputId = "prod_category", label = "Choose product category", selected = "Washing machines",
-               choices = c("Washing machines", "Televisions", "Laptops")),
-  textOutput(outputId = "text")
+ui = dashboardPage(
+  dashboardHeader(title = tags$strong("Direct effects of a TV-commercial"), titleWidth = 350),
+  dashboardSidebar(disable = T),
+  dashboardBody(
+    tags$head(tags$style(HTML('
+                                /* logo */
+                                .skin-blue .main-header .logo {
+                                background-color: #fe6c16;
+                                }
+
+                                /* logo when hovered */
+                                .skin-blue .main-header .logo:hover {
+                                background-color: #fe6c16;
+                                }
+
+                                /* navbar (rest of the header) */
+                                .skin-blue .main-header .navbar {
+                                background-color: #fe6c16;
+                                }
+
+                                /* main sidebar */
+                                .skin-blue .main-sidebar {
+                                background-color: #fe6c16;
+                                }
+
+                                /* body */
+                                .content-wrapper, .right-side {
+                                background-color: #1daaef;
+                                }
+
+                                '))),
+    
+    fluidRow(
+      box(width = 4,
+          title = "Commercial-specific effects", 
+          sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value = 1, min = 0.05, max = 2.75),
+          selectInput(inputId = "channels", label = "Choose your channel", choices = channels),
+          sliderInput(inputId = "hour", label = "Choose broadcast time", value = 12, min = 0, max = 23),
+          selectInput(inputId = "weekday", label = "Choose day of the week",
+                      choices = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))
+      ),
+      box(width = 4,
+          title = "Commercial-specific effects",
+          radioButtons(inputId = "length_spot", label = "Choose the spot length", selected = "30",
+                       choices = c("30", "30 + 10", "30 + 10 + 5")),
+          radioButtons(inputId = "pos_break", label = "Choose the position in break", selected = "Begin",
+                       choices = c("Begin", "Middle", "End")),
+          radioButtons(inputId = "prod_category", label = "Choose product category", selected = "Washing machines",
+                       choices = c("Washing machines", "Televisions", "Laptops"))
+      ),
+      column(width = 4,
+             fluidRow(
+               box(
+                   title = "Maximum amount of minutely visitors",
+                   numericInput(inputId = "maxVD", label = "Maximum amount of minutely visitors", value = 100, min = 0, max = 500, step = 10)
+               ),
+               box(
+                   title = "Extra amount of visitors",
+                   textOutput(outputId = "text") 
+               ),
+               box(
+                 tags$img(height = 100,
+                          width = 100,
+                          src = "coolblue2.jpg")
+               )
+             )
+      )
+    )
+  )
 )
 
 server = function(input, output) {
@@ -129,7 +188,7 @@ server = function(input, output) {
     } 
     else if (input$hour < 2 || input$hour > 5){
       if (round(input$maxVD * sum(newCoefficients() * fullCoef)) > 0){
-        paste0("We expect the amount of visitors five minutes after the commercial to be ", round(input$maxVD * sum(newCoefficients() * fullCoef)), " higher than what would have been expected without a commercial")
+        paste0("We expect the amount of visitors five minutes after the commercial to be ", round(input$maxVD * sum(newCoefficients() * fullCoef)), " more than what would have been expected without a commercial")
       }
       else if (round(sum(newCoefficients() * fullCoef), 3) < 0){
         paste0("We could not find a significant effect for these settings.")

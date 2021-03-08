@@ -154,7 +154,7 @@ getModelSumm <- function(model, coef) {
   }
   print(paste("R^2: ", summary(model)$r.squared))
   hist(model$residuals, breaks = 50)
-  print(paste("AIC: ",AIC(model)))
+  print(paste("AIC: ", AIC(model)))
   print(paste("BIC: ", BIC(model)))
 }
 
