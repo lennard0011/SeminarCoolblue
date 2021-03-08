@@ -1,5 +1,5 @@
 # Seminar Coolblue 2021 -- Data Preprocessing
-# @authors: Lennard van der Plas, Erik van der Heide, Marjolein de Width, Dani?l Buijs
+# @authors: Lennard van der Plas, Erik van der Heide, Marjolein de With, Daniël Buijs
 
 # install packages (uncomment to install a package)
 #install.packages("chron")
@@ -50,9 +50,14 @@ broad = read.csv(file.choose(), header = T)
 
 # subset data
 traffic = subset(traffic, bounces != 1 | is.na(bounces)) # leave out bounces=1
-broad = broad[broad[, "gross_rating_point"] > 0,]  # leave out GRP=0
-# quan = quantile(broad$gross_rating_point, 0.95)
-# broad = broad[broad[, "gross_rating_point"] > 0 & broad[, 'gross_rating_point'] <= quan,]
+
+broad = broad[broad[, "gross_rating_point"] > 0, ]  # leave out GRP=0
+
+broadNet = subset(broad, country == 'Netherlands')
+broadBel = subset(broad, country == 'Belgium')
+
+quan = quantile(broadNet$gross_rating_point, 0.95)
+broad = broad[broad[, 'gross_rating_point'] <= quan, ]
 
 nTraffic = nrow(traffic)
 nBroad = nrow(broad)

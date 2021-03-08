@@ -154,27 +154,9 @@ getModelSumm <- function(model, coef) {
   }
   print(paste("R^2: ", summary(model)$r.squared))
   hist(model$residuals, breaks = 50)
-  print(paste("AIC: ",AIC(model)))
+  print(paste("AIC: ", AIC(model)))
   print(paste("BIC: ", BIC(model)))
 }
-
-# Cross-products
-grpOverlap = matrix(0, nrow(broadNet))
-for (i in 1:nrow(broadNet)){
-  if (dummiesDirectModel$overlapBefore_1[i] == 1){
-    grpOverlap[i] = broadNet$gross_rating_point[i - 1] + broadNet$gross_rating_point[i]
-  }
-  else if (dummiesDirectModel$overlapAfter_1[i] == 1){
-    grpOverlap[i] = broadNet$gross_rating_point[i] + broadNet$gross_rating_point[i + 1]
-  }
-  else{
-    grpOverlap[i] = broadNet$gross_rating_point[i]
-  }
-}
-GRP30 = broadNet$gross_rating_point * dummiesDirectModel$length_of_spot_30
-GRP3010 = broadNet$gross_rating_point * dummiesDirectModel$`length_of_spot_30 + 10`
-GRPbegin = broadNet$gross_rating_point * dummiesDirectModel$position_in_break_3option_begin
-GRPend = broadNet$gross_rating_point * dummiesDirectModel$position_in_break_3option_end
 
 # Baseline models
 baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours) + weekdays, data = broadNet)
