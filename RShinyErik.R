@@ -8,8 +8,7 @@ library("stringr")
 
 # Input: regression function
 
-
-fullModel <- load(file = "C:/Users/Probook/my_fitted_model.rda",.GlobalEnv)
+load("fullModelSaved.rda")
 fullCoef = as.data.frame(fullModel$coefficients)
 channels = unique(broadNet$channel)
 
@@ -106,28 +105,27 @@ server = function(input, output) {
     }
     
     frame = as.data.frame(cbind(1, 0, hours, GRP, prod_cat, channel, spotlength, breakPos, weekDay, 0, 0))
+    #names(frame) = names(fullModel$coefficients)
+    names(frame) = gsub("`", "", names(fullModel$coefficients))
     
-    names(frame) = names(fullModel$coefficients)
     return(frame)
   })
+  
   output$text = renderPrint({
-    # print(paste0("GRP: ", input$GRP))
-    # print(paste0("Channel: ", input$channels))
-    # print(paste0("Hour: ", input$hour))
-    # print(paste0("Weekday: ", input$weekday))
-    # print(paste0("Length of spot: ", input$length_spot))
-    # print(paste0("Position in break: ", input$pos_break))
-    # print(paste0("Product category: ", input$prod_category))
-
-    if (input$hour >= 2 & input$hour <= 5 & round(sum(newCoefficients() * fullCoef), 3) >= 0){
-      paste0("We cannot give information for this time of the day, as we have no data for it.")
-    } 
-    else if (input$hour < 2 || input$hour > 5 & round(sum(newCoefficients() * fullCoef), 3) >= 0){
-      paste0("We expect the visit density five minutes after the commercial to be ", round(sum(newCoefficients() * fullCoef), 3), " higher than would have been expected without a commercial.") 
-    } else {
-      paste0("We could not find a significant effect for these settings.")
-    }
-    # paste("The expected extra traffic is", predict(fullModel, newdata = newCoefficients()))
+    #if (input$hour >= 2 & input$hour <= 5 & round(sum(newCoefficients() * fullCoef), 3) >= 0){
+    #  paste0("We cannot give information for this time of the day, as we have no data for it.")
+    #} 
+    #else if (input$hour < 2 || input$hour > 5 & round(sum(newCoefficients() * fullCoef), 3) >= 0){
+    #  paste0("We expect the visit density five minutes after the commercial to be ", round(sum(newCoefficients() * fullCoef), 3), " higher than would have been expected without a commercial.") 
+    #} else {
+    #  paste0("We could not find a significant effect for these settings.")
+    #}
+    
+    names(newCoefficients())
+    
+    predict(fullModel, newdata = newCoefficients())
+    
+    #paste0("The expected extra traffic is", predict(fullModel, newdata = newCoefficients()))
 
   })
 }

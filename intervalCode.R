@@ -180,10 +180,21 @@ GRPend = broadNet$gross_rating_point * dummiesDirectModel$position_in_break_3opt
 baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours) + weekdays, data = broadNet)
 getModelSumm(baselineModel, T)
 
-# Full model 
+# Full model
+input = as.data.frame(cbind(broadNet$postVisitorsWeb, broadNet$preVisitorsWeb, factor(broadNet$hours), broadNet$gross_rating_point, dummiesDirectModel))
+names(input)[1:4] = c("postVisitorsWeb", "preVisitorsWeb", "hours", "gross_rating_point")
 fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(broadNet$hours) + broadNet$gross_rating_point + ., data = dummiesDirectModel)
-getModelSumm(fullModel, T)
+fullModelTest = lm(postVisitorsWeb ~ ., data = input)
 
+testdf = as.data.frame(matrix(data = 0, nrow = 1, ncol = 46))
+names(testdf) = names(input)
+
+testdf["hours"] = factor(testdf["hours"])
+predict(fullModelTest, testdf)
+
+getModelSumm(fullModel, T)
+save(fullModelTest, file = "fullModelSaved.rda")
+save(testdf, file = "testdf")
 
 # TRY OUT
 datas = dummiesDirectModel
