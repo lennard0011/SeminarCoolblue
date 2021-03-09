@@ -15,6 +15,12 @@ ui <- shinyUI(fluidPage(
       #channel
       selectInput(inputId = "channel", label = "Choose your channel", 
                   choices = c("All", sort(unique(broadNet$channel)))),
+      #month
+      selectInput(inputId = "month", label = "Choose a month", 
+                  choices = c("All", "January", "February", "March", "April", "May", "June") ),
+      #hour
+      sliderInput(inputId = "hour", label = "Choose range of time: ", 
+                  min = 6, max = 24, value = c(6,24)),
       #length_of_spot
       selectInput(inputId = "length_of_spot", label = "Choose length of the spot", 
                   choices = c("All", sort(unique(broadNet$length_of_spot)))),
@@ -24,12 +30,6 @@ ui <- shinyUI(fluidPage(
       #product_category
       selectInput(inputId = "product_category", label = "Choose product category", 
                   choices = c("All", sort(unique(broadNet$product_category)))),
-      #month
-      selectInput(inputId = "month", label = "Choose a month", 
-                  choices = c("All", "January", "February", "March", "April", "May", "June") ),
-      #weekday / day (interactive)
-      #hour
-      #minute
       #Keuze op sorteren
       radioButtons(inputId = "choose_ordering", label = "Choose ordering of data",
                     choices = c("Date", "Gross Rating Point"), inline=T)
@@ -42,40 +42,17 @@ ui <- shinyUI(fluidPage(
                   tabPanel("Plot",plotOutput(outputId="plot"))
       )
     )
-  ),
-  
-  # Output text
-  textOutput(outputId = "text1"),
-  textOutput(outputId = "text2"),
-  textOutput(outputId = "text3"),
-  textOutput(outputId = "text4"),
-  # Output table
-  #tableOutput(outputId = "Table")
+  )
 )) 
 
 # SERVER
 server <- function(session, input, output) {
-  output$text1 <- renderText({
-    print(paste0("Channel: ", input$channel))
-  })
-  output$text2 <- renderText({
-    print(paste0("Hour: ", input$length_of_spot))
-  })
-  output$text3 <- renderText({
-    print(paste0("Weekday: ", input$position_in_break_3option))
-  })
-  output$text4 <- renderText({
-    print(paste0("Length of spot: ", input$product_category))
-  })
-  
-  
+  # Create the reaction table
   mtreact <- reactive({
     reactTable = broadNet
     # subset on channel
     if (input$channel != "All") {
       reactTable = subset(reactTable, channel == input$channel)
-      updateSelectInput(session, inputId = "length_of_spot", label = "Choose length of the spot",
-                        choices = c("All", unique(reactTable$length_of_spot)))
     }
     # subset on length of spot
     if (input$length_of_spot != "All") {
@@ -105,16 +82,64 @@ server <- function(session, input, output) {
       }
       reactTable = subset(reactTable, month(date) == nrMonth)
     }
+    # put time restriction
+    reactTable = subset(reactTable, as.numeric(hours) >= input$hour[1])
+    reactTable = subset(reactTable, as.numeric(hours) < input$hour[2])
     # order on date or grp
     if (input$choose_ordering == "Date") {
       reactTable = reactTable[order(reactTable$date, reactTable$time),]
     } else {
       reactTable = reactTable[order(-reactTable$gross_rating_point), ]
     }
+    # Output
     reactTable = reactTable[,c("channel", "date", "time", "gross_rating_point")]
     reactTable
   })
   
+  ## Create the interactiveness
+  #observe({
+  #  # SUBSET the data
+  #  broadNetSub = broadNet
+  #  # subset on channel
+  #  if (input$channel != "All") {
+  #    broadNetSub = subset(broadNetSub, channel == input$channel)
+  #  }
+  #  # subset on length of spot
+  #  if (input$length_of_spot != "All") {
+  #    broadNetSub = subset(broadNetSub, length_of_spot == input$length_of_spot)
+  #  }
+  #  # subset on position in break
+  #  if (input$position_in_break_3option != "All") {
+  #    broadNetSub = subset(broadNetSub, position_in_break_3option == input$position_in_break_3option)
+  #  }
+  #  # subset on product category
+  #  if (input$product_category != "All") {
+  #    broadNetSub = subset(broadNetSub, product_category == input$product_category)
+  #  }
+  #  # subset on month
+  #  if (input$month != "All") {
+  #    nrMonth = 6
+  #    if (input$month == "January") {
+  #      nrMonth = 1
+  #    } else if (input$month == "February") {
+  #      nrMonth = 2
+  #    } else if (input$month == "March") {
+  #      nrMonth = 3
+  #    } else if (input$month == "April") {
+  #      nrMonth = 4
+  #    } else if (input$month == "May") {
+  #      nrMonth = 5
+  #    }
+  #    broadNetSub = subset(broadNetSub, month(date) == nrMonth)
+  #  }
+  #  
+  #  # UPDATE the selectors (minute and hours)
+  #  updateSelectInput(session, inputId = "length_of_spot", label = "Choose length of the spot",
+  #                    choices = c("All", unique(broadNetSub$length_of_spot)))
+  #})
+  
+  
+  # Output table
   output$Table <- renderTable({
     mtreact()
   })

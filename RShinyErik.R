@@ -4,94 +4,135 @@
 # TEMPLATE
 #install.packages("shiny")
 library("shiny")
+library("stringr")
 
-# Example
-ui <- fluidPage(
-  sliderInput(inputId = "num", label = "Choose a number", value=25, min=1, max =100),
-  # inputId = specify input exactly, label = What to display, ?sliderInput gives extras  plotOutput("hist")
-  plotOutput(outputId = "hist")
-  # outputId = specify output exactly
-)
-server <- function(input, output) {
-  # Rule 1: save objects to display to output$
-  output$hist <- # code
-  # Rule 2: built objects to display with render*()
-  output$hist <- renderPlot({ 
-    title <- "100 random normal values"
-    hist(rnorm(input$num), main = "Title") # Rule 3: use input values with input$
-    })  
-}
-shinyApp(ui=ui, server=server)
-
-# *Input functions:
-actionButton()        # Button
-submitButton()        # Button
-checkboxInput()       # Single checkbox
-checkboxGroupInput()  # Checkbox group
-dateInput()           # Date
-dateRangeInput()      # Date range
-fileInput()           # File input
-numericInput()        # Numeric input
-passwordInput()       # Password input
-radioButtons()        # Round buttons
-selectInput()         # Select Box (e.g. channels)
-sliderInput()         # Slider (e.g. GRP)
-textInput()           # Text input
-
-# *Output functions:
-dataTableOutput()     # Interactive table
-htmlOutput()          # Raw HTML
-imageOutput()         # Image
-plotOutput()          # Plot
-tableOutput()         # Table
-textOutput()          # Text
-uiOuput()             # Shiny UI element
-verbatimTextOutput()  # Text
-
-# render*() functions:
-renderDataTable()     # Interactive table (from dataframe/matrix)
-renderImage()         # Image (saved as link to source file)
-renderPlot()          # Plot
-renderPrint()         # Code block of printed output
-renderTable()         # Table (from dataframe/matrix)
-renderText()          # Character string
-renderUI()            # Shiny UI element
-
-# =======================================================
-#                 Peak Analysis model
-# =======================================================
-
+# Input: regression function
 
 # =======================================================
 #               Start of regression model
 # =======================================================
 
-# Input: regression function
-fullModel$coefficients
-ui <- fluidPage(
-  sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value=1, min=0.1, max =20.0),
-  selectInput(inputId = "channels", label = "Choose your channel", choices = c("NPO1", "NPO2", "NPO3")),
-  sliderInput(inputId = "hour", label = "Choose broadcast time", value = 20, min=18, max = 23),
-  checkboxGroupInput(inputId = "weekday", label = "Choose day of the week", selected = "Monday",
-                     choices = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")),
-  checkboxGroupInput(inputId = "length_spot", label = "Choose the spot length", selected = "30",
-                     choices = c("30", "30+10", "30+10+5")),
-  checkboxGroupInput(inputId = "pos_break", label = "Choose position in break", selected = "begin",
-                     choices = c("begin", "middle", "end")),
-  checkboxGroupInput(inputId = "prod_category", label = "Choose product category", selected = "washing machines",
-                     choices = c("washing_machines", "televisions", "laptops")),
+
+fullModel <- load(file = "C:/Users/Probook/my_fitted_model.rda",.GlobalEnv)
+fullCoef = as.data.frame(fullModel$coefficients)
+channels = unique(broadNet$channel)
+
+ui = fluidPage(
+  sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value = 1, min = 0.1, max = 20.0),
+  selectInput(inputId = "channels", label = "Choose your channel", choices = channels),
+  sliderInput(inputId = "hour", label = "Choose broadcast time", value = 12, min = 0, max = 23),
+  selectInput(inputId = "weekday", label = "Choose day of the week", selected = "Monday",
+              choices = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")),
+  radioButtons(inputId = "length_spot", label = "Choose the spot length", selected = "30",
+               choices = c("30", "30 + 10", "30 + 10 + 5")),
+  radioButtons(inputId = "pos_break", label = "Choose the position in break", selected = "Begin",
+               choices = c("Begin", "Middle", "End")),
+  radioButtons(inputId = "prod_category", label = "Choose product category", selected = "Washing machines",
+               choices = c("Washing machines", "Televisions", "Laptops")),
   textOutput(outputId = "text")
 )
-server <- function(input, output) {
-  output$text <- renderText({
-    print(paste0("GRP: ", input$GRP))
-    print(paste0("Channel: ", input$channels))
-    print(paste0("Hour: ", input$hour))
-    print(paste0("Weekday: ", input$weekday))
-    print(paste0("Length of spot: ", input$length_spot))
-    print(paste0("Position in break: ", input$pos_break))
-    print(paste0("Product category: ", input$washing_machines))
+server = function(input, output) {
+  newCoefficients = reactive({
+    # Hour
+    hours = matrix(0, ncol = 19)
+    if (input$hour == 1){
+      hours[1] = 1
+    }
+    if (input$hour >= 6){
+      hours[input$hour - 4] = 1
+    }
+    
+    # GRP
+    GRP = input$GRP
+    
+    # Product Category
+    prod_cat = matrix(0, ncol = 2)
+    if (input$prod_category == 'Laptops'){
+      prod_cat[1] = 1
+    }
+    else if (input$prod_category == 'Washing machines'){
+      prod_cat[2] = 1
+    }
+    
+    # Channel
+    channel = matrix(0, ncol = 28)
+    for (i in 25:52){
+      rowname = rownames(fullCoef)[i]
+      if (substring(rowname, 1, 1) == "`"){
+        n = nchar(rowname)
+        chan = substring(rowname, 10, n - 1) 
+      } else {
+        chan = substring(rowname, 9)
+      }
+      if (chan == input$channels){
+        channel[i - 24] = 1
+        break
+      }
+    }
+    
+    # Length of spot
+    spotlength = matrix(0, ncol = 2)
+    if (input$length_spot == 30){
+      spotlength[1] = 1
+    } 
+    else if (input$length_spot == '30 + 10'){
+      spotlength[2] = 1
+    }
+    
+    # Position in break
+    breakPos = matrix(0, ncol = 2)
+    if (input$pos_break == 'begin'){
+      breakPos[1] = 1
+    }
+    else if (input$pos_break == 'end'){
+      breakPos[2] = 1
+    }
+    
+    # Weekday
+    weekDay = matrix(0, ncol = 6)
+    if (input$weekday == 'Tuesday'){
+      weekDay[1] = 1
+    }
+    else if (input$weekday == 'Wednesday'){
+      weekDay[5] = 1
+    }
+    else if (input$weekday == 'Thursday'){
+      weekDay[2] = 1
+    }
+    else if (input$weekday == 'Friday'){
+      weekDay[4] = 1
+    }
+    else if (input$weekday == 'Sunday'){
+      weekDay[6] = 1
+    }
+    else if (input$weekday == 'Monday'){
+      weekDay[3] = 1
+    }
+    
+    frame = as.data.frame(cbind(1, 0, hours, GRP, prod_cat, channel, spotlength, breakPos, weekDay, 0, 0))
+    
+    names(frame) = names(fullModel$coefficients)
+    return(frame)
+  })
+  output$text = renderPrint({
+    # print(paste0("GRP: ", input$GRP))
+    # print(paste0("Channel: ", input$channels))
+    # print(paste0("Hour: ", input$hour))
+    # print(paste0("Weekday: ", input$weekday))
+    # print(paste0("Length of spot: ", input$length_spot))
+    # print(paste0("Position in break: ", input$pos_break))
+    # print(paste0("Product category: ", input$prod_category))
+
+    if (input$hour >= 2 & input$hour <= 5 & round(sum(newCoefficients() * fullCoef), 3) >= 0){
+      paste0("We cannot give information for this time of the day, as we have no data for it.")
+    } 
+    else if (input$hour < 2 || input$hour > 5 & round(sum(newCoefficients() * fullCoef), 3) >= 0){
+      paste0("We expect the visit density five minutes after the commercial to be ", round(sum(newCoefficients() * fullCoef), 3), " higher than would have been expected without a commercial.") 
+    } else {
+      paste0("We could not find a significant effect for these settings.")
+    }
+    # paste("The expected extra traffic is", predict(fullModel, newdata = newCoefficients()))
+
   })
 }
 shinyApp(ui=ui, server=server)
-
