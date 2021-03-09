@@ -13,7 +13,8 @@ library("stringr")
 # Input: regression function
 
 
-#fullModel <- load(file = "C:/Users/Probook/my_fitted_model.rda",.GlobalEnv)
+#load("testdf.rda")
+load("fullModelSaved.rda")
 fullCoef = as.data.frame(fullModel$coefficients)
 # fullCoef = as.data.frame(fullModel2$coefficients)
 channels = append(unique(broadNet$channel), "Slam!TV")
