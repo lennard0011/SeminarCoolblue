@@ -15,10 +15,8 @@ library("stringr")
 
 load("fullModelSaved.rda")
 load("testdf.rda")
-fullCoef = as.data.frame(fullModel$coefficients)
-# fullCoef = as.data.frame(fullModel2$coefficients)
-channels = append(unique(broadNet$channel), "Slam!TV")
-
+load("broadNet.rda")
+load("visitorsSum.rda")
 
 ui = dashboardPage(
   dashboardHeader(title = "Effects of TV-commercials", titleWidth = 350),
@@ -111,7 +109,7 @@ ui = dashboardPage(
                        box(width = 12,
                            title = "Commercial-specific effects", 
                            selectInput(inputId = "channels", label = "Choose your channel", choices = sort(unique(broadNet$channel))),
-                           sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value = 0.05, min = 0.05, max = 7.05),
+                           sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value = 0, min = 0, max = 7.05),
                            textOutput(outputId = "warning"), tags$head(tags$style("#warning{color: red;
                                  }")),
                            selectInput(inputId = "weekday", label = "Choose day of the week",
