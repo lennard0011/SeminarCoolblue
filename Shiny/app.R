@@ -106,32 +106,36 @@ ui = dashboardPage(
       tabItem("de",
               headerPanel(title = "Insights into direct effects of Coolblue commercials"),
               fluidRow(
-                box(width = 6,
-                    title = "Commercial-specific effects", 
-                    sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value = 1, min = 0.05, max = 2.75),
-                    selectInput(inputId = "channels", label = "Choose your channel", choices = sort(unique(broadNet$channel))),
-                    sliderInput(inputId = "hour", label = "Choose broadcast time", value = 12, min = 0, max = 23),
-                    selectInput(inputId = "weekday", label = "Choose day of the week",
-                                choices = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))
+                column(width = 6,
+                       box(width = 12,
+                           title = "Commercial-specific effects", 
+                           selectInput(inputId = "channels", label = "Choose your channel", choices = sort(unique(broadNet$channel))),
+                           sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value = 0.05, min = 0.05, max = 7.05),
+                           textOutput(outputId = "warning"), tags$head(tags$style("#warning{color: red;
+                                 }")),
+                           selectInput(inputId = "weekday", label = "Choose day of the week",
+                                       choices = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")),
+                           sliderInput(inputId = "hour", label = "Choose broadcast time", value = 12, min = 0, max = 23)
+                       ),
+                       box(width = 12,
+                           title = "Maximum amount of minutely visitors",
+                           numericInput(inputId = "maxVD", label = "Maximum amount of minutely visitors", value = 1000, min = 0, max = 5000, step = 10)
+                       )
                 ),
-                box(width = 6,
-                    title = "Commercial-specific effects",
-                    radioButtons(inputId = "length_spot", label = "Choose the spot length", selected = "30",
-                                 choices = c("30", "30 + 10", "30 + 10 + 5")),
-                    radioButtons(inputId = "pos_break", label = "Choose the position in break", selected = "Begin",
-                                 choices = c("Begin", "Middle", "End")),
-                    radioButtons(inputId = "prod_category", label = "Choose product category", selected = "Washing machines",
-                                 choices = c("Washing machines", "Televisions", "Laptops"))
-                )
-              ),
-              fluidRow(
-                box(width = 6,
-                    title = "Maximum amount of minutely visitors",
-                    numericInput(inputId = "maxVD", label = "Maximum amount of minutely visitors", value = 100, min = 0, max = 500, step = 10)
-                ),
-                box(width = 6,
-                    title = "Extra amount of visitors",
-                    textOutput(outputId = "text") 
+                column(width = 6,
+                       box(width = 12,
+                           title = "Commercial-specific effects",
+                           radioButtons(inputId = "length_spot", label = "Choose the spot length", selected = "30",
+                                        choices = c("30", "30 + 10", "30 + 10 + 5")),
+                           radioButtons(inputId = "pos_break", label = "Choose the position in break", selected = "Begin",
+                                        choices = c("Begin", "Middle", "End")),
+                           radioButtons(inputId = "prod_category", label = "Choose product category", selected = "Washing machines",
+                                        choices = c("Washing machines", "Televisions", "Laptops"))
+                       ),
+                       box(width = 12,
+                           title = "Extra amount of visitors",
+                           textOutput(outputId = "text") 
+                       )
                 )
               )
       )
@@ -319,6 +323,11 @@ server = function(session, input, output) {
       } else {
         paste0("We expect the amount of visitors five minutes after the commercial to be equal to what would have been expected without a commercial.")
       }
+    }
+  })
+  output$warning = renderText({
+    if (input$GRP > max(broadNet$gross_rating_point[broadNet$channel == input$channels])){
+      paste0("Warning: normally the broadcasts on ", input$channels ," have a lower GRP")
     }
   })
 }
