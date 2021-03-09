@@ -61,8 +61,8 @@ ui = dashboardPage(
     tabItems(
       tabItem("dash",
               fluidRow(width = 12,
-                       tags$img(height = 1000,
-                                width = 1000, style = "display: block; margin-left: auto; margin-right: auto;",
+                       tags$img(height = 625,
+                                width = 625, style = "display: block; margin-left: auto; margin-right: auto;",
                                 src = "logonames.png") 
               )
       ),
