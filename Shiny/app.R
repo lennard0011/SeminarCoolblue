@@ -64,7 +64,7 @@ ui = dashboardPage(
               fluidRow(width = 12,
                        tags$img(height = 1000,
                                 width = 1000, style = "display: block; margin-left: auto; margin-right: auto;",
-                                src = "coolblue2.png") 
+                                src = "logonames.png") 
               )
       ),
       tabItem("pa",
