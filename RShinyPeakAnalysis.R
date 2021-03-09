@@ -2,6 +2,7 @@
 # @authors:
 
 library(shiny)
+library(lubridate)
 
 # UI 
 ui <- shinyUI(fluidPage(
@@ -20,7 +21,7 @@ ui <- shinyUI(fluidPage(
                   choices = c("All", "January", "February", "March", "April", "May", "June") ),
       #hour
       sliderInput(inputId = "hour", label = "Choose range of time: ", 
-                  min = 6, max = 24, value = c(6,24)),
+                  min = 0, max = 24, value = c(0,24)),
       #length_of_spot
       selectInput(inputId = "length_of_spot", label = "Choose length of the spot", 
                   choices = c("All", sort(unique(broadNet$length_of_spot)))),
@@ -39,7 +40,7 @@ ui <- shinyUI(fluidPage(
       tabsetPanel(type="tab", 
                   tabPanel("Data",tableOutput(outputId="Table")),
                   tabPanel("Summary",verbatimTextOutput(outputId="summ")),
-                  tabPanel("Plot",plotOutput(outputId="plot"))
+                  tabPanel("Plot",uiOutput(outputId="plot"))
       )
     )
   )
@@ -85,6 +86,9 @@ server <- function(session, input, output) {
     # put time restriction
     reactTable = subset(reactTable, as.numeric(hours) >= input$hour[1])
     reactTable = subset(reactTable, as.numeric(hours) < input$hour[2])
+    if (input$hour[1] == 0 || input$hour[1] == 1) {
+      reactTable = subset(reactTable, as.numeric(hours) > input$hour[1])
+    }
     # order on date or grp
     if (input$choose_ordering == "Date") {
       reactTable = reactTable[order(reactTable$date, reactTable$time),]
@@ -92,7 +96,6 @@ server <- function(session, input, output) {
       reactTable = reactTable[order(-reactTable$gross_rating_point), ]
     }
     # Output
-    reactTable = reactTable[,c("channel", "date", "time", "gross_rating_point")]
     reactTable
   })
   
@@ -141,16 +144,126 @@ server <- function(session, input, output) {
   
   # Output table
   output$Table <- renderTable({
-    mtreact()
+    outputTable = mtreact()[,c("channel", "date", "time", "gross_rating_point")]
+    colnames(outputTable) = c("Channel", "Date", "Time", "Gross Rating Point")
+    outputTable
   })
   
-  output$summ <- renderPrint({
-    summary(mtreact())
+  output$summ <- renderText({
+    dataT = mtreact()
+    
+    if (nrow(dataT) == 0) {
+      print("No data to summarize!")
+    } else {
+      # names has to be outside sort!
+      fullChannels = gsub(",","\n ", toString(rbind( names(sort(summary(as.factor(dataT$channel)),decreasing=T)),
+                                                     sort(summary(as.factor(dataT$channel)),decreasing=T)))
+      )
+      maxLength = length(unique(dataT$program_before));
+      if (maxLength > 6) {
+        maxLength = 6
+      }
+      minLength = 1
+      if ( names(sort(summary(as.factor(dataT$program_before)),decreasing=T)[1]) == "(Other)"  ) {
+        minLength = 2
+      }
+      fullPrograms = gsub(",","\n ", toString(rbind( names(sort(summary(as.factor(dataT$program_before)),decreasing=T)[minLength:maxLength]),
+                                                     sort(summary(as.factor(dataT$program_before)),decreasing=T)[minLength:maxLength]))
+      )
+      
+            #fullLengthNames = names(sort(summary(as.factor(dataT$length_of_spot)),decreasing=T))
+      #fullLengthNumbers = sort(summary(as.factor(dataT$length_of_spot)),decreasing=T)
+      
+      fullLength = gsub(",","  ", toString(rbind( names(sort(summary(as.factor(dataT$length_of_spot)),decreasing=T)),
+                                                    sort(summary(as.factor(dataT$length_of_spot)),decreasing=T)))
+      )
+      
+      fullPosition = gsub(",","  ", toString(rbind( names(sort(summary(as.factor(dataT$position_in_break_3option)),decreasing=T)),
+                                                     sort(summary(as.factor(dataT$position_in_break_3option)),decreasing=T)))
+      )
+      
+      fullProdcat = gsub(",","   ", toString(rbind( names(sort(summary(as.factor(dataT$product_category)),decreasing=T)),
+                                                    sort(summary(as.factor(dataT$product_category)),decreasing=T)))
+      )
+      
+      fullGRPNames = c("Minimum:", "  Mean:", "  Maximum: ")
+      fullGRPNumbers = summary(dataT$gross_rating_point)[c(1,4,6)]
+        
+        
+      # Do the printing
+      print(paste0("Number of commercials: ", nrow(dataT),
+                 "\n\nChosen options: \n  Channel: ", input$channel,
+                 "\n  Month: ", input$month, "\n  Time interval: between ",
+                 input$hour[1], ":00 and ", input$hour[2],
+                 ":00 \n  Length of spot: ", input$length_of_spot,
+                 "\n  Position in break: ", input$position_in_break_3option,
+                 "\n  Product category: ", input$product_category,
+                 "\n\nChannels & frequency: \n  ", fullChannels,
+                 "\n\nMost frequently broadcasted V programs: \n  ", fullPrograms,
+                 "\n\nDistribution length of spot: \n  ", fullLength,
+                 "\n\nDistribution position in break: \n  ", fullPosition,
+                 "\n\nDistribution product category: \n  ", fullProdcat,
+                 "\n\nDistribution of the Gross Rating Point: \n  ", 
+                 fullGRPNames[1], round(fullGRPNumbers[1],digits=3), fullGRPNames[2], 
+                 round(fullGRPNumbers[2],digits=3), fullGRPNames[3], 
+                 round(fullGRPNumbers[3],digits=3)
+                 ))
+    }
   })
-  output$plot <- renderPlot({
-    with(broadNet, boxplot(gross_rating_point~hours)) # not the reactive one
-    #with(mtreact(), boxplot(gross_rating_point~mtreact()[,2])) # will not yet work
+  
+  output$plot <- renderUI({
+    tableLength = nrow(mtreact())
+    plot_output_list <- lapply(1:tableLength, function(i) {
+      plotname <- paste("plot", i, sep="") 
+      plotOutput(plotname, height = 350, width = 700)
+    })
+    
+    do.call(tagList, plot_output_list)
+    
   })
+  
+  
+  for (k in 1:2) {
+    # Need local so that each item gets its own number. Without it, the value
+    # of i in the renderPlot() will be the same across all instances, because
+    # of when the expression is evaluated.
+    
+    
+    local({
+      
+      plotname <-  paste("plot", k, sep="") 
+      
+      output[[plotname]] <- renderPlot({
+        
+        tableInterest = mtreact()
+        
+        datecommercial <- tableInterest[k,"date"]
+        timecommercial <- tableInterest[k,"time"]
+        
+        traffic_datesub <- subset(visitorsSum,grepl(datecommercial, visitorsSum$date) == TRUE)
+        
+        timecommercial <- str_split_fixed(timecommercial, ":", 3)
+        colnames(timecommercial) <- c("hour", "minute", "seconds")
+        timecommercial <- data.frame(timecommercial)
+        timecommercial <- 60*as.numeric(timecommercial[1,"hour"]) + as.numeric(timecommercial[1,"minute"]) + 1
+        
+        interval <- 60
+        timeStart <- timecommercial - interval
+        timeEinde <- timecommercial + interval
+        totalLength <- 2*interval + 1
+        visitsVector <- as.matrix(rep(0,totalLength))
+        row.names(visitsVector) <- c(seq(from = timeStart, to = timeEinde))
+        
+        for(j in 1:totalLength){
+          visitsVector[j] <- traffic_datesub[(timeStart + j), "visitsWebNet"]
+        }
+        xlim = c(interval-10, interval + 10)
+        plot(visitsVector, type = "l", xlim = xlim,  main = paste("Website visits (NL) commercial at",tableInterest[k,"date"], "with GDP", tableInterest[k,"gross_rating_point"]),  
+             xlab = "Time (minutes)", ylab = "Visits Ratio")
+        abline(v = interval + 1, col = "blue")
+      })
+    })
+  }
 }
 
 shinyApp(ui=ui, server=server)

@@ -18,7 +18,6 @@ fullCoef = as.data.frame(fullModel$coefficients)
 # fullCoef = as.data.frame(fullModel2$coefficients)
 channels = append(unique(broadNet$channel), "Slam!TV")
 
-
 ui = dashboardPage(
   dashboardHeader(title = "Effects of TV-commercials", titleWidth = 350),
   
@@ -72,22 +71,27 @@ ui = dashboardPage(
               fluidRow(
                 box(width = 6,
                     title = "Commercial-specific effects", 
+                    #channel
                     selectInput(inputId = "channel", label = "Choose your channel", 
                                 choices = c("All", sort(unique(broadNet$channel)))),
+                    #month
+                    selectInput(inputId = "month", label = "Choose a month", 
+                                choices = c("All", "January", "February", "March", "April", "May", "June") ),
+                    #hour
+                    sliderInput(inputId = "hour", label = "Choose range of time: ", 
+                                min = 0, max = 24, value = c(0,24)),
                     #length_of_spot
                     selectInput(inputId = "length_of_spot", label = "Choose length of the spot", 
-                                choices = c("All", "30", "30 + 10", "30 + 10 + 5")),
+                                choices = c("All", sort(unique(broadNet$length_of_spot)))),
                     #position_in_break_3option
-                    selectInput(inputId = "position_in_break_3option", label = "Choose the position in break", 
-                                choices = c("All", "Begin", "Middle", "End")),
+                    selectInput(inputId = "position_in_break_3option", label = "Choose position of spot", 
+                                choices = c("All", unique(broadNet$position_in_break_3option))),
                     #product_category
                     selectInput(inputId = "product_category", label = "Choose product category", 
-                                choices = c("All", "Washing machines", "Televisions", "Laptops")),
-                    #month
-                    selectInput(inputId = "month", label = "Choose month of the year", 
-                                choices = c("All", "January", "February", "March", "April", "May", "June")),
+                                choices = c("All", sort(unique(broadNet$product_category)))),
+                    #Keuze op sorteren
                     radioButtons(inputId = "choose_ordering", label = "Choose ordering of data",
-                                 choices = c("Date", "Gross Rating Point"), inline = T)
+                                 choices = c("Date", "Gross Rating Point"), inline=T)
                 ),
                 box(width = 6,
                     tabsetPanel(type = "tab", 
@@ -96,11 +100,6 @@ ui = dashboardPage(
                                 tabPanel("Plot", plotOutput(outputId="plot"))
                     )
                 ),
-                # Output text
-                textOutput(outputId = "text1"),
-                textOutput(outputId = "text2"),
-                textOutput(outputId = "text3"),
-                textOutput(outputId = "text4")
               )
       ),
       tabItem("de",
@@ -304,6 +303,7 @@ server = function(session, input, output) {
     return(frame)
   })
   output$text = renderText({
+    print("TESTJE")
     if (input$channels == "Slam!TV"){
       paste0("We cannot give information for this channel, as we do not have enough data for it.")
     }
