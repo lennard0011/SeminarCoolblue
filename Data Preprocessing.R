@@ -16,7 +16,8 @@
 #install.packages("gtrendsR")
 #install.packages("seastests")
 #install.packages("pastecs")
-# install.packages("plotrix")
+#install.packages("plotrix")
+#install.packages("varhandle")
 
 # loading packages
 library("chron")
@@ -39,6 +40,7 @@ library("tseries")
 library("seastests")
 library("pastecs")
 library("plotrix")
+library("varhandle")
 
 ## ====================================================
 ##         Loading & subsetting the data
