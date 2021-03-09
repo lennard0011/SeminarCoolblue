@@ -163,6 +163,8 @@ baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours) + weekdays, 
 getModelSumm(baselineModel, T)
 
 # Full model
+fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(broadNet$hours) + broadNet$gross_rating_point + ., data = dummiesDirectModel)
+
 input = as.data.frame(cbind(broadNet$postVisitorsWeb, broadNet$preVisitorsWeb, factor(broadNet$hours), broadNet$gross_rating_point, dummiesDirectModel))
 names(input)[1:4] = c("postVisitorsWeb", "preVisitorsWeb", "hours", "gross_rating_point")
 fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(broadNet$hours) + broadNet$gross_rating_point + ., data = dummiesDirectModel)

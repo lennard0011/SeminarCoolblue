@@ -58,7 +58,7 @@ broad = broad[broad[, "gross_rating_point"] > 0, ]  # leave out GRP=0
 broadNet = subset(broad, country == 'Netherlands')
 broadBel = subset(broad, country == 'Belgium')
 
-quan = quantile(broadNet$gross_rating_point, 0.95)
+quan = quantile(broadNet$gross_rating_point, 0.99)
 broad = broad[broad[, 'gross_rating_point'] <= quan, ]
 
 nTraffic = nrow(traffic)
