@@ -170,13 +170,13 @@ fullModelTest = lm(postVisitorsWeb ~ ., data = input)
 
 testdf = as.data.frame(matrix(data = 0, nrow = 1, ncol = 46))
 names(testdf) = names(input)
-
 testdf["hours"] = factor(testdf["hours"])
 predict(fullModelTest, testdf)
 
-getModelSumm(fullModel, T)
 save(fullModelTest, file = "fullModelSaved.rda")
-save(testdf, file = "testdf")
+save(testdf, file = "testdf.rda")
+
+getModelSumm(fullModel, T)
 
 # TRY OUT
 datas = dummiesDirectModel
