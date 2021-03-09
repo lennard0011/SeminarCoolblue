@@ -154,36 +154,29 @@ getModelSumm <- function(model, coef) {
   }
   print(paste("R^2: ", summary(model)$r.squared))
   hist(model$residuals, breaks = 50)
-  print(paste("AIC: ",AIC(model)))
+  print(paste("AIC: ", AIC(model)))
   print(paste("BIC: ", BIC(model)))
 }
-
-# Cross-products
-grpOverlap = matrix(0, nrow(broadNet))
-for (i in 1:nrow(broadNet)){
-  if (dummiesDirectModel$overlapBefore_1[i] == 1){
-    grpOverlap[i] = broadNet$gross_rating_point[i - 1] + broadNet$gross_rating_point[i]
-  }
-  else if (dummiesDirectModel$overlapAfter_1[i] == 1){
-    grpOverlap[i] = broadNet$gross_rating_point[i] + broadNet$gross_rating_point[i + 1]
-  }
-  else{
-    grpOverlap[i] = broadNet$gross_rating_point[i]
-  }
-}
-GRP30 = broadNet$gross_rating_point * dummiesDirectModel$length_of_spot_30
-GRP3010 = broadNet$gross_rating_point * dummiesDirectModel$`length_of_spot_30 + 10`
-GRPbegin = broadNet$gross_rating_point * dummiesDirectModel$position_in_break_3option_begin
-GRPend = broadNet$gross_rating_point * dummiesDirectModel$position_in_break_3option_end
 
 # Baseline models
 baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours) + weekdays, data = broadNet)
 getModelSumm(baselineModel, T)
 
-# Full model 
+# Full model
+input = as.data.frame(cbind(broadNet$postVisitorsWeb, broadNet$preVisitorsWeb, factor(broadNet$hours), broadNet$gross_rating_point, dummiesDirectModel))
+names(input)[1:4] = c("postVisitorsWeb", "preVisitorsWeb", "hours", "gross_rating_point")
 fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(broadNet$hours) + broadNet$gross_rating_point + ., data = dummiesDirectModel)
-getModelSumm(fullModel, T)
+fullModelTest = lm(postVisitorsWeb ~ ., data = input)
 
+testdf = as.data.frame(matrix(data = 0, nrow = 1, ncol = 46))
+names(testdf) = names(input)
+
+testdf["hours"] = factor(testdf["hours"])
+predict(fullModelTest, testdf)
+
+getModelSumm(fullModel, T)
+save(fullModelTest, file = "fullModelSaved.rda")
+save(testdf, file = "testdf")
 
 # TRY OUT
 datas = dummiesDirectModel
