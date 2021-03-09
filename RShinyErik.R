@@ -8,6 +8,11 @@ library("stringr")
 
 # Input: regression function
 
+# =======================================================
+#               Start of regression model
+# =======================================================
+
+fullModel <- load(file = "C:/Users/Probook/my_fitted_model.rda",.GlobalEnv)
 load("fullModelSaved.rda")
 fullCoef = as.data.frame(fullModel$coefficients)
 channels = unique(broadNet$channel)
