@@ -19,6 +19,8 @@ load("testdf.rda")
 load("broadNet.rda")
 load("visitorsSum.rda")
 
+channels = append(sort(unique(broadNet$channel)), "Slam!TV")
+
 ui = dashboardPage(
   dashboardHeader(title = "The effects of TV-commercials", titleWidth = 350),
   
@@ -66,7 +68,7 @@ ui = dashboardPage(
                       "Welcome to our dashboard! We are four students of Business Analytics and Quantitative 
                       Marketing at the Erasmus University in Rotterdam. For the past two months, we researched the 
                       effects of TV commercials on website traffic for the e-commerce company Coolblue. We want to make 
-                      these results more accessible using this application. In the tab 'Peak Analysis', you can find 
+                      these results more accessible using this application. In the tab 'Data Exploration', you can find 
                       information on all commercials that were broadcast in the first half of 2019, given certain criteria.
                       In the tab 'Direct Effects', you can again fill in certain criteria for a broadcast. The application
                       then tells you what the expected absolute increase in visitors would be. Thank you for expressing
@@ -91,7 +93,7 @@ ui = dashboardPage(
                     selectInput(inputId = "month", label = "Choose a month", 
                                 choices = c("All", "January", "February", "March", "April", "May", "June") ),
                     #hour
-                    sliderInput(inputId = "hour", label = "Choose range of time: ", 
+                    sliderInput(inputId = "timer", label = "Choose time range: ", 
                                 min = 0, max = 24, value = c(0,24)),
                     #length_of_spot
                     selectInput(inputId = "length_of_spot", label = "Choose length of the spot", 
@@ -169,25 +171,25 @@ server = function(session, input, output) {
     # subset on position in break
     if (input$position_in_break_3option != "All") {
       if (input$position_in_break_3option == "Begin"){
-        reactTable = subset(reactTable, position_in_break_3option == "begin") 
+        reactTable = subset(reactTable, position_in_break_3option == "Begin") 
       }
       if (input$position_in_break_3option == "Middle"){
-        reactTable = subset(reactTable, position_in_break_3option == "middle") 
+        reactTable = subset(reactTable, position_in_break_3option == "Middle") 
       }
       if (input$position_in_break_3option == "End"){
-        reactTable = subset(reactTable, position_in_break_3option == "end") 
+        reactTable = subset(reactTable, position_in_break_3option == "End") 
       }
     }
     # subset on product category
     if (input$product_category != "All") {
       if (input$product_category == "Washing machines"){
-        reactTable = subset(reactTable, product_category == "wasmachines")
+        reactTable = subset(reactTable, product_category == "Washing machines")
       }
       if (input$product_category == "Televisions"){
-        reactTable = subset(reactTable, product_category == "televisies")
+        reactTable = subset(reactTable, product_category == "Televisions")
       }
       if (input$product_category == "Laptops"){
-        reactTable = subset(reactTable, product_category == "laptops")
+        reactTable = subset(reactTable, product_category == "Laptops")
       }
     }
     # subset on month
@@ -207,10 +209,10 @@ server = function(session, input, output) {
       reactTable = subset(reactTable, month(date) == nrMonth)
     }
     # put time restriction
-    reactTable = subset(reactTable, as.numeric(hours) >= input$hour[1])
-    reactTable = subset(reactTable, as.numeric(hours) < input$hour[2])
-    if (input$hour[1] == 0 || input$hour[1] == 1) {
-      reactTable = subset(reactTable, as.numeric(hours) > input$hour[1])
+    reactTable = subset(reactTable, as.numeric(hours) >= input$timer[1])
+    reactTable = subset(reactTable, as.numeric(hours) < input$timer[2])
+    if (input$timer[1] == 0 || input$timer[1] == 1) {
+      reactTable = subset(reactTable, as.numeric(hours) > input$timer[1])
     }
     # order on date or grp
     if (input$choose_ordering == "Date") {
@@ -243,7 +245,7 @@ server = function(session, input, output) {
         maxLength = 6
       }
       minLength = 1
-      if ( names(sort(summary(as.factor(dataT$program_before)),decreasing=T)[1]) == "(Other)"  ) {
+      if ( names(sort(summary(as.factor(dataT$program_before)), decreasing = T)[1]) == "(Other)"  ) {
         minLength = 2
       }
       fullPrograms = gsub(",","\n ", toString(rbind( names(sort(summary(as.factor(dataT$program_before)),decreasing=T)[minLength:maxLength]),
@@ -270,7 +272,7 @@ server = function(session, input, output) {
       print(paste0("Number of commercials: ", nrow(dataT),
                    "\n\nChosen options: \n  Channel: ", input$channel,
                    "\n  Month: ", input$month, "\n  Time interval: between ",
-                   input$hour[1], ":00 and ", input$hour[2],
+                   input$timer[1], ":00 and ", input$timer[2],
                    ":00 \n  Length of spot: ", input$length_of_spot,
                    "\n  Position in break: ", input$position_in_break_3option,
                    "\n  Product category: ", input$product_category,
@@ -371,7 +373,7 @@ server = function(session, input, output) {
     return(predict(fullModelTest, currentdf, interval = "prediction"))
   })
   output$text = renderText({
-    print("TESTJE")
+    # print("TESTJE")
     if (input$channels == "Slam!TV"){
       paste0("We cannot give information for this channel, as we do not have enough data for it.")
     }
