@@ -173,25 +173,25 @@ server = function(session, input, output) {
     # subset on position in break
     if (input$position_in_break_3option != "All") {
       if (input$position_in_break_3option == "Begin"){
-        reactTable = subset(reactTable, position_in_break_3option = "begin") 
+        reactTable = subset(reactTable, position_in_break_3option == "begin") 
       }
       if (input$position_in_break_3option == "Middle"){
-        reactTable = subset(reactTable, position_in_break_3option = "middle") 
+        reactTable = subset(reactTable, position_in_break_3option == "middle") 
       }
       if (input$position_in_break_3option == "End"){
-        reactTable = subset(reactTable, position_in_break_3option = "end") 
+        reactTable = subset(reactTable, position_in_break_3option == "end") 
       }
     }
     # subset on product category
     if (input$product_category != "All") {
       if (input$product_category == "Washing machines"){
-        reactTable = subset(reactTable, product_category = "wasmachines")
+        reactTable = subset(reactTable, product_category == "wasmachines")
       }
       if (input$product_category == "Televisions"){
-        reactTable = subset(reactTable, product_category = "televisies")
+        reactTable = subset(reactTable, product_category == "televisies")
       }
       if (input$product_category == "Laptops"){
-        reactTable = subset(reactTable, product_category = "laptops")
+        reactTable = subset(reactTable, product_category == "laptops")
       }
     }
     # subset on month
@@ -253,7 +253,7 @@ server = function(session, input, output) {
       fullPrograms = gsub(",","\n ", toString(rbind(names(sort(summary(as.factor(dataT$program_before)),decreasing=T)[minLength:maxLength]),
                                                      sort(summary(as.factor(dataT$program_before)),decreasing=T)[minLength:maxLength]))
       )
-      namesLength = names(sort(summary(as.factor(dataT$length_of_spot)),decreasing=T))
+      namesLength = names(sort(summary(as.factor(dataT$length_of_spot)), decreasing = T))
       for (i in 1:length(namesLength)) {
         if (namesLength[i] == "30") {
           namesLength[i] = "'Length 30'"
@@ -447,14 +447,14 @@ server = function(session, input, output) {
       currentdf$weekdays_vrijdag = 1
     }
     else if (input$weekday == 'Sunday'){
-      weekDay[6] = 1
+      currentdf$weekdays_zondag = 1
     }
     else if (input$weekday == 'Monday'){
-      currentdf$weekdays_zondag = 1
+      currentdf$weekdays_maandag = 1
     }
     
     currentdf["hours"] = as.factor(currentdf["hours"])
-    return(predict(fullModelTest, currentdf, interval = "prediction"))
+    return(predict(fullModelTest, currentdf, interval = "prediction", level = 0.95))
   })
   output$text = renderText({
     # print("TESTJE")
@@ -479,7 +479,7 @@ server = function(session, input, output) {
     if (input$channels != "Slam!TV" && input$GRP > max(broadNet$gross_rating_point[broadNet$channel == input$channels])){
       paste0("Warning: usually the broadcasts on ", input$channels ," have a lower GRP")
     }
-    if (input$channels == "Slam!TV"){
+    else if (input$channels == "Slam!TV"){
       paste0("Warning: not enough data")
     }
   })
