@@ -90,7 +90,7 @@ ui = dashboardPage(
                     title = "Commercial-specific effects", 
                     #channel
                     selectInput(inputId = "channel", label = "Choose your channel", 
-                                choices = c("All", sort(unique(broadNet$channel)))),
+                                choices = c("All", as.character(sort(unique(broadNet$channel))))),
                     #month
                     selectInput(inputId = "month", label = "Choose a month", 
                                 choices = c("All", "January", "February", "March", "April", "May", "June") ),
@@ -99,7 +99,7 @@ ui = dashboardPage(
                                 min = 0, max = 24, value = c(0,24)),
                     #length_of_spot
                     selectInput(inputId = "length_of_spot", label = "Choose length of the spot", 
-                                choices = c("All", sort(unique(broadNet$length_of_spot)))),
+                                choices = c("All", as.character(sort(unique(broadNet$length_of_spot))))),
                     #position_in_break_3option
                     selectInput(inputId = "position_in_break_3option", label = "Choose the position in break", 
                                 choices = c("All", "Begin", "Middle", "End")),
