@@ -125,7 +125,7 @@ ui = dashboardPage(
                 column(width = 6,
                        box(width = 12,
                            title = "Commercial-specific effects", 
-                           selectInput(inputId = "channels", label = "Choose your channel", choices = sort(unique(broadNet$channel))),
+                           selectInput(inputId = "channels", label = "Choose your channel", choices = c(as.character(sort(unique(broadNet$channel))), "Slam!TV")),
                            sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value = 0, min = 0, max = 23.6, step = 0.1),
                            textOutput(outputId = "warning"), tags$head(tags$style("#warning{color: red;
                                  }")),
@@ -294,7 +294,7 @@ server = function(session, input, output) {
       namesProdcat = names(sort(summary(as.factor(dataT$product_category)),decreasing=T))
       for (i in 1:length(namesProdcat)) {
         if (namesProdcat[i] == "televisies") {
-          namesProdcat[i] = "TVs"
+          namesProdcat[i] = "Televisions"
         } 
         if (namesProdcat[i] == "wasmachines") {
           namesProdcat[i] = "Washing machines"
@@ -321,7 +321,7 @@ server = function(session, input, output) {
                    "\n  Position in break: ", input$position_in_break_3option,
                    "\n  Product category: ", input$product_category,
                    "\n\nChannels & frequency: \n  ", fullChannels,
-                   "\n\nMost frequently broadcasted V programs: \n  ", fullPrograms,
+                   "\n\nMost frequently broadcasted TV programs: \n  ", fullPrograms,
                    "\n\nDistribution length of spot: \n  ", fullLength,
                    "\n\nDistribution position in break: \n  ", fullPosition,
                    "\n\nDistribution product category: \n  ", fullProdcat,
@@ -366,7 +366,7 @@ server = function(session, input, output) {
             }
             
             plot(visitsVector, type = "l", xaxt = "n", main = paste("Website visits (NL) commercial with GDP", tableInterest[i,"gross_rating_point"]),  
-                 xlab = "Time (minutes)", ylab = "Visits Ratio")
+                 xlab = "Time (minutes)", ylab = "Visit Density")
             axis(side =1, at=c(1,11, 21), 
                  labels= c('-10','0','10'))
             
@@ -465,7 +465,7 @@ server = function(session, input, output) {
   output$text = renderText({
     # print("TESTJE")
     if (input$channels == "Slam!TV"){
-      paste0("We cannot give information for this channel, as we do not have enough data for it.")
+      paste0("We cannot give information for ", input$channels, ", as we do not have enough data for it.")
     }
     else if (input$hour >= 2 & input$hour <= 5){
       paste0("We cannot give information for this time of the day, as we have no data for it.")
@@ -482,8 +482,11 @@ server = function(session, input, output) {
     }
   })
   output$warning = renderText({
-    if (input$GRP > max(broadNet$gross_rating_point[broadNet$channel == input$channels])){
+    if (input$channels != "Slam!TV" && input$GRP > max(broadNet$gross_rating_point[broadNet$channel == input$channels])){
       paste0("Warning: usually the broadcasts on ", input$channels ," have a lower GRP")
+    }
+    if (input$channels == "Slam!TV"){
+      paste0("Warning: not enough data")
     }
   })
 }
