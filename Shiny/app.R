@@ -110,7 +110,7 @@ ui = dashboardPage(
                     tabsetPanel(type = "tab", 
                                 tabPanel("Data", tableOutput(outputId="Table")),
                                 tabPanel("Summary", verbatimTextOutput(outputId="summ")),
-                                tabPanel("Plot", plotOutput(outputId="plot"))
+                                tabPanel("Plot", uiOutput(outputId="plot"))
                     )
                 ),
               )
@@ -122,11 +122,7 @@ ui = dashboardPage(
                        box(width = 12,
                            title = "Commercial-specific effects", 
                            selectInput(inputId = "channels", label = "Choose your channel", choices = sort(unique(broadNet$channel))),
-<<<<<<< HEAD
-                           sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value = 0, min = 0, max = 23.6, step = 0.1),
-=======
                            sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value = 0, min = 0, max = 7.05),
->>>>>>> 763b0d86ef23121383da540ec45457f1a9096fa6
                            textOutput(outputId = "warning"), tags$head(tags$style("#warning{color: red;
                                  }")),
                            selectInput(inputId = "weekday", label = "Choose day of the week",
@@ -292,8 +288,54 @@ server = function(session, input, output) {
   })
   
   output$plot = renderPlot({
-    with(broadNet, boxplot(gross_rating_point~hours)) # not the reactive one
-    #with(mtreact(), boxplot(gross_rating_point~mtreact()[,2])) # will not yet work
+    output$plot <- renderUI({
+      tableLength = nrow(mtreact())
+      if(tableLength > 0){
+        plot_output_list <- lapply(1:tableLength, function(i) {
+          plotname <- paste("plot", i, sep="") 
+          plotOutput(plotname, height = 350, width = 700)
+          tableInterest = mtreact()
+          output[[plotname]] <- renderPlot({
+            
+            datecommercial <- tableInterest[i,"date"]
+            timecommercial <- tableInterest[i,"time"]
+            
+            traffic_datesub <- subset(visitorsSum,grepl(datecommercial, visitorsSum$date) == TRUE)
+            
+            timecommercial <- str_split_fixed(timecommercial, ":", 3)
+            colnames(timecommercial) <- c("hour", "minute", "seconds")
+            timecommercial <- data.frame(timecommercial)
+            timecommercial <- 60*as.numeric(timecommercial[1,"hour"]) + as.numeric(timecommercial[1,"minute"]) + 1
+            
+            interval = 10
+            timeStart <- timecommercial - interval
+            timeEinde <- timecommercial + interval
+            totalLength <- 2*interval + 1
+            visitsVector <- as.matrix(rep(0,totalLength))
+            row.names(visitsVector) <- c(seq(from = -10, to = 10))
+            
+            for(j in 1:totalLength){
+              visitsVector[j] <- traffic_datesub[(timeStart + j - 1), "visitsWebNet"]
+            }
+            
+            plot(visitsVector, type = "l", xaxt = "n", main = paste("Website visits (NL) commercial with GDP", tableInterest[i,"gross_rating_point"]),  
+                 xlab = "Time (minutes)", ylab = "Visits Ratio")
+            axis(side =1, at=c(1,11, 21), 
+                 labels= c('-10','0','10'))
+            
+            abline(v = interval + 1, col = "blue")
+            
+          })
+        })
+        
+        do.call(tagList, plot_output_list)
+      }
+      else{
+        print("No Plots Available")
+      }
+      
+    })
+  
   }
   )
   
