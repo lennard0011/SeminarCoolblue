@@ -458,9 +458,6 @@ removeNonSingular <- function(model, data) {
   data = data[, !(names(data) %in% naCoef )]
   data
 }
-<<<<<<< HEAD
-=======
 
 save(broadNet, file = "broadNet.rda")
 save(visitorsSum, file = "visitorsSum.rda")
->>>>>>> 763b0d86ef23121383da540ec45457f1a9096fa6

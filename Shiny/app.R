@@ -1,5 +1,5 @@
 # R shiny + Tutorial -- Seminar Coolblue 2021
-# @ Erik van der Heide
+# @ MARJOLEIN DE WITH
 
 # TEMPLATE
 # install.packages("shiny")
@@ -66,7 +66,7 @@ ui = dashboardPage(
                       "Welcome to our dashboard! We are four students of Business Analytics and Quantitative 
                       Marketing at the Erasmus University in Rotterdam. For the past two months, we researched the 
                       effects of TV commercials on website traffic for the e-commerce company Coolblue. We want to make 
-                      these results more accessible using this application. In the tab 'Peak Analysis', you can find 
+                      these results more accessible using this application. In the tab 'Data Exploration', you can find 
                       information on all commercials that were broadcast in the first half of 2019, given certain criteria.
                       In the tab 'Direct Effects', you can again fill in certain criteria for a broadcast. The application
                       then tells you what the expected absolute increase in visitors would be. Thank you for expressing
@@ -91,7 +91,7 @@ ui = dashboardPage(
                     selectInput(inputId = "month", label = "Choose a month", 
                                 choices = c("All", "January", "February", "March", "April", "May", "June") ),
                     #hour
-                    sliderInput(inputId = "hour", label = "Choose range of time: ", 
+                    sliderInput(inputId = "timer", label = "Choose time range: ", 
                                 min = 0, max = 24, value = c(0,24)),
                     #length_of_spot
                     selectInput(inputId = "length_of_spot", label = "Choose length of the spot", 
@@ -110,7 +110,7 @@ ui = dashboardPage(
                     tabsetPanel(type = "tab", 
                                 tabPanel("Data", tableOutput(outputId="Table")),
                                 tabPanel("Summary", verbatimTextOutput(outputId="summ")),
-                                tabPanel("Plot", plotOutput(outputId="plot"))
+                                tabPanel("Plot", uiOutput(outputId="plot"))
                     )
                 ),
               )
@@ -122,7 +122,7 @@ ui = dashboardPage(
                        box(width = 12,
                            title = "Commercial-specific effects", 
                            selectInput(inputId = "channels", label = "Choose your channel", choices = sort(unique(broadNet$channel))),
-                           sliderInput(inputId = "GRP2", label = "Input Gross Rating Point", value = 0, min = 0, max = 7.05),
+                           sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value = 0, min = 0, max = 7.05),
 
                            textOutput(outputId = "warning"), tags$head(tags$style("#warning{color: red;
                                  }")),
@@ -170,25 +170,25 @@ server = function(session, input, output) {
     # subset on position in break
     if (input$position_in_break_3option != "All") {
       if (input$position_in_break_3option == "Begin"){
-        reactTable = subset(reactTable, position_in_break_3option == "begin") 
+        reactTable = subset(reactTable, position_in_break_3option = "begin") 
       }
       if (input$position_in_break_3option == "Middle"){
-        reactTable = subset(reactTable, position_in_break_3option == "middle") 
+        reactTable = subset(reactTable, position_in_break_3option = "middle") 
       }
       if (input$position_in_break_3option == "End"){
-        reactTable = subset(reactTable, position_in_break_3option == "end") 
+        reactTable = subset(reactTable, position_in_break_3option = "end") 
       }
     }
     # subset on product category
     if (input$product_category != "All") {
       if (input$product_category == "Washing machines"){
-        reactTable = subset(reactTable, product_category == "wasmachines")
+        reactTable = subset(reactTable, product_category = "wasmachines")
       }
       if (input$product_category == "Televisions"){
-        reactTable = subset(reactTable, product_category == "televisies")
+        reactTable = subset(reactTable, product_category = "televisies")
       }
       if (input$product_category == "Laptops"){
-        reactTable = subset(reactTable, product_category == "laptops")
+        reactTable = subset(reactTable, product_category = "laptops")
       }
     }
     # subset on month
@@ -208,10 +208,10 @@ server = function(session, input, output) {
       reactTable = subset(reactTable, month(date) == nrMonth)
     }
     # put time restriction
-    reactTable = subset(reactTable, as.numeric(hours) >= input$hour[1])
-    reactTable = subset(reactTable, as.numeric(hours) < input$hour[2])
-    if (input$hour[1] == 0 || input$hour[1] == 1) {
-      reactTable = subset(reactTable, as.numeric(hours) > input$hour[1])
+    reactTable = subset(reactTable, as.numeric(hours) >= input$timer[1])
+    reactTable = subset(reactTable, as.numeric(hours) < input$timer[2])
+    if (input$timer[1] == 0 || input$timer[1] == 1) {
+      reactTable = subset(reactTable, as.numeric(hours) > input$timer[1])
     }
     # order on date or grp
     if (input$choose_ordering == "Date") {
@@ -244,7 +244,7 @@ server = function(session, input, output) {
         maxLength = 6
       }
       minLength = 1
-      if ( names(sort(summary(as.factor(dataT$program_before)),decreasing=T)[1]) == "(Other)"  ) {
+      if ( names(sort(summary(as.factor(dataT$program_before)), decreasing = T)[1]) == "(Other)"  ) {
         minLength = 2
       }
       fullPrograms = gsub(",","\n ", toString(rbind( names(sort(summary(as.factor(dataT$program_before)),decreasing=T)[minLength:maxLength]),
@@ -308,7 +308,7 @@ server = function(session, input, output) {
       print(paste0("Number of commercials: ", nrow(dataT),
                    "\n\nChosen options: \n  Channel: ", input$channel,
                    "\n  Month: ", input$month, "\n  Time interval: between ",
-                   input$hour[1], ":00 and ", input$hour[2],
+                   input$timer[1], ":00 and ", input$timer[2],
                    ":00 \n  Length of spot: ", input$length_of_spot,
                    "\n  Position in break: ", input$position_in_break_3option,
                    "\n  Product category: ", input$product_category,
@@ -326,8 +326,54 @@ server = function(session, input, output) {
   })
   
   output$plot = renderPlot({
-    with(broadNet, boxplot(gross_rating_point~hours)) # not the reactive one
-    #with(mtreact(), boxplot(gross_rating_point~mtreact()[,2])) # will not yet work
+    output$plot <- renderUI({
+      tableLength = nrow(mtreact())
+      if(tableLength > 0){
+        plot_output_list <- lapply(1:tableLength, function(i) {
+          plotname <- paste("plot", i, sep="") 
+          plotOutput(plotname, height = 350, width = 700)
+          tableInterest = mtreact()
+          output[[plotname]] <- renderPlot({
+            
+            datecommercial <- tableInterest[i,"date"]
+            timecommercial <- tableInterest[i,"time"]
+            
+            traffic_datesub <- subset(visitorsSum,grepl(datecommercial, visitorsSum$date) == TRUE)
+            
+            timecommercial <- str_split_fixed(timecommercial, ":", 3)
+            colnames(timecommercial) <- c("hour", "minute", "seconds")
+            timecommercial <- data.frame(timecommercial)
+            timecommercial <- 60*as.numeric(timecommercial[1,"hour"]) + as.numeric(timecommercial[1,"minute"]) + 1
+            
+            interval = 10
+            timeStart <- timecommercial - interval
+            timeEinde <- timecommercial + interval
+            totalLength <- 2*interval + 1
+            visitsVector <- as.matrix(rep(0,totalLength))
+            row.names(visitsVector) <- c(seq(from = -10, to = 10))
+            
+            for(j in 1:totalLength){
+              visitsVector[j] <- traffic_datesub[(timeStart + j - 1), "visitsWebNet"]
+            }
+            
+            plot(visitsVector, type = "l", xaxt = "n", main = paste("Website visits (NL) commercial with GDP", tableInterest[i,"gross_rating_point"]),  
+                 xlab = "Time (minutes)", ylab = "Visits Ratio")
+            axis(side =1, at=c(1,11, 21), 
+                 labels= c('-10','0','10'))
+            
+            abline(v = interval + 1, col = "blue")
+            
+          })
+        })
+        
+        do.call(tagList, plot_output_list)
+      }
+      else{
+        print("No Plots Available")
+      }
+      
+    })
+  
   }
   )
   
@@ -409,7 +455,7 @@ server = function(session, input, output) {
     return(predict(fullModelTest, currentdf, interval = "prediction"))
   })
   output$text = renderText({
-    print("TESTJE")
+    # print("TESTJE")
     if (input$channels == "Slam!TV"){
       paste0("We cannot give information for this channel, as we do not have enough data for it.")
     }
