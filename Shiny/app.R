@@ -361,7 +361,7 @@ server = function(session, input, output) {
             
             plot(visitsVector, type = "l", xaxt = "n", main = c(paste("Commercial at", tableInterest[i,"channel"], "on date", tableInterest[i,"date"],tableInterest[i,"time"]),
                                                                     paste("with GRP of",tableInterest[i,"gross_rating_point"])),
-                 xlab = "Time (minutes)", ylab = "Visits Ratio")
+                 xlab = "Time (minutes)", ylab = "Visits Density")
             axis(side =1, at=c(1,11, 21), 
                  labels= c('-10','0','10'))
             
