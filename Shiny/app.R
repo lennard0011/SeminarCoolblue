@@ -368,12 +368,17 @@ server = function(session, input, output) {
             plot(visitsVector, type = "l", xaxt = "n", main = c(paste("Commercial at", tableInterest[i,"channel"], "on date", tableInterest[i,"date"],tableInterest[i,"time"]),
                                                                     paste("with GRP of",tableInterest[i,"gross_rating_point"])),
                  xlab = "Time (minutes)", ylab = "Visit Density")
-
+            
             axis(side =1, at=c(1,11, 21), 
                  labels= c('-10','0','10'))
             
             abline(v = interval + 1, col = "blue")
             
+            # test if this works
+            maxie = max(visitsVector[(11+1):(11+5)]) - visitsVector[11]
+            maxie_per = 100*(max(visitsVector[(11+1):(11+5)]) - visitsVector[11])/visitsVector[11]
+            legend(x="topleft", legend = c(paste0("VD increase in 5min: "), paste0(round(maxie,digits=2), " (", round(maxie_per,digits=2), "%)")), cex = 0.75)
+
           })
         })
         
