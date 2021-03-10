@@ -236,7 +236,7 @@ server = function(session, input, output) {
     dataT = mtreact()
     
     if (nrow(dataT) == 0) {
-      #print("No data to summarize!")
+      print("No data to summarize!")
     } else {
       # names has to be outside sort!
       fullChannels = gsub(",","\n ", toString(rbind(names(sort(summary(as.factor(dataT$channel)), decreasing = T)),
