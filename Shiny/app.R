@@ -15,10 +15,8 @@ library("stringr")
 
 load("fullModelSaved.rda")
 load("testdf.rda")
-fullCoef = as.data.frame(fullModel$coefficients)
-# fullCoef = as.data.frame(fullModel2$coefficients)
-channels = append(unique(broadNet$channel), "Slam!TV")
-
+load("broadNet.rda")
+load("visitorsSum.rda")
 
 ui = dashboardPage(
   dashboardHeader(title = "The effects of TV-commercials", titleWidth = 350),
@@ -85,22 +83,27 @@ ui = dashboardPage(
               fluidRow(
                 box(width = 6,
                     title = "Commercial-specific effects", 
+                    #channel
                     selectInput(inputId = "channel", label = "Choose your channel", 
                                 choices = c("All", sort(unique(broadNet$channel)))),
+                    #month
+                    selectInput(inputId = "month", label = "Choose a month", 
+                                choices = c("All", "January", "February", "March", "April", "May", "June") ),
+                    #hour
+                    sliderInput(inputId = "hour", label = "Choose range of time: ", 
+                                min = 0, max = 24, value = c(0,24)),
                     #length_of_spot
                     selectInput(inputId = "length_of_spot", label = "Choose length of the spot", 
-                                choices = c("All", "30", "30 + 10", "30 + 10 + 5")),
+                                choices = c("All", sort(unique(broadNet$length_of_spot)))),
                     #position_in_break_3option
-                    selectInput(inputId = "position_in_break_3option", label = "Choose the position in break", 
-                                choices = c("All", "Begin", "Middle", "End")),
+                    selectInput(inputId = "position_in_break_3option", label = "Choose position of spot", 
+                                choices = c("All", unique(broadNet$position_in_break_3option))),
                     #product_category
                     selectInput(inputId = "product_category", label = "Choose product category", 
-                                choices = c("All", "Washing machines", "Televisions", "Laptops")),
-                    #month
-                    selectInput(inputId = "month", label = "Choose month of the year", 
-                                choices = c("All", "January", "February", "March", "April", "May", "June")),
+                                choices = c("All", sort(unique(broadNet$product_category)))),
+                    #Keuze op sorteren
                     radioButtons(inputId = "choose_ordering", label = "Choose ordering of data",
-                                 choices = c("Date", "Gross Rating Point"), inline = T)
+                                 choices = c("Date", "Gross Rating Point"), inline=T)
                 ),
                 box(width = 6,
                     tabsetPanel(type = "tab", 
@@ -109,11 +112,6 @@ ui = dashboardPage(
                                 tabPanel("Plot", plotOutput(outputId="plot"))
                     )
                 ),
-                # Output text
-                textOutput(outputId = "text1"),
-                textOutput(outputId = "text2"),
-                textOutput(outputId = "text3"),
-                textOutput(outputId = "text4")
               )
       ),
       tabItem("de",
@@ -123,7 +121,11 @@ ui = dashboardPage(
                        box(width = 12,
                            title = "Commercial-specific effects", 
                            selectInput(inputId = "channels", label = "Choose your channel", choices = sort(unique(broadNet$channel))),
+<<<<<<< HEAD
                            sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value = 0, min = 0, max = 23.6, step = 0.1),
+=======
+                           sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value = 0, min = 0, max = 7.05),
+>>>>>>> 763b0d86ef23121383da540ec45457f1a9096fa6
                            textOutput(outputId = "warning"), tags$head(tags$style("#warning{color: red;
                                  }")),
                            selectInput(inputId = "weekday", label = "Choose day of the week",
@@ -160,6 +162,7 @@ server = function(session, input, output) {
   mtreact = reactive({
     reactTable = broadNet
     
+    # TODO Dit is onhandig. Moet pas op het eind worden aangepast
     colnames(reactTable)[2] = "Channel"
     colnames(reactTable)[3] = "Date"
     colnames(reactTable)[4] = "Time"
@@ -215,18 +218,89 @@ server = function(session, input, output) {
       }
       reactTable = subset(reactTable, month(Date) == nrMonth)
     }
+    # put time restriction
+    reactTable = subset(reactTable, as.numeric(hours) >= input$hour[1])
+    reactTable = subset(reactTable, as.numeric(hours) < input$hour[2])
+    if (input$hour[1] == 0 || input$hour[1] == 1) {
+      reactTable = subset(reactTable, as.numeric(hours) > input$hour[1])
+    }
     # order on date or grp
     if (input$choose_ordering == "Date") {
       reactTable = reactTable[order(reactTable$Date, reactTable$Time),]
     } else {
       reactTable = reactTable[order(-reactTable$GRP), ]
     }
-    reactTable = reactTable[, c("Channel", "Date", "Time", "GRP")]
+    #reactTable = reactTable[, c("Channel", "Date", "Time", "GRP")]
     return(reactTable)
   })
   
-  output$Table = renderTable({
-    mtreact()
+  # Output table
+  output$Table <- renderTable({
+    outputTable = mtreact()[, c("Channel", "Date", "Time", "GRP")]
+    #colnames(outputTable) = c("Channel", "Date", "Time", "Gross Rating Point")
+    outputTable
+  })
+  
+  output$summ <- renderText({
+    dataT = mtreact()
+    
+    if (nrow(dataT) == 0) {
+      print("No data to summarize!")
+    } else {
+      # names has to be outside sort!
+      fullChannels = gsub(",","\n ", toString(rbind( names(sort(summary(as.factor(dataT$channel)),decreasing=T)),
+                                                     sort(summary(as.factor(dataT$channel)),decreasing=T)))
+      )
+      maxLength = length(unique(dataT$program_before));
+      if (maxLength > 6) {
+        maxLength = 6
+      }
+      minLength = 1
+      if ( names(sort(summary(as.factor(dataT$program_before)),decreasing=T)[1]) == "(Other)"  ) {
+        minLength = 2
+      }
+      fullPrograms = gsub(",","\n ", toString(rbind( names(sort(summary(as.factor(dataT$program_before)),decreasing=T)[minLength:maxLength]),
+                                                     sort(summary(as.factor(dataT$program_before)),decreasing=T)[minLength:maxLength]))
+      )
+      
+      #fullLengthNames = names(sort(summary(as.factor(dataT$length_of_spot)),decreasing=T))
+      #fullLengthNumbers = sort(summary(as.factor(dataT$length_of_spot)),decreasing=T)
+      
+      fullLength = gsub(",","  ", toString(rbind( names(sort(summary(as.factor(dataT$length_of_spot)),decreasing=T)),
+                                                  sort(summary(as.factor(dataT$length_of_spot)),decreasing=T)))
+      )
+      
+      fullPosition = gsub(",","  ", toString(rbind( names(sort(summary(as.factor(dataT$position_in_break_3option)),decreasing=T)),
+                                                    sort(summary(as.factor(dataT$position_in_break_3option)),decreasing=T)))
+      )
+      
+      fullProdcat = gsub(",","   ", toString(rbind( names(sort(summary(as.factor(dataT$product_category)),decreasing=T)),
+                                                    sort(summary(as.factor(dataT$product_category)),decreasing=T)))
+      )
+      
+      fullGRPNames = c("Minimum:", "  Mean:", "  Maximum: ")
+      fullGRPNumbers = summary(dataT$gross_rating_point)[c(1,4,6)]
+      
+      
+      # Do the printing
+      print(paste0("Number of commercials: ", nrow(dataT),
+                   "\n\nChosen options: \n  Channel: ", input$channel,
+                   "\n  Month: ", input$month, "\n  Time interval: between ",
+                   input$hour[1], ":00 and ", input$hour[2],
+                   ":00 \n  Length of spot: ", input$length_of_spot,
+                   "\n  Position in break: ", input$position_in_break_3option,
+                   "\n  Product category: ", input$product_category,
+                   "\n\nChannels & frequency: \n  ", fullChannels,
+                   "\n\nMost frequently broadcasted V programs: \n  ", fullPrograms,
+                   "\n\nDistribution length of spot: \n  ", fullLength,
+                   "\n\nDistribution position in break: \n  ", fullPosition,
+                   "\n\nDistribution product category: \n  ", fullProdcat,
+                   "\n\nDistribution of the Gross Rating Point: \n  ", 
+                   fullGRPNames[1], round(fullGRPNumbers[1],digits=3), fullGRPNames[2], 
+                   round(fullGRPNumbers[2],digits=3), fullGRPNames[3], 
+                   round(fullGRPNumbers[3],digits=3)
+      ))
+    }
   })
   
   output$summ = renderPrint({
@@ -316,6 +390,7 @@ server = function(session, input, output) {
     return(predict(fullModelTest, currentdf, interval = "prediction"))
   })
   output$text = renderText({
+    print("TESTJE")
     if (input$channels == "Slam!TV"){
       paste0("We cannot give information for this channel, as we do not have enough data for it.")
     }
