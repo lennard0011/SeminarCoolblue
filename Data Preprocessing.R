@@ -1,5 +1,5 @@
 # Seminar Coolblue 2021 -- Data Preprocessing
-# @authors: Lennard van der Plas, Erik van der Heide, Marjolein de With, Daniël Buijs
+# @authors: Lennard van der Plas, Erik van der Heide, Marjolein de With, Dani?l Buijs
 
 # install packages (uncomment to install a package)
 #install.packages("chron")
@@ -58,8 +58,8 @@ broad = broad[broad[, "gross_rating_point"] > 0, ]  # leave out GRP=0
 broadNet = subset(broad, country == 'Netherlands')
 broadBel = subset(broad, country == 'Belgium')
 
-quan = quantile(broadNet$gross_rating_point, 0.95)
-broad = broad[broad[, 'gross_rating_point'] <= quan, ]
+quan = quantile(broadNet$gross_rating_point, 0.99)
+# broad = broad[broad[, 'gross_rating_point'] <= quan, ]
 
 nTraffic = nrow(traffic)
 nBroad = nrow(broad)
@@ -458,3 +458,6 @@ removeNonSingular <- function(model, data) {
   data = data[, !(names(data) %in% naCoef )]
   data
 }
+
+save(broadNet, file = "broadNet.rda")
+save(visitorsSum, file = "visitorsSum.rda")
