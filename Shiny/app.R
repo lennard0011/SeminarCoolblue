@@ -122,11 +122,8 @@ ui = dashboardPage(
                        box(width = 12,
                            title = "Commercial-specific effects", 
                            selectInput(inputId = "channels", label = "Choose your channel", choices = sort(unique(broadNet$channel))),
-<<<<<<< HEAD
-                           sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value = 0, min = 0, max = 23.6, step = 0.1),
-=======
-                           sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value = 0, min = 0, max = 7.05),
->>>>>>> 763b0d86ef23121383da540ec45457f1a9096fa6
+                           sliderInput(inputId = "GRP2", label = "Input Gross Rating Point", value = 0, min = 0, max = 7.05),
+
                            textOutput(outputId = "warning"), tags$head(tags$style("#warning{color: red;
                                  }")),
                            selectInput(inputId = "weekday", label = "Choose day of the week",
@@ -254,16 +251,53 @@ server = function(session, input, output) {
                                                      sort(summary(as.factor(dataT$program_before)),decreasing=T)[minLength:maxLength]))
       )
       
-      fullLength = gsub(",","  ", toString(rbind( names(sort(summary(as.factor(dataT$length_of_spot)),decreasing=T)),
+      namesLength = names(sort(summary(as.factor(dataT$length_of_spot)),decreasing=T))
+      for (i in 1:length(namesLength)) {
+        if (namesLength[i] == "30") {
+          namesLength[i] = "'Length 30'"
+        } 
+        if (namesLength[i] == "30 + 10") {
+          namesLength[i] = "'Length 30+10'"
+        } 
+        if (namesLength[i] == "30 + 10 + 5") {
+          namesLength[i] = "'Length 30+10+5'"
+        } 
+      }
+      fullLength = gsub(",","  ", toString(rbind( namesLength,
                                                   sort(summary(as.factor(dataT$length_of_spot)),decreasing=T)))
       )
       
-      fullPosition = gsub(",","  ", toString(rbind( names(sort(summary(as.factor(dataT$position_in_break_3option)),decreasing=T)),
+      namesPos = names(sort(summary(as.factor(dataT$position_in_break_3option)),decreasing=T))
+      for (i in 1:length(namesPos)) {
+        if (namesPos[i] == "begin") {
+          namesPos[i] = "Begin"
+        } 
+        if (namesPos[i] == "middle") {
+          namesPos[i] = "Middle"
+        } 
+        if (namesPos[i] == "end") {
+          namesPos[i] = "End"
+        } 
+      }
+      fullPosition = gsub(",","  ", toString(rbind( namesPos,
                                                     sort(summary(as.factor(dataT$position_in_break_3option)),decreasing=T)))
       )
       
-      fullProdcat = gsub(",","   ", toString(rbind( names(sort(summary(as.factor(dataT$product_category)),decreasing=T)),
-                                                    sort(summary(as.factor(dataT$product_category)),decreasing=T)))
+      namesProdcat = names(sort(summary(as.factor(dataT$product_category)),decreasing=T))
+      for (i in 1:length(namesProdcat)) {
+        if (namesProdcat[i] == "televisies") {
+          namesProdcat[i] = "TVs"
+        } 
+        if (namesProdcat[i] == "wasmachines") {
+          namesProdcat[i] = "Washing machines"
+        } 
+        if (namesProdcat[i] == "laptops") {
+          namesProdcat[i] = "Laptops"
+        } 
+      }
+      
+      fullProdcat = gsub(",","  ", toString(rbind( namesProdcat,
+                                                   sort(summary(as.factor(dataT$product_category)),decreasing=T)))
       )
       
       fullGRPNames = c("Minimum:", "  Mean:", "  Maximum: ")
@@ -284,8 +318,8 @@ server = function(session, input, output) {
                    "\n\nDistribution position in break: \n  ", fullPosition,
                    "\n\nDistribution product category: \n  ", fullProdcat,
                    "\n\nDistribution of the Gross Rating Point: \n  ", 
-                   fullGRPNames[1], round(fullGRPNumbers[1],digits=3), fullGRPNames[2], 
-                   round(fullGRPNumbers[2],digits=3), fullGRPNames[3], 
+                   fullGRPNames[1], " ", round(fullGRPNumbers[1],digits=3), fullGRPNames[2], 
+                   " ", round(fullGRPNumbers[2],digits=3), fullGRPNames[3], 
                    round(fullGRPNumbers[3],digits=3)
       ))
     }
