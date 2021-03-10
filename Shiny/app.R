@@ -126,7 +126,7 @@ ui = dashboardPage(
                        box(width = 12,
                            title = "Commercial-specific effects", 
                            selectInput(inputId = "channels", label = "Choose your channel", choices = c(as.character(sort(unique(broadNet$channel))), "Slam!TV")),
-                           sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value = 0, min = 0, max = 23.6, step = 0.1),
+                           sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value = 0, min = 0, max = 7.5, step = 0.05),
                            textOutput(outputId = "warning"), tags$head(tags$style("#warning{color: red;
                                  }")),
                            selectInput(inputId = "weekday", label = "Choose day of the week",
@@ -472,7 +472,11 @@ server = function(session, input, output) {
     }
     else if (input$hour < 2 || input$hour > 5){
       if (round(input$maxVD * newCoefficients()[1]) > 0){
-        paste0("We expect the amount of visitors five minutes after the commercial to be ", round(input$maxVD * newCoefficients()[1]), " more than what would have been expected without a commercial. We can say with 95% certainty that this increase is between ", round(max(input$maxVD * newCoefficients()[2], 0)), " and ", round(input$maxVD * newCoefficients()[3]))
+        if (input$GRP > max(broadNet$gross_rating_point[broadNet$channel == input$channels])){
+          paste0("We expect the amount of visitors five minutes after the commercial to be ", round(input$maxVD * newCoefficients()[1]), " more than what would have been expected without a commercial. However, please take into account that usually the broadcasts on ", input$channels ," have a lower GRP.")  
+        } else {
+          paste0("We expect the amount of visitors five minutes after the commercial to be ", round(input$maxVD * newCoefficients()[1]), " more than what would have been expected without a commercial.")  
+        }
       }
       else if (round(input$maxVD * newCoefficients()[1]) < 0){
         paste0("We could not find a significant effect for these settings.")
