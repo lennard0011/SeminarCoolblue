@@ -16,12 +16,11 @@ library(lubridate)
 
 load("fullModelSaved.rda")
 load("testdf.rda")
-fullCoef = as.data.frame(fullModel$coefficients)
-# fullCoef = as.data.frame(fullModel2$coefficients)
-channels = append(unique(broadNet$channel), "Slam!TV")
+load("broadNet.rda")
+load("visitorsSum.rda")
 
 ui = dashboardPage(
-  dashboardHeader(title = "Effects of TV-commercials", titleWidth = 350),
+  dashboardHeader(title = "The effects of TV-commercials", titleWidth = 350),
   
   dashboardSidebar(
     sidebarMenu(
@@ -61,10 +60,22 @@ ui = dashboardPage(
                                 '))),
     tabItems(
       tabItem("dash",
-              fluidRow(width = 12,
-                       tags$img(height = 625,
-                                width = 625, style = "display: block; margin-left: auto; margin-right: auto;",
-                                src = "coollogo.png") 
+              fluidRow(
+                column(width = 12,
+                  box(width = 12, align = "center",
+                      "Welcome to our dashboard! We are four students of Business Analytics and Quantitative 
+                      Marketing at the Erasmus University in Rotterdam. For the past two months, we researched the 
+                      effects of TV commercials on website traffic for the e-commerce company Coolblue. We want to make 
+                      these results more accessible using this application. In the tab 'Peak Analysis', you can find 
+                      information on all commercials that were broadcast in the first half of 2019, given certain criteria.
+                      In the tab 'Direct Effects', you can again fill in certain criteria for a broadcast. The application
+                      then tells you what the expected absolute increase in visitors would be. Thank you for expressing
+                      your interest in our research!"
+                  ),
+                  tags$img(height = 500,
+                           width = 500, style = "display: block; margin-left: auto; margin-right: auto;",
+                           src = "coollogo.png") 
+                ) 
               )
       ),
       tabItem("pa",
@@ -111,7 +122,11 @@ ui = dashboardPage(
                        box(width = 12,
                            title = "Commercial-specific effects", 
                            selectInput(inputId = "channels", label = "Choose your channel", choices = sort(unique(broadNet$channel))),
-                           sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value = 0.05, min = 0.05, max = 7.05),
+<<<<<<< HEAD
+                           sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value = 0, min = 0, max = 23.6, step = 0.1),
+=======
+                           sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value = 0, min = 0, max = 7.05),
+>>>>>>> 763b0d86ef23121383da540ec45457f1a9096fa6
                            textOutput(outputId = "warning"), tags$head(tags$style("#warning{color: red;
                                  }")),
                            selectInput(inputId = "weekday", label = "Choose day of the week",
@@ -369,7 +384,7 @@ server = function(session, input, output) {
     }
     else if (input$hour < 2 || input$hour > 5){
       if (round(input$maxVD * newCoefficients()[1]) > 0){
-        paste0("We expect the amount of visitors five minutes after the commercial to be ", round(input$maxVD * newCoefficients()[1]), " more than what would have been expected without a commercial.", " Further we expect the this to be between ", round(max(input$maxVD * newCoefficients()[2], 0)), " and ", round(input$maxVD * newCoefficients()[3]))
+        paste0("We expect the amount of visitors five minutes after the commercial to be ", round(input$maxVD * newCoefficients()[1]), " more than what would have been expected without a commercial. We can say with 95% certainty that this increase is between ", round(max(input$maxVD * newCoefficients()[2], 0)), " and ", round(input$maxVD * newCoefficients()[3]))
       }
       else if (round(input$maxVD * newCoefficients()[1]) < 0){
         paste0("We could not find a significant effect for these settings.")
@@ -380,7 +395,7 @@ server = function(session, input, output) {
   })
   output$warning = renderText({
     if (input$GRP > max(broadNet$gross_rating_point[broadNet$channel == input$channels])){
-      paste0("Warning: normally the broadcasts on ", input$channels ," have a lower GRP")
+      paste0("Warning: usually the broadcasts on ", input$channels ," have a lower GRP")
     }
   })
 }
