@@ -1,5 +1,5 @@
 # R shiny + Tutorial -- Seminar Coolblue 2021
-# @ Erik van der Heide
+# @ MARJOLEIN DE WITH
 
 # TEMPLATE
 # install.packages("shiny")
@@ -18,8 +18,6 @@ load("fullModelSaved.rda")
 load("testdf.rda")
 load("broadNet.rda")
 load("visitorsSum.rda")
-
-channels = append(sort(unique(broadNet$channel)), "Slam!TV")
 
 ui = dashboardPage(
   dashboardHeader(title = "The effects of TV-commercials", titleWidth = 350),
@@ -171,25 +169,25 @@ server = function(session, input, output) {
     # subset on position in break
     if (input$position_in_break_3option != "All") {
       if (input$position_in_break_3option == "Begin"){
-        reactTable = subset(reactTable, position_in_break_3option == "Begin") 
+        reactTable = subset(reactTable, position_in_break_3option = "begin") 
       }
       if (input$position_in_break_3option == "Middle"){
-        reactTable = subset(reactTable, position_in_break_3option == "Middle") 
+        reactTable = subset(reactTable, position_in_break_3option = "middle") 
       }
       if (input$position_in_break_3option == "End"){
-        reactTable = subset(reactTable, position_in_break_3option == "End") 
+        reactTable = subset(reactTable, position_in_break_3option = "end") 
       }
     }
     # subset on product category
     if (input$product_category != "All") {
       if (input$product_category == "Washing machines"){
-        reactTable = subset(reactTable, product_category == "Washing machines")
+        reactTable = subset(reactTable, product_category = "wasmachines")
       }
       if (input$product_category == "Televisions"){
-        reactTable = subset(reactTable, product_category == "Televisions")
+        reactTable = subset(reactTable, product_category = "televisies")
       }
       if (input$product_category == "Laptops"){
-        reactTable = subset(reactTable, product_category == "Laptops")
+        reactTable = subset(reactTable, product_category = "laptops")
       }
     }
     # subset on month
