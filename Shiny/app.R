@@ -211,10 +211,12 @@ server = function(session, input, output) {
       reactTable = subset(reactTable, month(date) == nrMonth)
     }
     # put time restriction
-    reactTable = subset(reactTable, as.numeric(hours) >= input$timer[1])
-    reactTable = subset(reactTable, as.numeric(hours) < input$timer[2])
     if (input$timer[1] == 0 || input$timer[1] == 1) {
       reactTable = subset(reactTable, as.numeric(hours) > input$timer[1])
+      reactTable = subset(reactTable, as.numeric(hours) <= input$timer[2])
+    } else {
+      reactTable = subset(reactTable, as.numeric(hours) >= input$timer[1])
+      reactTable = subset(reactTable, as.numeric(hours) < input$timer[2])
     }
     # order on date or grp
     if (input$choose_ordering == "Date") {
@@ -227,16 +229,20 @@ server = function(session, input, output) {
   
   # Output table
   output$Table = renderTable({
+    if (nrow(mtreact()) == 0) {
+      print("No data available!")
+    } else {
     outputTable = mtreact()[, c("channel", "date", "time", "gross_rating_point")]
     colnames(outputTable) = c("Channel", "Date", "Time", "Gross Rating Point")
     outputTable
+    }
   })
   
   output$summ = renderText({
     dataT = mtreact()
     
     if (nrow(dataT) == 0) {
-      #print("No data to summarize!")
+      print("No data to summarize!")
     } else {
       # names has to be outside sort!
       fullChannels = gsub(",","\n ", toString(rbind(names(sort(summary(as.factor(dataT$channel)), decreasing = T)),
