@@ -5,11 +5,15 @@
 # install.packages("shiny")
 # install.packages("shinydashboard")
 # install.packages("shinyWidgets")
+# install.packages("stringr")
+# install.packages("gridExtra")
 library("shiny")
 library("shinydashboard")
 library("shinyWidgets")
 library("stringr")
-library(lubridate)
+library("lubridate")
+library("stringr")
+library("gridExtra")
 
 # Input: regression function
 
