@@ -359,7 +359,8 @@ server = function(session, input, output) {
               visitsVector[j] = traffic_datesub[(timeStart + j - 1), "visitsWebNet"]
             }
             
-            plot(visitsVector, type = "l", xaxt = "n", main = paste("Website visits (NL) commercial with GDP", tableInterest[i,"gross_rating_point"]),  
+            plot(visitsVector, type = "l", xaxt = "n", main = c(paste("Commercial at", tableInterest[i,"channel"], "on date", tableInterest[i,"date"],tableInterest[i,"time"]),
+                                                                    paste("with GRP of",tableInterest[i,"gross_rating_point"])),
                  xlab = "Time (minutes)", ylab = "Visits Ratio")
             axis(side =1, at=c(1,11, 21), 
                  labels= c('-10','0','10'))
