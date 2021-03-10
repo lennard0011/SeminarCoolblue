@@ -236,7 +236,7 @@ server = function(session, input, output) {
     dataT = mtreact()
     
     if (nrow(dataT) == 0) {
-      print("No data to summarize!")
+      #print("No data to summarize!")
     } else {
       # names has to be outside sort!
       fullChannels = gsub(",","\n ", toString(rbind(names(sort(summary(as.factor(dataT$channel)), decreasing = T)),
@@ -328,13 +328,13 @@ server = function(session, input, output) {
     }
   })
   
-  output$plot = renderPlot({
+
     output$plot = renderUI({
       tableLength = nrow(mtreact())
       if(tableLength > 0){
         plot_output_list = lapply(1:tableLength, function(i) {
           plotname = paste("plot", i, sep = "") 
-          plotOutput(plotname, height = 350, width = 700)
+          plotOutput(plotname, height = 50, width = 100)
           tableInterest = mtreact()
           output[[plotname]] = renderPlot({
             
@@ -377,8 +377,7 @@ server = function(session, input, output) {
       
     })
   
-  }
-  )
+ 
   
   newCoefficients = reactive({
     #make copy of dataframe to fill in with data
