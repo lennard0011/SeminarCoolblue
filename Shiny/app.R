@@ -29,6 +29,7 @@ ui = dashboardPage(
   dashboardSidebar(
     sidebarMenu(
       menuItem("Dashboard", tabName = "dash", icon = icon("dashboard")),
+      menuItem("About Us", tabName = "au"),
       menuItem("Data Exploration", tabName = "pa"),
       menuItem("Direct Effects", tabName = "de")
     )
@@ -64,10 +65,17 @@ ui = dashboardPage(
                                 '))),
     tabItems(
       tabItem("dash",
-              fluidRow(
-                column(width = 12,
-                  box(width = 12, align = "center",
-                      "Welcome to our dashboard! We are four students of Business Analytics and Quantitative 
+              column(width = 12,
+                     tags$img(height = 625,
+                              width = 625, style = "display: block; margin-left: auto; margin-right: auto;",
+                              src = "coollogo.png") 
+              ) 
+      ),
+      tabItem("au",
+              headerPanel(title = "About Us"),
+              column(width = 12,
+                     box(width = 12, align = "center",
+                         "Welcome to our dashboard! We are four students of Business Analytics and Quantitative 
                       Marketing at the Erasmus University in Rotterdam. For the past two months, we researched the 
                       effects of TV commercials on website traffic for the e-commerce company Coolblue. We want to make 
                       these results more accessible using this application. In the tab 'Data Exploration', you can find 
@@ -75,11 +83,7 @@ ui = dashboardPage(
                       In the tab 'Direct Effects', you can again fill in certain criteria for a broadcast. The application
                       then tells you what the expected absolute increase in visitors would be. Thank you for expressing
                       your interest in our research!"
-                  ),
-                  tags$img(height = 500,
-                           width = 500, style = "display: block; margin-left: auto; margin-right: auto;",
-                           src = "coollogo.png") 
-                ) 
+                     ),
               )
       ),
       tabItem("pa",
@@ -98,7 +102,7 @@ ui = dashboardPage(
                     sliderInput(inputId = "timer", label = "Choose time range: ", 
                                 min = 0, max = 24, value = c(0,24)),
                     #length_of_spot
-                    selectInput(inputId = "length_of_spot", label = "Choose length of the spot", 
+                    selectInput(inputId = "length_of_spot", label = "Choose the spot length", 
                                 choices = c("All", as.character(sort(unique(broadNet$length_of_spot))))),
                     #position_in_break_3option
                     selectInput(inputId = "position_in_break_3option", label = "Choose the position in break", 
@@ -126,7 +130,7 @@ ui = dashboardPage(
                        box(width = 12,
                            title = "Commercial-specific effects", 
                            selectInput(inputId = "channels", label = "Choose your channel", choices = c(as.character(sort(unique(broadNet$channel))), "Slam!TV")),
-                           sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value = 0, min = 0, max = 23.6, step = 0.1),
+                           sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value = 0, min = 0, max = 7.5, step = 0.05),
                            textOutput(outputId = "warning"), tags$head(tags$style("#warning{color: red;
                                  }")),
                            selectInput(inputId = "weekday", label = "Choose day of the week",
@@ -232,9 +236,9 @@ server = function(session, input, output) {
     if (nrow(mtreact()) == 0) {
       print("No data available!")
     } else {
-    outputTable = mtreact()[, c("channel", "date", "time", "gross_rating_point")]
-    colnames(outputTable) = c("Channel", "Date", "Time", "Gross Rating Point")
-    outputTable
+      outputTable = mtreact()[, c("channel", "date", "time", "gross_rating_point")]
+      colnames(outputTable) = c("Channel", "Date", "Time", "Gross Rating Point")
+      outputTable
     }
   })
   
@@ -246,7 +250,7 @@ server = function(session, input, output) {
     } else {
       # names has to be outside sort!
       fullChannels = gsub(",","\n ", toString(rbind(names(sort(summary(as.factor(dataT$channel)), decreasing = T)),
-                                                     sort(summary(as.factor(dataT$channel)), decreasing = T)))
+                                                    sort(summary(as.factor(dataT$channel)), decreasing = T)))
       )
       maxLength = length(unique(dataT$program_before));
       if (maxLength > 6) {
@@ -257,7 +261,7 @@ server = function(session, input, output) {
         minLength = 2
       }
       fullPrograms = gsub(",","\n ", toString(rbind(names(sort(summary(as.factor(dataT$program_before)),decreasing=T)[minLength:maxLength]),
-                                                     sort(summary(as.factor(dataT$program_before)),decreasing=T)[minLength:maxLength]))
+                                                    sort(summary(as.factor(dataT$program_before)),decreasing=T)[minLength:maxLength]))
       )
       namesLength = names(sort(summary(as.factor(dataT$length_of_spot)), decreasing = T))
       for (i in 1:length(namesLength)) {
@@ -326,7 +330,7 @@ server = function(session, input, output) {
                    "\n\nDistribution position in break: \n  ", fullPosition,
                    "\n\nDistribution product category: \n  ", fullProdcat,
                    "\n\nDistribution of the Gross Rating Point: \n  ", 
-
+                   
                    fullGRPNames[1], " ", round(fullGRPNumbers[1], digits = 3), fullGRPNames[2], 
                    " ", round(fullGRPNumbers[2], digits = 3), fullGRPNames[3], 
                    round(fullGRPNumbers[3], digits = 3)
@@ -334,56 +338,58 @@ server = function(session, input, output) {
     }
   })
   
-
-    output$plot = renderUI({
-      tableLength = nrow(mtreact())
-      if(tableLength > 0){
-        plot_output_list = lapply(1:tableLength, function(i) {
-          plotname = paste("plot", i, sep = "") 
-          plotOutput(plotname, height = 50, width = 100)
-          tableInterest = mtreact()
-          output[[plotname]] = renderPlot({
-            
-            datecommercial = tableInterest[i, "date"]
-            timecommercial = tableInterest[i, "time"]
-            
-            traffic_datesub = subset(visitorsSum, grepl(datecommercial, visitorsSum$date) == TRUE)
-            
-            timecommercial = str_split_fixed(timecommercial, ":", 3)
-            colnames(timecommercial) = c("hour", "minute", "seconds")
-            timecommercial = data.frame(timecommercial)
-            timecommercial = 60 * as.numeric(timecommercial[1, "hour"]) + as.numeric(timecommercial[1, "minute"]) + 1
-            
-            interval = 10
-            timeStart = timecommercial - interval
-            timeEinde = timecommercial + interval
-            totalLength = 2 * interval + 1
-            visitsVector = as.matrix(rep(0,totalLength))
-            row.names(visitsVector) = c(seq(from = -10, to = 10))
-            
-            for(j in 1:totalLength){
-              visitsVector[j] = traffic_datesub[(timeStart + j - 1), "visitsWebNet"]
-            }
-            
-            plot(visitsVector, type = "l", xaxt = "n", main = paste("Website visits (NL) commercial with GDP", tableInterest[i,"gross_rating_point"]),  
-                 xlab = "Time (minutes)", ylab = "Visit Density")
-            axis(side =1, at=c(1,11, 21), 
-                 labels= c('-10','0','10'))
-            
-            abline(v = interval + 1, col = "blue")
-            
-          })
+  output$plot = renderUI({
+    tableLength = nrow(mtreact())
+    if(tableLength > 0){
+      plot_output_list = lapply(1:tableLength, function(i) {
+        plotname = paste("plot", i, sep = "") 
+        plotOutput(plotname, height = 50, width = 100)
+        tableInterest = mtreact()
+        output[[plotname]] = renderPlot({
+          
+          datecommercial = tableInterest[i, "date"]
+          timecommercial = tableInterest[i, "time"]
+          
+          traffic_datesub = subset(visitorsSum, grepl(datecommercial, visitorsSum$date) == TRUE)
+          
+          timecommercial = str_split_fixed(timecommercial, ":", 3)
+          colnames(timecommercial) = c("hour", "minute", "seconds")
+          timecommercial = data.frame(timecommercial)
+          timecommercial = 60 * as.numeric(timecommercial[1, "hour"]) + as.numeric(timecommercial[1, "minute"]) + 1
+          
+          interval = 10
+          timeStart = timecommercial - interval
+          timeEinde = timecommercial + interval
+          totalLength = 2 * interval + 1
+          visitsVector = as.matrix(rep(0,totalLength))
+          row.names(visitsVector) = c(seq(from = -10, to = 10))
+          
+          for(j in 1:totalLength){
+            visitsVector[j] = traffic_datesub[(timeStart + j - 1), "visitsWebNet"]
+          }
+          
+          plot(visitsVector, type = "l", xaxt = "n", main = paste("Website visits (NL) commercial with GDP", tableInterest[i,"gross_rating_point"]),  
+               xlab = "Time (minutes)", ylab = "Visit Density")
+          axis(side =1, at=c(1,11, 21), 
+               labels= c('-10','0','10'))
+          
+          abline(v = interval + 1, col = "blue")
+          
+          maxie = max(visitsVector[(11+1):(11+5)]) - visitsVector[11]
+          maxie_per = 100*(max(visitsVector[(11+1):(11+5)]) - visitsVector[11])/visitsVector[11]
+          legend(x="topleft", legend = c(paste0("VD increase in 5min: "), paste0(round(maxie,digits=2), " (", round(maxie_per,digits=2), "%)")), cex = 0.75)
         })
-        
-        do.call(tagList, plot_output_list)
-      }
-      else{
-        print("No Plots Available")
-      }
+      })
       
-    })
+      do.call(tagList, plot_output_list)
+    }
+    else{
+      print("No Plots Available")
+    }
+    
+  })
   
- 
+  
   
   newCoefficients = reactive({
     #make copy of dataframe to fill in with data
@@ -472,7 +478,11 @@ server = function(session, input, output) {
     }
     else if (input$hour < 2 || input$hour > 5){
       if (round(input$maxVD * newCoefficients()[1]) > 0){
-        paste0("We expect the amount of visitors five minutes after the commercial to be ", round(input$maxVD * newCoefficients()[1]), " more than what would have been expected without a commercial. We can say with 95% certainty that this increase is between ", round(max(input$maxVD * newCoefficients()[2], 0)), " and ", round(input$maxVD * newCoefficients()[3]))
+        if (input$GRP > max(broadNet$gross_rating_point[broadNet$channel == input$channels])){
+          paste0("We expect the amount of visitors five minutes after the commercial to be ", round(input$maxVD * newCoefficients()[1]), " more than what would have been expected without a commercial. However, please take into account that usually the broadcasts on ", input$channels ," have a lower GRP.")  
+        } else {
+          paste0("We expect the amount of visitors five minutes after the commercial to be ", round(input$maxVD * newCoefficients()[1]), " more than what would have been expected without a commercial.")  
+        }
       }
       else if (round(input$maxVD * newCoefficients()[1]) < 0){
         paste0("We could not find a significant effect for these settings.")
@@ -490,4 +500,4 @@ server = function(session, input, output) {
     }
   })
 }
-shinyApp(ui=ui, server=server)
+shinyApp(ui = ui, server = server)
