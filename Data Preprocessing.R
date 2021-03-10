@@ -145,24 +145,24 @@ visitorsSum[is.na(visitorsSum)] = 0
 
 # include summertime by taking the value of previous day
 summerTime = matrix(0.0, nrow = 60, ncol = 6)
-colnames(summerTime) <- colnames(visitorsSum)
-summerTime[,1] = "2019-03-31"
+colnames(summerTime) = colnames(visitorsSum)
+summerTime[, 1] = "2019-03-31"
 for (i in 1:60) {
-  summerTime[i,2] = 119+i
-  summerTime[i,3] = visitorsSum[(128279+i-1440),3]
-  summerTime[i,4] = visitorsSum[(128279+i-1440),4]
-  summerTime[i,5] = visitorsSum[(128279+i-1440),5]
-  summerTime[i,6] = visitorsSum[(128279+i-1440),6]
+  summerTime[i, 2] = 119+i
+  summerTime[i, 3] = visitorsSum[(128279 + i - 1440), 3]
+  summerTime[i, 4] = visitorsSum[(128279 + i - 1440), 4]
+  summerTime[i, 5] = visitorsSum[(128279 + i - 1440), 5]
+  summerTime[i, 6] = visitorsSum[(128279 + i - 1440), 6]
 }
-visitorsSum = rbind(visitorsSum[1:128279,], summerTime, visitorsSum[128280:nrow(visitorsSum),])
-row.names(visitorsSum) <- NULL # resets rownrs
+visitorsSum = rbind(visitorsSum[1:128279, ], summerTime, visitorsSum[128280:nrow(visitorsSum),])
+row.names(visitorsSum) = NULL # resets rownrs
 rm(summerTime)
 nrow(visitorsSum)
 
 # insert 2 remaining missing values
-visitorsSum = rbind(visitorsSum[1:118393,], c("2019-03-24",313,0.0,0.0,0.0,0.0), visitorsSum[118394:nrow(visitorsSum),])
-visitorsSum = rbind(visitorsSum[1:148547,], c("2019-04-14",228,0.0,0.0,0.0,0.0), visitorsSum[148548:nrow(visitorsSum),])
-row.names(visitorsSum) <- NULL
+visitorsSum = rbind(visitorsSum[1:118393,], c("2019-03-24", 313, 0.0, 0.0, 0.0, 0.0), visitorsSum[118394:nrow(visitorsSum),])
+visitorsSum = rbind(visitorsSum[1:148547,], c("2019-04-14", 228, 0.0, 0.0, 0.0, 0.0), visitorsSum[148548:nrow(visitorsSum),])
+row.names(visitorsSum) = NULL
 
 # convert non-numeric vectors to doubles
 visitorsSum$time_min = as.numeric(visitorsSum$time_min)
@@ -240,7 +240,7 @@ for (i in 1:24){
   broadSubset = subset(broadNet, (time_min >= (i - 1) * 60) & (time_min < i * 60))
   avBroadDayNet[i] = nrow(broadSubset)/amountDays
 }
-broadNet = broadNet[order(as.numeric(row.names(broadNet))),]
+broadNet = broadNet[order(as.numeric(row.names(broadNet))), ]
 
 # calculate average amount of broadcasts -- Belgium
 avBroadDayBel = matrix(NA, 24)
@@ -249,7 +249,7 @@ for (i in 1:24){
   broadSubset = subset(broadBel, (time_min >= (i - 1) * 60) & (time_min < i * 60))
   avBroadDayBel[i] = nrow(broadSubset)/amountDays
 }
-broadBel = broadBel[order(as.numeric(row.names(broadBel))),]
+broadBel = broadBel[order(as.numeric(row.names(broadBel))), ]
 
 # amount of advertisements per day -- Total
 adAmount = matrix(0, amountDays) 
@@ -313,7 +313,7 @@ for (i in 1:length(uniqueDatesBel)) {
   dummyAdsBel[index] = 1
 }
 dummyAds = cbind(dummyAdsTot, dummyAdsNet, dummyAdsBel) # 1=Tot, 2=NL, 3=BE
-colnames(dummyAds) = c("Ads Total","Ads Netherlands","Ads Belgium")
+colnames(dummyAds) = c("Ads Total", "Ads Netherlands", "Ads Belgium")
 rm(dummyAdsTot); rm(dummyAdsNet); rm(dummyAdsBel)
 
 ## ========================================================
@@ -327,7 +327,7 @@ for (i in 1:nBroad){
 }
 
 # Hourly dummies
-broad$hours = factor(floor(24*as.numeric(times(broad$time))))
+broad$hours = factor(floor(24 * as.numeric(times(broad$time))))
 
 # Begin, middle and end for position in break
 broad['position_in_break_3option'] = 0
@@ -358,8 +358,8 @@ intervalSize = 5
 iNet = 0
 iBel = 0
 broad = broad[order(broad$date_time),]
-broadNet = broadNet[order(broadNet$date_time),]
-broadBel = broadBel[order(broadBel$date_time),]
+broadNet = broadNet[order(broadNet$date_time), ]
+broadBel = broadBel[order(broadBel$date_time), ]
 broad$overlapBefore = 0
 broad$overlapAfter = 0
 for (i in 1:nrow(broad)){
@@ -405,8 +405,8 @@ for (i in 1:nrow(broad)){
   }
 }
 broad = broad[order(as.numeric(row.names(broad))),]
-broadNet = broadNet[order(as.numeric(row.names(broadNet))),]
-broadBel = broadBel[order(as.numeric(row.names(broadBel))),]
+broadNet = broadNet[order(as.numeric(row.names(broadNet))), ]
+broadBel = broadBel[order(as.numeric(row.names(broadBel))), ]
 broadNet = subset(broad, country == 'Netherlands')
 broadBel = subset(broad, country == 'Belgium')
 
@@ -439,7 +439,7 @@ broadNet = broadNetNoMidnight
 # dummiesDirectModel Netherlands contains the treatment variables
 variablesDirectModel = c("product_category", "channel", "length_of_spot", "position_in_break_3option", "weekdays", "overlapBefore", "overlapAfter")
 dummiesDirectModelPre = dummy_cols(.data = broadNet, select_columns = variablesDirectModel, remove_most_frequent_dummy = T)
-dummiesDirectModel = dummiesDirectModelPre[,((ncol(broadNet)+1):ncol(dummiesDirectModelPre))]
+dummiesDirectModel = dummiesDirectModelPre[,((ncol(broadNet) + 1):ncol(dummiesDirectModelPre))]
 dummiesDirectModel = as.data.frame(dummiesDirectModel)
 rm(dummiesDirectModelPre); rm(variablesDirectModel)
 
@@ -447,12 +447,12 @@ rm(dummiesDirectModelPre); rm(variablesDirectModel)
 # TODO: overlap dummies komen niet in Belgische data
 variablesDirectModelBel = c("channel", "position_in_break_3option", "weekdays", "overlapBefore", "overlapAfter") # waarom missen 2 dummie-var?
 dummiesDirectModelPreBel = dummy_cols(.data = broadBel, select_columns = variablesDirectModelBel, remove_most_frequent_dummy = T)
-dummiesDirectModelBel = dummiesDirectModelPreBel[,((ncol(broadBel)+1):ncol(dummiesDirectModelPreBel))]
+dummiesDirectModelBel = dummiesDirectModelPreBel[, ((ncol(broadBel) + 1):ncol(dummiesDirectModelPreBel))]
 dummiesDirectModelBel = as.data.frame(dummiesDirectModelBel)
 rm(dummiesDirectModelPreBel); rm(variablesDirectModelBel)
 
 # automate with non singular names (wordt dit nog gebruikt?)
-removeNonSingular <- function(model, data) {
+removeNonSingular = function(model, data) {
   naCoef = names(which(is.na(coef(model))))
   naCoef = gsub('`', '', naCoef)
   data = data[, !(names(data) %in% naCoef )]

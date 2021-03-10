@@ -57,7 +57,7 @@ for (i in 1:nBroad) { # nBroad
     broad$postVisitorsWeb[[i]] = sum(subset(visitorsSum, date == broadDate & time_min >= broadTime & time_min < broadTime + intervalSize)$visitsWebNet) + postVisitorsWebExtra
   }
 
-  if(i %% 100 == 0) {print(paste(i,Sys.time() - start))}
+  if(i %% 100 == 0) {print(paste(i, Sys.time() - start))}
 }
 
 # broad for Netherlands and Belgium
@@ -84,11 +84,11 @@ sum(broad$postVisitorsWeb > broad$preVisitorsWeb)
 sum(broad$postVisitorsWeb < broad$preVisitorsWeb)
 # data plotting website
 plot(broad$preVisitorsWeb, broad$postVisitorsWeb)
-lines(cbind(0,10000), cbind(0,10000))
-par(mfrow=c(2,1))
-hist(broad$postVisitorsWeb, xlim = c(0,3))
-hist(broad$preVisitorsWeb, xlim = c(0,3))
-par(mfrow=c(1,1))
+lines(cbind(0, 10000), cbind(0, 10000))
+par(mfrow = c(2, 1))
+hist(broad$postVisitorsWeb, xlim = c(0, 3))
+hist(broad$preVisitorsWeb, xlim = c(0, 3))
+par(mfrow = c(1, 1))
 simpleModelWeb = lm(broad$postVisitorsWeb ~ broad$preVisitorsWeb + 0)
 summary(simpleModelWeb)
 
@@ -100,11 +100,11 @@ sum(broadNet$postVisitorsWeb > broadNet$preVisitorsWeb)
 sum(broadNet$postVisitorsWeb < broadNet$preVisitorsWeb)
 # data plotting website
 plot(broadNet$preVisitorsWeb, broadNet$postVisitorsWeb)
-lines(cbind(0,10000), cbind(0,10000))
-par(mfrow=c(2,1))
-hist(broadNet$postVisitorsWeb, xlim = c(0,3))
-hist(broadNet$preVisitorsWeb, xlim = c(0,3))
-par(mfrow=c(1,1))
+lines(cbind(0, 10000), cbind(0, 10000))
+par(mfrow = c(2, 1))
+hist(broadNet$postVisitorsWeb, xlim = c(0, 3))
+hist(broadNet$preVisitorsWeb, xlim = c(0, 3))
+par(mfrow = c(1, 1))
 simpleModelWebNet = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + 0)
 summary(simpleModelWebNet)
 
@@ -116,11 +116,11 @@ sum(broadBel$postVisitorsWeb > broadBel$preVisitorsWeb)
 sum(broadBel$postVisitorsWeb < broadBel$preVisitorsWeb)
 # data plotting website
 plot(broadBel$preVisitorsWeb, broadBel$postVisitorsWeb)
-lines(cbind(0,10000), cbind(0,10000))
-par(mfrow=c(2,1))
-hist(broadBel$postVisitorsWeb, xlim = c(0,3))
-hist(broadBel$preVisitorsWeb, xlim = c(0,3))
-par(mfrow=c(1,1))
+lines(cbind(0, 10000), cbind(0, 10000))
+par(mfrow = c(2, 1))
+hist(broadBel$postVisitorsWeb, xlim = c(0, 3))
+hist(broadBel$preVisitorsWeb, xlim = c(0, 3))
+par(mfrow = c(1, 1))
 simpleModelWebBel = lm(broadBel$postVisitorsWeb ~ broadBel$preVisitorsWeb + 0)
 summary(simpleModelWebBel)
 
@@ -131,12 +131,12 @@ max(broad$postVisitorsApp - broad$preVisitorsApp)
 sum(broad$postVisitorsApp > broad$preVisitorsApp)
 sum(broad$postVisitorsApp < broad$preVisitorsApp)
 # data plotting (app)
-plot(broad$preVisitorsApp, broad$postVisitorsApp, xlim = c(0,0.2)) # deze plot....
-lines(cbind(0,10000), cbind(0,10000))
-par(mfrow=c(2,1))
+plot(broad$preVisitorsApp, broad$postVisitorsApp, xlim = c(0, 0.2)) # deze plot....
+lines(cbind(0, 10000), cbind(0, 10000))
+par(mfrow = c(2, 1))
 hist(broad$postVisitorsApp)
 hist(broad$preVisitorsApp)
-par(mfrow=c(1,1))
+par(mfrow = c(1, 1))
 simpleModelApp = lm(broad$postVisitorsApp ~ broad$preVisitorsApp + 0)
 summary(simpleModelApp)
 
@@ -177,7 +177,6 @@ predict(fullModelTest, testdf)
 
 save(fullModelTest, file = "fullModelSaved.rda")
 save(testdf, file = "testdf.rda")
-
 
 
 getModelSumm(fullModel, T)
@@ -228,8 +227,8 @@ avFullTrainError = vector(length = folds)
 avFullTestError = vector(length = folds)
 for (i in 1:folds){
   sampleSplit = sample.split(broadBel$postVisitorsApp, SplitRatio = 0.8)
-  broadTrain = broadDumm[sampleSplit == TRUE,]
-  broadTest = broadDumm[sampleSplit == FALSE,]
+  broadTrain = broadDumm[sampleSplit == TRUE, ]
+  broadTest = broadDumm[sampleSplit == FALSE, ]
   
   # Baseline model
   baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + hours + weekdays_dinsdag + weekdays_donderdag + weekdays_maandag +weekdays_vrijdag + weekdays_woensdag + weekdays_zondag, data = broadTrain)
@@ -290,8 +289,8 @@ avFullTrainError = vector(length = folds)
 avFullTestError = vector(length = folds)
 for (i in 1:folds){
   sampleSplit = sample.split(broadNet$postVisitorsWeb, SplitRatio = 0.8)
-  broadTrain = broadDumm[sampleSplit == TRUE,]
-  broadTest = broadDumm[sampleSplit == FALSE,]
+  broadTrain = broadDumm[sampleSplit == TRUE, ]
+  broadTest = broadDumm[sampleSplit == FALSE, ]
   
   # Baseline model
   baselineModel = lm(postVisitorsApp ~ preVisitorsApp + hours + weekdays_dinsdag + weekdays_donderdag + weekdays_maandag +weekdays_vrijdag + weekdays_woensdag + weekdays_zondag, data = broadTrain)
