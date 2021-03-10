@@ -173,25 +173,25 @@ server = function(session, input, output) {
     # subset on position in break
     if (input$position_in_break_3option != "All") {
       if (input$position_in_break_3option == "Begin"){
-        reactTable = subset(reactTable, position_in_break_3option = "begin") 
+        reactTable = subset(reactTable, position_in_break_3option == "begin") 
       }
       if (input$position_in_break_3option == "Middle"){
-        reactTable = subset(reactTable, position_in_break_3option = "middle") 
+        reactTable = subset(reactTable, position_in_break_3option == "middle") 
       }
       if (input$position_in_break_3option == "End"){
-        reactTable = subset(reactTable, position_in_break_3option = "end") 
+        reactTable = subset(reactTable, position_in_break_3option == "end") 
       }
     }
     # subset on product category
     if (input$product_category != "All") {
       if (input$product_category == "Washing machines"){
-        reactTable = subset(reactTable, product_category = "wasmachines")
+        reactTable = subset(reactTable, product_category == "wasmachines")
       }
       if (input$product_category == "Televisions"){
-        reactTable = subset(reactTable, product_category = "televisies")
+        reactTable = subset(reactTable, product_category == "televisies")
       }
       if (input$product_category == "Laptops"){
-        reactTable = subset(reactTable, product_category = "laptops")
+        reactTable = subset(reactTable, product_category == "laptops")
       }
     }
     # subset on month
@@ -211,10 +211,12 @@ server = function(session, input, output) {
       reactTable = subset(reactTable, month(date) == nrMonth)
     }
     # put time restriction
-    reactTable = subset(reactTable, as.numeric(hours) >= input$timer[1])
-    reactTable = subset(reactTable, as.numeric(hours) < input$timer[2])
     if (input$timer[1] == 0 || input$timer[1] == 1) {
       reactTable = subset(reactTable, as.numeric(hours) > input$timer[1])
+      reactTable = subset(reactTable, as.numeric(hours) <= input$timer[2])
+    } else {
+      reactTable = subset(reactTable, as.numeric(hours) >= input$timer[1])
+      reactTable = subset(reactTable, as.numeric(hours) < input$timer[2])
     }
     # order on date or grp
     if (input$choose_ordering == "Date") {
@@ -227,16 +229,20 @@ server = function(session, input, output) {
   
   # Output table
   output$Table = renderTable({
+    if (nrow(mtreact()) == 0) {
+      print("No data available!")
+    } else {
     outputTable = mtreact()[, c("channel", "date", "time", "gross_rating_point")]
     colnames(outputTable) = c("Channel", "Date", "Time", "Gross Rating Point")
     outputTable
+    }
   })
   
   output$summ = renderText({
     dataT = mtreact()
     
     if (nrow(dataT) == 0) {
-      #print("No data to summarize!")
+      print("No data to summarize!")
     } else {
       # names has to be outside sort!
       fullChannels = gsub(",","\n ", toString(rbind(names(sort(summary(as.factor(dataT$channel)), decreasing = T)),
@@ -253,7 +259,7 @@ server = function(session, input, output) {
       fullPrograms = gsub(",","\n ", toString(rbind(names(sort(summary(as.factor(dataT$program_before)),decreasing=T)[minLength:maxLength]),
                                                      sort(summary(as.factor(dataT$program_before)),decreasing=T)[minLength:maxLength]))
       )
-      namesLength = names(sort(summary(as.factor(dataT$length_of_spot)),decreasing=T))
+      namesLength = names(sort(summary(as.factor(dataT$length_of_spot)), decreasing = T))
       for (i in 1:length(namesLength)) {
         if (namesLength[i] == "30") {
           namesLength[i] = "'Length 30'"
@@ -288,7 +294,7 @@ server = function(session, input, output) {
       namesProdcat = names(sort(summary(as.factor(dataT$product_category)),decreasing=T))
       for (i in 1:length(namesProdcat)) {
         if (namesProdcat[i] == "televisies") {
-          namesProdcat[i] = "TVs"
+          namesProdcat[i] = "Televisions"
         } 
         if (namesProdcat[i] == "wasmachines") {
           namesProdcat[i] = "Washing machines"
@@ -315,7 +321,7 @@ server = function(session, input, output) {
                    "\n  Position in break: ", input$position_in_break_3option,
                    "\n  Product category: ", input$product_category,
                    "\n\nChannels & frequency: \n  ", fullChannels,
-                   "\n\nMost frequently broadcasted V programs: \n  ", fullPrograms,
+                   "\n\nMost frequently broadcasted TV programs: \n  ", fullPrograms,
                    "\n\nDistribution length of spot: \n  ", fullLength,
                    "\n\nDistribution position in break: \n  ", fullPosition,
                    "\n\nDistribution product category: \n  ", fullProdcat,
@@ -361,7 +367,8 @@ server = function(session, input, output) {
             
             plot(visitsVector, type = "l", xaxt = "n", main = c(paste("Commercial at", tableInterest[i,"channel"], "on date", tableInterest[i,"date"],tableInterest[i,"time"]),
                                                                     paste("with GRP of",tableInterest[i,"gross_rating_point"])),
-                 xlab = "Time (minutes)", ylab = "Visits Density")
+                 xlab = "Time (minutes)", ylab = "Visit Density")
+
             axis(side =1, at=c(1,11, 21), 
                  labels= c('-10','0','10'))
             
@@ -448,14 +455,14 @@ server = function(session, input, output) {
       currentdf$weekdays_vrijdag = 1
     }
     else if (input$weekday == 'Sunday'){
-      weekDay[6] = 1
+      currentdf$weekdays_zondag = 1
     }
     else if (input$weekday == 'Monday'){
-      currentdf$weekdays_zondag = 1
+      currentdf$weekdays_maandag = 1
     }
     
     currentdf["hours"] = as.factor(currentdf["hours"])
-    return(predict(fullModelTest, currentdf, interval = "prediction"))
+    return(predict(fullModelTest, currentdf, interval = "prediction", level = 0.95))
   })
   output$text = renderText({
     # print("TESTJE")
@@ -480,7 +487,7 @@ server = function(session, input, output) {
     if (input$channels != "Slam!TV" && input$GRP > max(broadNet$gross_rating_point[broadNet$channel == input$channels])){
       paste0("Warning: usually the broadcasts on ", input$channels ," have a lower GRP")
     }
-    if (input$channels == "Slam!TV"){
+    else if (input$channels == "Slam!TV"){
       paste0("Warning: not enough data")
     }
   })
