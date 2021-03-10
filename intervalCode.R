@@ -60,18 +60,6 @@ for (i in 1:nBroad) { # nBroad
   if(i %% 100 == 0) {print(paste(i, Sys.time() - start))}
 }
 
-# broad for Netherlands and Belgium
-broadNet = subset(broad, country == 'Netherlands')
-broadBel = subset(broad, country == 'Belgium')
-
-broadNetNoMidnight = subset(broadNet, broadNet$time_min < 1435)
-broadNetNoMidnight = subset(broadNetNoMidnight, broadNetNoMidnight$time_min > 5)
-
-broadNet = broadNetNoMidnight
-
-broadBelNoMidnight = subset(broadBel, broadBel$time_min < 1435)
-broadBelNoMidnight = subset(broadBelNoMidnight, broadBelNoMidnight$time_min > 5)
-
 ## ========================================================
 ##                    First analysis
 ## ========================================================
