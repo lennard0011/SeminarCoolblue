@@ -9,6 +9,7 @@ library("shiny")
 library("shinydashboard")
 library("shinyWidgets")
 library("stringr")
+library(lubridate)
 
 # Input: regression function
 
@@ -24,7 +25,7 @@ ui = dashboardPage(
   dashboardSidebar(
     sidebarMenu(
       menuItem("Dashboard", tabName = "dash", icon = icon("dashboard")),
-      menuItem("Peak Analysis", tabName = "pa"),
+      menuItem("Data Exploration", tabName = "pa"),
       menuItem("Direct Effects", tabName = "de")
     )
   ),
@@ -96,11 +97,11 @@ ui = dashboardPage(
                     selectInput(inputId = "length_of_spot", label = "Choose length of the spot", 
                                 choices = c("All", sort(unique(broadNet$length_of_spot)))),
                     #position_in_break_3option
-                    selectInput(inputId = "position_in_break_3option", label = "Choose position of spot", 
-                                choices = c("All", unique(broadNet$position_in_break_3option))),
+                    selectInput(inputId = "position_in_break_3option", label = "Choose the position in break", 
+                                choices = c("All", "Begin", "Middle", "End")),
                     #product_category
                     selectInput(inputId = "product_category", label = "Choose product category", 
-                                choices = c("All", sort(unique(broadNet$product_category)))),
+                                choices = c("All", "Washing machines", "Televisions", "Laptops")),
                     #Keuze op sorteren
                     radioButtons(inputId = "choose_ordering", label = "Choose ordering of data",
                                  choices = c("Date", "Gross Rating Point"), inline=T)
@@ -157,18 +158,9 @@ ui = dashboardPage(
 server = function(session, input, output) {
   mtreact = reactive({
     reactTable = broadNet
-    
-    # TODO Dit is onhandig. Moet pas op het eind worden aangepast
-    colnames(reactTable)[2] = "Channel"
-    colnames(reactTable)[3] = "Date"
-    colnames(reactTable)[4] = "Time"
-    colnames(reactTable)[11] = "GRP"
-    
     # subset on channel
     if (input$channel != "All") {
       reactTable = subset(reactTable, channel == input$channel)
-      updateSelectInput(session, inputId = "length_of_spot", label = "Choose the spot length",
-                        choices = c("All", unique(reactTable$length_of_spot)))
     }
     # subset on length of spot
     if (input$length_of_spot != "All") {
@@ -212,7 +204,7 @@ server = function(session, input, output) {
       } else if (input$month == "May") {
         nrMonth = 5
       }
-      reactTable = subset(reactTable, month(Date) == nrMonth)
+      reactTable = subset(reactTable, month(date) == nrMonth)
     }
     # put time restriction
     reactTable = subset(reactTable, as.numeric(hours) >= input$hour[1])
@@ -222,18 +214,17 @@ server = function(session, input, output) {
     }
     # order on date or grp
     if (input$choose_ordering == "Date") {
-      reactTable = reactTable[order(reactTable$Date, reactTable$Time),]
+      reactTable = reactTable[order(reactTable$date, reactTable$time),]
     } else {
-      reactTable = reactTable[order(-reactTable$GRP), ]
+      reactTable = reactTable[order(-reactTable$gross_rating_point), ]
     }
-    #reactTable = reactTable[, c("Channel", "Date", "Time", "GRP")]
     return(reactTable)
   })
   
   # Output table
   output$Table <- renderTable({
-    outputTable = mtreact()[, c("Channel", "Date", "Time", "GRP")]
-    #colnames(outputTable) = c("Channel", "Date", "Time", "Gross Rating Point")
+    outputTable = mtreact()[,c("channel", "date", "time", "gross_rating_point")]
+    colnames(outputTable) = c("Channel", "Date", "Time", "Gross Rating Point")
     outputTable
   })
   
@@ -258,9 +249,6 @@ server = function(session, input, output) {
       fullPrograms = gsub(",","\n ", toString(rbind( names(sort(summary(as.factor(dataT$program_before)),decreasing=T)[minLength:maxLength]),
                                                      sort(summary(as.factor(dataT$program_before)),decreasing=T)[minLength:maxLength]))
       )
-      
-      #fullLengthNames = names(sort(summary(as.factor(dataT$length_of_spot)),decreasing=T))
-      #fullLengthNumbers = sort(summary(as.factor(dataT$length_of_spot)),decreasing=T)
       
       fullLength = gsub(",","  ", toString(rbind( names(sort(summary(as.factor(dataT$length_of_spot)),decreasing=T)),
                                                   sort(summary(as.factor(dataT$length_of_spot)),decreasing=T)))
@@ -299,9 +287,6 @@ server = function(session, input, output) {
     }
   })
   
-  output$summ = renderPrint({
-    summary(mtreact())
-  })
   output$plot = renderPlot({
     with(broadNet, boxplot(gross_rating_point~hours)) # not the reactive one
     #with(mtreact(), boxplot(gross_rating_point~mtreact()[,2])) # will not yet work
