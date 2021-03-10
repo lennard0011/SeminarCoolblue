@@ -288,7 +288,7 @@ server = function(session, input, output) {
       namesProdcat = names(sort(summary(as.factor(dataT$product_category)),decreasing=T))
       for (i in 1:length(namesProdcat)) {
         if (namesProdcat[i] == "televisies") {
-          namesProdcat[i] = "TVs"
+          namesProdcat[i] = "Televisions"
         } 
         if (namesProdcat[i] == "wasmachines") {
           namesProdcat[i] = "Washing machines"
@@ -315,7 +315,7 @@ server = function(session, input, output) {
                    "\n  Position in break: ", input$position_in_break_3option,
                    "\n  Product category: ", input$product_category,
                    "\n\nChannels & frequency: \n  ", fullChannels,
-                   "\n\nMost frequently broadcasted V programs: \n  ", fullPrograms,
+                   "\n\nMost frequently broadcasted TV programs: \n  ", fullPrograms,
                    "\n\nDistribution length of spot: \n  ", fullLength,
                    "\n\nDistribution position in break: \n  ", fullPosition,
                    "\n\nDistribution product category: \n  ", fullProdcat,
@@ -360,7 +360,7 @@ server = function(session, input, output) {
             }
             
             plot(visitsVector, type = "l", xaxt = "n", main = paste("Website visits (NL) commercial with GDP", tableInterest[i,"gross_rating_point"]),  
-                 xlab = "Time (minutes)", ylab = "Visits Ratio")
+                 xlab = "Time (minutes)", ylab = "Visits Density")
             axis(side =1, at=c(1,11, 21), 
                  labels= c('-10','0','10'))
             
