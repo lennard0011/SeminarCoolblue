@@ -5,11 +5,15 @@
 # install.packages("shiny")
 # install.packages("shinydashboard")
 # install.packages("shinyWidgets")
+# install.packages("stringr")
+# install.packages("gridExtra")
 library("shiny")
 library("shinydashboard")
 library("shinyWidgets")
 library("stringr")
-library(lubridate)
+library("lubridate")
+library("stringr")
+library("gridExtra")
 
 # Input: regression function
 
@@ -122,8 +126,7 @@ ui = dashboardPage(
                        box(width = 12,
                            title = "Commercial-specific effects", 
                            selectInput(inputId = "channels", label = "Choose your channel", choices = sort(unique(broadNet$channel))),
-                           sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value = 0, min = 0, max = 7.05),
-
+                           sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value = 0, min = 0, max = 23.6, step = 0.1),
                            textOutput(outputId = "warning"), tags$head(tags$style("#warning{color: red;
                                  }")),
                            selectInput(inputId = "weekday", label = "Choose day of the week",
@@ -215,7 +218,7 @@ server = function(session, input, output) {
     }
     # order on date or grp
     if (input$choose_ordering == "Date") {
-      reactTable = reactTable[order(reactTable$date, reactTable$time),]
+      reactTable = reactTable[order(reactTable$date, reactTable$time), ]
     } else {
       reactTable = reactTable[order(-reactTable$gross_rating_point), ]
     }
@@ -223,21 +226,21 @@ server = function(session, input, output) {
   })
   
   # Output table
-  output$Table <- renderTable({
-    outputTable = mtreact()[,c("channel", "date", "time", "gross_rating_point")]
+  output$Table = renderTable({
+    outputTable = mtreact()[, c("channel", "date", "time", "gross_rating_point")]
     colnames(outputTable) = c("Channel", "Date", "Time", "Gross Rating Point")
     outputTable
   })
   
-  output$summ <- renderText({
+  output$summ = renderText({
     dataT = mtreact()
     
     if (nrow(dataT) == 0) {
       print("No data to summarize!")
     } else {
       # names has to be outside sort!
-      fullChannels = gsub(",","\n ", toString(rbind( names(sort(summary(as.factor(dataT$channel)),decreasing=T)),
-                                                     sort(summary(as.factor(dataT$channel)),decreasing=T)))
+      fullChannels = gsub(",","\n ", toString(rbind(names(sort(summary(as.factor(dataT$channel)), decreasing = T)),
+                                                     sort(summary(as.factor(dataT$channel)), decreasing = T)))
       )
       maxLength = length(unique(dataT$program_before));
       if (maxLength > 6) {
@@ -247,10 +250,9 @@ server = function(session, input, output) {
       if ( names(sort(summary(as.factor(dataT$program_before)), decreasing = T)[1]) == "(Other)"  ) {
         minLength = 2
       }
-      fullPrograms = gsub(",","\n ", toString(rbind( names(sort(summary(as.factor(dataT$program_before)),decreasing=T)[minLength:maxLength]),
+      fullPrograms = gsub(",","\n ", toString(rbind(names(sort(summary(as.factor(dataT$program_before)),decreasing=T)[minLength:maxLength]),
                                                      sort(summary(as.factor(dataT$program_before)),decreasing=T)[minLength:maxLength]))
       )
-      
       namesLength = names(sort(summary(as.factor(dataT$length_of_spot)),decreasing=T))
       for (i in 1:length(namesLength)) {
         if (namesLength[i] == "30") {
@@ -297,11 +299,11 @@ server = function(session, input, output) {
       }
       
       fullProdcat = gsub(",","  ", toString(rbind( namesProdcat,
-                                                   sort(summary(as.factor(dataT$product_category)),decreasing=T)))
+                                                   sort(summary(as.factor(dataT$product_category)), decreasing = T)))
       )
       
       fullGRPNames = c("Minimum:", "  Mean:", "  Maximum: ")
-      fullGRPNumbers = summary(dataT$gross_rating_point)[c(1,4,6)]
+      fullGRPNumbers = summary(dataT$gross_rating_point)[c(1, 4, 6)]
       
       
       # Do the printing
@@ -318,42 +320,43 @@ server = function(session, input, output) {
                    "\n\nDistribution position in break: \n  ", fullPosition,
                    "\n\nDistribution product category: \n  ", fullProdcat,
                    "\n\nDistribution of the Gross Rating Point: \n  ", 
-                   fullGRPNames[1], " ", round(fullGRPNumbers[1],digits=3), fullGRPNames[2], 
-                   " ", round(fullGRPNumbers[2],digits=3), fullGRPNames[3], 
-                   round(fullGRPNumbers[3],digits=3)
+
+                   fullGRPNames[1], " ", round(fullGRPNumbers[1], digits = 3), fullGRPNames[2], 
+                   " ", round(fullGRPNumbers[2], digits = 3), fullGRPNames[3], 
+                   round(fullGRPNumbers[3], digits = 3)
       ))
     }
   })
   
   output$plot = renderPlot({
-    output$plot <- renderUI({
+    output$plot = renderUI({
       tableLength = nrow(mtreact())
       if(tableLength > 0){
-        plot_output_list <- lapply(1:tableLength, function(i) {
-          plotname <- paste("plot", i, sep="") 
+        plot_output_list = lapply(1:tableLength, function(i) {
+          plotname = paste("plot", i, sep = "") 
           plotOutput(plotname, height = 350, width = 700)
           tableInterest = mtreact()
-          output[[plotname]] <- renderPlot({
+          output[[plotname]] = renderPlot({
             
-            datecommercial <- tableInterest[i,"date"]
-            timecommercial <- tableInterest[i,"time"]
+            datecommercial = tableInterest[i, "date"]
+            timecommercial = tableInterest[i, "time"]
             
-            traffic_datesub <- subset(visitorsSum,grepl(datecommercial, visitorsSum$date) == TRUE)
+            traffic_datesub = subset(visitorsSum, grepl(datecommercial, visitorsSum$date) == TRUE)
             
-            timecommercial <- str_split_fixed(timecommercial, ":", 3)
-            colnames(timecommercial) <- c("hour", "minute", "seconds")
-            timecommercial <- data.frame(timecommercial)
-            timecommercial <- 60*as.numeric(timecommercial[1,"hour"]) + as.numeric(timecommercial[1,"minute"]) + 1
+            timecommercial = str_split_fixed(timecommercial, ":", 3)
+            colnames(timecommercial) = c("hour", "minute", "seconds")
+            timecommercial = data.frame(timecommercial)
+            timecommercial = 60 * as.numeric(timecommercial[1, "hour"]) + as.numeric(timecommercial[1, "minute"]) + 1
             
             interval = 10
-            timeStart <- timecommercial - interval
-            timeEinde <- timecommercial + interval
-            totalLength <- 2*interval + 1
-            visitsVector <- as.matrix(rep(0,totalLength))
-            row.names(visitsVector) <- c(seq(from = -10, to = 10))
+            timeStart = timecommercial - interval
+            timeEinde = timecommercial + interval
+            totalLength = 2 * interval + 1
+            visitsVector = as.matrix(rep(0,totalLength))
+            row.names(visitsVector) = c(seq(from = -10, to = 10))
             
             for(j in 1:totalLength){
-              visitsVector[j] <- traffic_datesub[(timeStart + j - 1), "visitsWebNet"]
+              visitsVector[j] = traffic_datesub[(timeStart + j - 1), "visitsWebNet"]
             }
             
             plot(visitsVector, type = "l", xaxt = "n", main = paste("Website visits (NL) commercial with GDP", tableInterest[i,"gross_rating_point"]),  
