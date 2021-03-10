@@ -1,5 +1,5 @@
 # R shiny + Tutorial -- Seminar Coolblue 2021
-# @ Erik van der Heide
+# @ MARJOLEIN DE WITH
 
 # TEMPLATE
 # install.packages("shiny")
@@ -22,8 +22,6 @@ load("fullModelSaved.rda")
 load("testdf.rda")
 load("broadNet.rda")
 load("visitorsSum.rda")
-
-channels = append(sort(unique(broadNet$channel)), "Slam!TV")
 
 ui = dashboardPage(
   dashboardHeader(title = "The effects of TV-commercials", titleWidth = 350),
@@ -129,6 +127,7 @@ ui = dashboardPage(
                            title = "Commercial-specific effects", 
                            selectInput(inputId = "channels", label = "Choose your channel", choices = sort(unique(broadNet$channel))),
                            sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value = 0, min = 0, max = 7.05),
+
                            textOutput(outputId = "warning"), tags$head(tags$style("#warning{color: red;
                                  }")),
                            selectInput(inputId = "weekday", label = "Choose day of the week",
@@ -175,25 +174,25 @@ server = function(session, input, output) {
     # subset on position in break
     if (input$position_in_break_3option != "All") {
       if (input$position_in_break_3option == "Begin"){
-        reactTable = subset(reactTable, position_in_break_3option == "Begin") 
+        reactTable = subset(reactTable, position_in_break_3option = "begin") 
       }
       if (input$position_in_break_3option == "Middle"){
-        reactTable = subset(reactTable, position_in_break_3option == "Middle") 
+        reactTable = subset(reactTable, position_in_break_3option = "middle") 
       }
       if (input$position_in_break_3option == "End"){
-        reactTable = subset(reactTable, position_in_break_3option == "End") 
+        reactTable = subset(reactTable, position_in_break_3option = "end") 
       }
     }
     # subset on product category
     if (input$product_category != "All") {
       if (input$product_category == "Washing machines"){
-        reactTable = subset(reactTable, product_category == "Washing machines")
+        reactTable = subset(reactTable, product_category = "wasmachines")
       }
       if (input$product_category == "Televisions"){
-        reactTable = subset(reactTable, product_category == "Televisions")
+        reactTable = subset(reactTable, product_category = "televisies")
       }
       if (input$product_category == "Laptops"){
-        reactTable = subset(reactTable, product_category == "Laptops")
+        reactTable = subset(reactTable, product_category = "laptops")
       }
     }
     # subset on month
@@ -256,16 +255,53 @@ server = function(session, input, output) {
                                                      sort(summary(as.factor(dataT$program_before)),decreasing=T)[minLength:maxLength]))
       )
       
-      fullLength = gsub(",","  ", toString(rbind( names(sort(summary(as.factor(dataT$length_of_spot)),decreasing=T)),
+      namesLength = names(sort(summary(as.factor(dataT$length_of_spot)),decreasing=T))
+      for (i in 1:length(namesLength)) {
+        if (namesLength[i] == "30") {
+          namesLength[i] = "'Length 30'"
+        } 
+        if (namesLength[i] == "30 + 10") {
+          namesLength[i] = "'Length 30+10'"
+        } 
+        if (namesLength[i] == "30 + 10 + 5") {
+          namesLength[i] = "'Length 30+10+5'"
+        } 
+      }
+      fullLength = gsub(",","  ", toString(rbind( namesLength,
                                                   sort(summary(as.factor(dataT$length_of_spot)),decreasing=T)))
       )
       
-      fullPosition = gsub(",","  ", toString(rbind( names(sort(summary(as.factor(dataT$position_in_break_3option)),decreasing=T)),
+      namesPos = names(sort(summary(as.factor(dataT$position_in_break_3option)),decreasing=T))
+      for (i in 1:length(namesPos)) {
+        if (namesPos[i] == "begin") {
+          namesPos[i] = "Begin"
+        } 
+        if (namesPos[i] == "middle") {
+          namesPos[i] = "Middle"
+        } 
+        if (namesPos[i] == "end") {
+          namesPos[i] = "End"
+        } 
+      }
+      fullPosition = gsub(",","  ", toString(rbind( namesPos,
                                                     sort(summary(as.factor(dataT$position_in_break_3option)),decreasing=T)))
       )
       
-      fullProdcat = gsub(",","   ", toString(rbind( names(sort(summary(as.factor(dataT$product_category)),decreasing=T)),
-                                                    sort(summary(as.factor(dataT$product_category)),decreasing=T)))
+      namesProdcat = names(sort(summary(as.factor(dataT$product_category)),decreasing=T))
+      for (i in 1:length(namesProdcat)) {
+        if (namesProdcat[i] == "televisies") {
+          namesProdcat[i] = "TVs"
+        } 
+        if (namesProdcat[i] == "wasmachines") {
+          namesProdcat[i] = "Washing machines"
+        } 
+        if (namesProdcat[i] == "laptops") {
+          namesProdcat[i] = "Laptops"
+        } 
+      }
+      
+      fullProdcat = gsub(",","  ", toString(rbind( namesProdcat,
+                                                   sort(summary(as.factor(dataT$product_category)),decreasing=T)))
       )
       
       fullGRPNames = c("Minimum:", "  Mean:", "  Maximum: ")
@@ -286,8 +322,8 @@ server = function(session, input, output) {
                    "\n\nDistribution position in break: \n  ", fullPosition,
                    "\n\nDistribution product category: \n  ", fullProdcat,
                    "\n\nDistribution of the Gross Rating Point: \n  ", 
-                   fullGRPNames[1], round(fullGRPNumbers[1],digits=3), fullGRPNames[2], 
-                   round(fullGRPNumbers[2],digits=3), fullGRPNames[3], 
+                   fullGRPNames[1], " ", round(fullGRPNumbers[1],digits=3), fullGRPNames[2], 
+                   " ", round(fullGRPNumbers[2],digits=3), fullGRPNames[3], 
                    round(fullGRPNumbers[3],digits=3)
       ))
     }
