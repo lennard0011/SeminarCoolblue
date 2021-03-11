@@ -67,13 +67,6 @@ names(visitNetDummBroad)
 rm(broadGRP)
 rm(broadAmount)
 
-#crosseffects with GRP
-for (i in names(visitNetDummBroad)) {
-  if (i != "visitsWebNet" & i != "visitsWebNet"){
-    visitNetDummBroad = cbind(visitNetDummBroad, visitNetDummBroad[i] *  visitNetDummBroad$gross_rating_point)
-  }
-}
-
 
 # Make train and testset. Testset is last month.
 scaledvisitNetDummBroad = scale(visitNetDummBroad)
@@ -182,6 +175,9 @@ plot(history)
 predNNWhole = predict(modelWholeOpt, xWhole)
 hist((yWhole - predNNWhole))
 
+linearModel = lm(visitsWebNet ~ ., data = as.data.frame(rbind(visitTrain, visitVal, visitTest)))
+sm = summary(linearModel)
+
 sensAn = function(model, xTrain, depVar, center, scale) {
   stepSize = 1000
   xMean = t(as.matrix(colMeans(xTrain)))
@@ -200,10 +196,6 @@ sensAn = function(model, xTrain, depVar, center, scale) {
 }
 
 length(colnames(xWhole))
-
-
-
-xWhole[, 62:122] = xWhole[, 62:122] / mean(xWhole[,"gross_rating_point"])
 
 sensAn = function(model, xTrain, depVar, center, scale) {
   stepSize = 1000
