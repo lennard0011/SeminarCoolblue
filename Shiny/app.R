@@ -87,7 +87,7 @@ ui = dashboardPage(
               )
       ),
       tabItem("pa",
-              headerPanel(title = "Insights into Dutch commercials of Coolblue (first half of 2019)"),
+              headerPanel(title = "Insights into Dutch commercials of Coolblue (2019)"),
               
               fluidRow(
                 box(width = 6,
