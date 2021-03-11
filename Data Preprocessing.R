@@ -58,19 +58,17 @@ broad = broad[broad[, "gross_rating_point"] > 0, ]  # leave out GRP=0
 broadNet = subset(broad, country == 'Netherlands')
 broadBel = subset(broad, country == 'Belgium')
 
-quan = quantile(broadNet$gross_rating_point, 0.99)
-# broad = broad[broad[, 'gross_rating_point'] <= quan, ]
-
 # broad for Netherlands and Belgium
 broadNet = subset(broad, country == 'Netherlands')
 broadBel = subset(broad, country == 'Belgium')
 
-broadNetNoMidnight = subset(broadNet, broadNet$time_min < 1435)
+fiveBeforeMidnight = 60 * 24 - 5
+broadNetNoMidnight = subset(broadNet, broadNet$time_min < fiveBeforeMidnight)
 broadNetNoMidnight = subset(broadNetNoMidnight, broadNetNoMidnight$time_min > 5)
 
 broadNet = broadNetNoMidnight
 
-broadBelNoMidnight = subset(broadBel, broadBel$time_min < 1435)
+broadBelNoMidnight = subset(broadBel, broadBel$time_min < fiveBeforeMidnight)
 broadBelNoMidnight = subset(broadBelNoMidnight, broadBelNoMidnight$time_min > 5)
 
 nTraffic = nrow(traffic)
@@ -160,20 +158,20 @@ summerTime = matrix(0.0, nrow = 60, ncol = 6)
 colnames(summerTime) = colnames(visitorsSum)
 summerTime[, 1] = "2019-03-31"
 for (i in 1:60) {
-  summerTime[i, 2] = 119+i
+  summerTime[i, 2] = 119 + i
   summerTime[i, 3] = visitorsSum[(128279 + i - 1440), 3]
   summerTime[i, 4] = visitorsSum[(128279 + i - 1440), 4]
   summerTime[i, 5] = visitorsSum[(128279 + i - 1440), 5]
   summerTime[i, 6] = visitorsSum[(128279 + i - 1440), 6]
 }
-visitorsSum = rbind(visitorsSum[1:128279, ], summerTime, visitorsSum[128280:nrow(visitorsSum),])
+visitorsSum = rbind(visitorsSum[1:128279, ], summerTime, visitorsSum[128280:nrow(visitorsSum), ])
 row.names(visitorsSum) = NULL # resets rownrs
 rm(summerTime)
 nrow(visitorsSum)
 
 # insert 2 remaining missing values
-visitorsSum = rbind(visitorsSum[1:118393,], c("2019-03-24", 313, 0.0, 0.0, 0.0, 0.0), visitorsSum[118394:nrow(visitorsSum),])
-visitorsSum = rbind(visitorsSum[1:148547,], c("2019-04-14", 228, 0.0, 0.0, 0.0, 0.0), visitorsSum[148548:nrow(visitorsSum),])
+visitorsSum = rbind(visitorsSum[1:118393, ], c("2019-03-24", 313, 0.0, 0.0, 0.0, 0.0), visitorsSum[118394:nrow(visitorsSum), ])
+visitorsSum = rbind(visitorsSum[1:148547, ], c("2019-04-14", 228, 0.0, 0.0, 0.0, 0.0), visitorsSum[148548:nrow(visitorsSum), ])
 row.names(visitorsSum) = NULL
 
 # convert non-numeric vectors to doubles
@@ -192,7 +190,7 @@ uniqueDates = unique(traffic$date)
 uniqueDates = sort(uniqueDates)
 daysVisitorsSum = matrix(0.0, nrow = amountDays, ncol = 5)
 colnames(daysVisitorsSum) = c("date", "visitsWebNetDay", "visitsAppNetDay", "visitsWebBelDay", "visitsAppBelDay")
-daysVisitorsSum[,1] = uniqueDates
+daysVisitorsSum[, 1] = uniqueDates
 for (i in 1:nrow(visitorsSum)) { # takes at most 2min to run
   day = yday(visitorsSum$date[i])
   daysVisitorsSum[day, 2] = as.numeric(daysVisitorsSum[day, 2]) + visitorsSum$visitsWebNet[i]
@@ -247,7 +245,7 @@ for (i in 1:24){
 
 # calculate average amount of broadcasts -- Netherlands
 avBroadDayNet = matrix(NA, 24)
-broadNet = broadNet[order(broadNet$date),]
+broadNet = broadNet[order(broadNet$date), ]
 for (i in 1:24){
   broadSubset = subset(broadNet, (time_min >= (i - 1) * 60) & (time_min < i * 60))
   avBroadDayNet[i] = nrow(broadSubset)/amountDays
@@ -256,7 +254,7 @@ broadNet = broadNet[order(as.numeric(row.names(broadNet))), ]
 
 # calculate average amount of broadcasts -- Belgium
 avBroadDayBel = matrix(NA, 24)
-broadBel = broadBel[order(broadBel$date),]
+broadBel = broadBel[order(broadBel$date), ]
 for (i in 1:24){
   broadSubset = subset(broadBel, (time_min >= (i - 1) * 60) & (time_min < i * 60))
   avBroadDayBel[i] = nrow(broadSubset)/amountDays
@@ -278,22 +276,6 @@ adAmountBel = as.matrix(table(broadBel$date))
 ## ========================================================
 ##      CREATING DUMMIES FOR DAILY TRAFFIC (time series)
 ## ========================================================
-
-# national holidays
-holidaysNames = c("Nieuwjaarsdag", "Goede Vrijdag", "Eerste Paasdag", 
-                  "Tweede Paasdag", "Koningsdag", "Bevrijdingsdag", 
-                  "Hemelvaartsdag", "Eerste Pinksterdag", 
-                  "Tweede Pinksterdag")
-holidaysDates = c("2019-01-01", "2019-04-19", "2019-04-21", "2019-04-22", 
-                  "2019-04-27", "2019-05-05", "2019-05-30", "2019-06-09",
-                  "2019-06-10")
-dummyHolidays = matrix(0, nrow = amountDays)
-for (i in 1:length(holidaysDates)) {
-  index = yday(holidaysDates[i])
-  dummyHolidays[index] = 1
-}
-dummyHemelvaartsdag = matrix(0, nrow = amountDays)
-dummyHemelvaartsdag[yday(holidaysDates[7])] = 1
 
 # weekday and week dummies
 allDates = sort(unique(traffic$date))
@@ -369,7 +351,7 @@ broadBel = subset(broad, country == 'Belgium')
 intervalSize = 5
 iNet = 0
 iBel = 0
-broad = broad[order(broad$date_time),]
+broad = broad[order(broad$date_time), ]
 broadNet = broadNet[order(broadNet$date_time), ]
 broadBel = broadBel[order(broadBel$date_time), ]
 broad$overlapBefore = 0
@@ -416,7 +398,7 @@ for (i in 1:nrow(broad)){
     }
   }
 }
-broad = broad[order(as.numeric(row.names(broad))),]
+broad = broad[order(as.numeric(row.names(broad))), ]
 broadNet = broadNet[order(as.numeric(row.names(broadNet))), ]
 broadBel = broadBel[order(as.numeric(row.names(broadBel))), ]
 broadNet = subset(broad, country == 'Netherlands')
@@ -427,26 +409,22 @@ broadBel = subset(broad, country == 'Belgium')
 ## =================================================
 
 # Include in baseline models
-  # preVisitors
-  # hour (7-1)
-  # weekday (23-1)
+# preVisitors
+# hour (7-1)
+# weekday (23-1)
 
 # Include in full model (treatment effect) 
 # we exclude the most freq. dummy for biggest set of commercials (WebNet, WebBel)
-  # 1. Product category: (3-1) ("wasmachines", "televisies", "laptops")
-  # 2. TV channel (max. 51-1)
-  # 2. Length of spot: (3-1) ("30", "30+10", "30+10+5")
-  # 3. Position in break: (3-1) ("begin", "middle", "end")
-  # 5. Overlap with other commercial: 2 (overlap_before, overlap_after)
-  # 6. GRP (no dummy)
+# 1. Product category: (3-1) ("wasmachines", "televisies", "laptops")
+# 2. TV channel (max. 51-1)
+# 2. Length of spot: (3-1) ("30", "30+10", "30+10+5")
+# 3. Position in break: (3-1) ("begin", "middle", "end")
+# 5. Overlap with other commercial: 2 (overlap_before, overlap_after)
+# 6. GRP (no dummy)
 
 # We will continue with Web-NL
 broadNet = subset(broad, country == "Netherlands")
 broadBel = subset(broad, country == "Belgium")
-
-broadNetNoMidnight = subset(broadNet, broadNet$time_min < 1435)
-broadNetNoMidnight = subset(broadNetNoMidnight, broadNetNoMidnight$time_min > 5)
-broadNet = broadNetNoMidnight
 
 # dummiesDirectModel Netherlands contains the treatment variables
 variablesDirectModel = c("product_category", "channel", "length_of_spot", "position_in_break_3option", "weekdays", "overlapBefore", "overlapAfter")
@@ -456,7 +434,6 @@ dummiesDirectModel = as.data.frame(dummiesDirectModel)
 rm(dummiesDirectModelPre); rm(variablesDirectModel)
 
 # dummiesDirectModel for Belgium
-# TODO: overlap dummies komen niet in Belgische data
 variablesDirectModelBel = c("channel", "position_in_break_3option", "weekdays", "overlapBefore", "overlapAfter") # waarom missen 2 dummie-var?
 dummiesDirectModelPreBel = dummy_cols(.data = broadBel, select_columns = variablesDirectModelBel, remove_most_frequent_dummy = T)
 dummiesDirectModelBel = dummiesDirectModelPreBel[, ((ncol(broadBel) + 1):ncol(dummiesDirectModelPreBel))]

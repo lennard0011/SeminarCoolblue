@@ -1,5 +1,6 @@
 # Seminar Coolblue 2021 - Direct effects model (2 minute interval)
-# For the direct effects model we calculate the amount of traffic in an interval before the broadcast and after the broadcast
+# For the direct effects model we calculate the amount of traffic in an interval 
+# before the broadcast and after the broadcast
 # Results are stored in the column preVisitors and postVisitors in the dataframe broad
 
 ## ========================================================
@@ -56,7 +57,7 @@ for (i in 1:nBroad) { # nBroad
     broad$postVisitorsApp[[i]] = sum(subset(visitorsSum, date == broadDate & time_min >= broadTime & time_min < broadTime + intervalSize)$visitsAppNet) + postVisitorsAppExtra
     broad$postVisitorsWeb[[i]] = sum(subset(visitorsSum, date == broadDate & time_min >= broadTime & time_min < broadTime + intervalSize)$visitsWebNet) + postVisitorsWebExtra
   }
-
+  
   if(i %% 100 == 0) {print(paste(i, Sys.time() - start))}
 }
 
@@ -80,13 +81,13 @@ par(mfrow = c(1, 1))
 simpleModelWeb = lm(broad$postVisitorsWeb ~ broad$preVisitorsWeb + 0)
 summary(simpleModelWeb)
 
-# Website NL
+# Website (Netherlands)
 mean(broadNet$postVisitorsWeb - broadNet$preVisitorsWeb)
 min(broadNet$postVisitorsWeb - broadNet$preVisitorsWeb)
 max(broadNet$postVisitorsWeb - broadNet$preVisitorsWeb)
 sum(broadNet$postVisitorsWeb > broadNet$preVisitorsWeb)
 sum(broadNet$postVisitorsWeb < broadNet$preVisitorsWeb)
-# data plotting website
+# Data plotting website
 plot(broadNet$preVisitorsWeb, broadNet$postVisitorsWeb)
 lines(cbind(0, 10000), cbind(0, 10000))
 par(mfrow = c(2, 1))
@@ -96,13 +97,13 @@ par(mfrow = c(1, 1))
 simpleModelWebNet = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + 0)
 summary(simpleModelWebNet)
 
-# Website BE
+# Website (Belgium)
 mean(broadBel$postVisitorsWeb - broadBel$preVisitorsWeb)
 min(broadBel$postVisitorsWeb - broadBel$preVisitorsWeb)
 max(broadBel$postVisitorsWeb - broadBel$preVisitorsWeb)
 sum(broadBel$postVisitorsWeb > broadBel$preVisitorsWeb)
 sum(broadBel$postVisitorsWeb < broadBel$preVisitorsWeb)
-# data plotting website
+# Data plotting (website)
 plot(broadBel$preVisitorsWeb, broadBel$postVisitorsWeb)
 lines(cbind(0, 10000), cbind(0, 10000))
 par(mfrow = c(2, 1))
@@ -118,7 +119,7 @@ min(broad$postVisitorsApp - broad$preVisitorsApp)
 max(broad$postVisitorsApp - broad$preVisitorsApp)
 sum(broad$postVisitorsApp > broad$preVisitorsApp)
 sum(broad$postVisitorsApp < broad$preVisitorsApp)
-# data plotting (app)
+# Data plotting (app)
 plot(broad$preVisitorsApp, broad$postVisitorsApp, xlim = c(0, 0.2)) # deze plot....
 lines(cbind(0, 10000), cbind(0, 10000))
 par(mfrow = c(2, 1))
@@ -134,23 +135,23 @@ biggestAds = subset(broad, postVisitorsWeb-preVisitorsWeb > 0.6)
 ##            REGRESSION MODELS 5-minute model
 ## ========================================================
 
-# function for model summary
+# Function for model summary
 getModelSumm <- function(model, coef) {
   if(coef) {
-    #print(model)
-    print(coeftest(model, vcov = vcovHC(model, type="HC1"))) # robust se
+    # Print(model)
+    print(coeftest(model, vcov = vcovHC(model, type = "HC1"))) # robust se
   }
-  print(paste("R^2: ", summary(model)$r.squared))
+  print(paste("R-squared: ", summary(model)$r.squared))
   hist(model$residuals, breaks = 50)
   print(paste("AIC: ", AIC(model)))
   print(paste("BIC: ", BIC(model)))
 }
 
-# Baseline models
+# Baseline model - Netherlands (website)
 baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours) + weekdays, data = broadNet)
 getModelSumm(baselineModel, T)
 
-# Full model
+# Full model - Netherlands (website)
 fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(broadNet$hours) + broadNet$gross_rating_point + ., data = dummiesDirectModel)
 
 input = as.data.frame(cbind(broadNet$postVisitorsWeb, broadNet$preVisitorsWeb, factor(broadNet$hours), broadNet$gross_rating_point, dummiesDirectModel))
@@ -166,24 +167,13 @@ predict(fullModelTest, testdf)
 save(fullModelTest, file = "fullModelSaved.rda")
 save(testdf, file = "testdf.rda")
 
-
 getModelSumm(fullModel, T)
 
-# TRY OUT
-datas = dummiesDirectModel
-for (i in 1:ncol(datas)){
-  datas[, i] = broadNet$gross_rating_point * dummiesDirectModel[, i]
-}
-
-fullModel2 = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(broadNet$hours) + ., data = datas)
-getModelSumm(fullModel2, T)
-
-
-# Baseline models -- BE WEB
+# Baseline models - Belgium (website)
 baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours) + weekdays, data = broadBel)
 getModelSumm(baselineModel, T)
 
-# Full model -- BE WEB
+# Full model - Belgium (website)
 fullModel = lm(broadBel$postVisitorsWeb ~ broadBel$preVisitorsWeb + factor(broadBel$hours) + broadBel$gross_rating_point +., data = dummiesDirectModelBel)
 getModelSumm(fullModel, T)
 
@@ -191,7 +181,7 @@ getModelSumm(fullModel, T)
 ##                    Overfitting Test
 ## ========================================================
 
-#Calculate Mean Squared Prediction Error 
+# Calculate Mean Squared Prediction Error 
 preVisitorsWeb = broadNet$preVisitorsWeb
 postVisitorsWeb = broadNet$postVisitorsWeb
 hours = broadNet$hours
@@ -199,7 +189,7 @@ weekdays = broadNet$weekdays
 grossRating = broadNet$gross_rating_point
 broadDumm = cbind(postVisitorsWeb, preVisitorsWeb, hours, weekdays, grossRating, dummiesDirectModel)
 
-#Calculate Mean Squared Prediction Error 
+# Calculate Mean Squared Prediction Error 
 preVisitorsWeb = broadBel$preVisitorsApp
 postVisitorsWeb = broadBel$postVisitorsApp
 hours = broadBel$hours
@@ -243,20 +233,20 @@ mean(avFullTestError)
 ## ================================================
 ##                Netherlands App regression
 ## ================================================
-# Baseline models
+# Baseline model - Netherlands (app)
 baselineModel = lm(postVisitorsApp ~ preVisitorsApp + factor(hours) + weekdays, data = broadNet)
 getModelSumm(baselineModel, TRUE)
 
-# Full model 
+# Full model - Netherlands (app)
 fullModel = lm(broadNet$postVisitorsApp ~ broadNet$preVisitorsApp + factor(broadNet$hours) + broadNet$gross_rating_point + ., data = dummiesDirectModel)
 #save(fullModel, file = "my-fitted-boost.rda")
 getModelSumm(fullModel, T)
 
-# Baseline models -- BE APP
+# Baseline model - Belgium (app)
 baselineModel = lm(postVisitorsApp ~ preVisitorsApp + factor(hours) + weekdays, data = broadBel)
 getModelSumm(baselineModel, TRUE)
 
-# Full model -- BE APP
+# Full model - Belgium (app)
 fullModel = lm(broadBel$postVisitorsApp ~ broadBel$preVisitorsApp + factor(broadBel$hours) + broadBel$gross_rating_point + ., data = dummiesDirectModelBel)
 getModelSumm(fullModel, T)
 
