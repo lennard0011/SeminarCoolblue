@@ -17,7 +17,6 @@ library("gridExtra")
 
 # Input: regression function
 
-
 load("fullModelSaved.rda")
 load("testdf.rda")
 load("broadNet.rda")
@@ -87,7 +86,7 @@ ui = dashboardPage(
               )
       ),
       tabItem("pa",
-              headerPanel(title = "Insights into Dutch commercials of Coolblue (first half of 2019)"),
+              headerPanel(title = "Insights into Dutch commercials of Coolblue (2019)"),
               
               fluidRow(
                 box(width = 6,
@@ -100,7 +99,7 @@ ui = dashboardPage(
                                 choices = c("All", "January", "February", "March", "April", "May", "June") ),
                     #hour
                     sliderInput(inputId = "timer", label = "Choose time range: ", 
-                                min = 0, max = 24, value = c(0,24)),
+                                min = 0, max = 24, value = c(0, 24)),
                     #length_of_spot
                     selectInput(inputId = "length_of_spot", label = "Choose the spot length", 
                                 choices = c("All", as.character(sort(unique(broadNet$length_of_spot))))),
@@ -226,7 +225,7 @@ server = function(session, input, output) {
     if (input$choose_ordering == "Date") {
       reactTable = reactTable[order(reactTable$date, reactTable$time), ]
     } else {
-      reactTable = reactTable[order(-reactTable$gross_rating_point), ]
+      reactTable = reactTable[order(- reactTable$gross_rating_point), ]
     }
     return(reactTable)
   })
@@ -234,7 +233,7 @@ server = function(session, input, output) {
   # Output table
   output$Table = renderTable({
     if (nrow(mtreact()) == 0) {
-      print("No data available!")
+      print("There is no data available!")
     } else {
       outputTable = mtreact()[, c("channel", "date", "time", "gross_rating_point")]
       colnames(outputTable) = c("Channel", "Date", "Time", "Gross Rating Point")
@@ -246,7 +245,7 @@ server = function(session, input, output) {
     dataT = mtreact()
     
     if (nrow(dataT) == 0) {
-      print("No data to summarize!")
+      print("There is no data to summarize!")
     } else {
       # names has to be outside sort!
       fullChannels = gsub(",","\n ", toString(rbind(names(sort(summary(as.factor(dataT$channel)), decreasing = T)),
@@ -341,50 +340,102 @@ server = function(session, input, output) {
   output$plot = renderUI({
     tableLength = nrow(mtreact())
     if(tableLength > 0){
+     if(tableLength > 10){
+       tableLength = 10
+     } 
       plot_output_list = lapply(1:tableLength, function(i) {
         plotname = paste("plot", i, sep = "") 
         plotOutput(plotname, height = 50, width = 100)
         tableInterest = mtreact()
         output[[plotname]] = renderPlot({
+          datecommercial <- tableInterest[i,"date"]
+          timecommercial <- tableInterest[i,"time"]
           
-          datecommercial = tableInterest[i, "date"]
-          timecommercial = tableInterest[i, "time"]
+          traffic_datesub <- subset(visitorsSum,grepl(datecommercial, visitorsSum$date) == TRUE)
+          timecommercial <- str_split_fixed(timecommercial, ":", 3)
+          colnames(timecommercial) <- c("hour", "minute", "seconds")
+          timecommercial <- data.frame(timecommercial)
+          timecommercial <- 60*as.numeric(timecommercial[1,"hour"]) + as.numeric(timecommercial[1,"minute"]) + 1
           
-          traffic_datesub = subset(visitorsSum, grepl(datecommercial, visitorsSum$date) == TRUE)
-          
-          timecommercial = str_split_fixed(timecommercial, ":", 3)
-          colnames(timecommercial) = c("hour", "minute", "seconds")
-          timecommercial = data.frame(timecommercial)
-          timecommercial = 60 * as.numeric(timecommercial[1, "hour"]) + as.numeric(timecommercial[1, "minute"]) + 1
-          
-          interval = 10
-          timeStart = timecommercial - interval
-          timeEinde = timecommercial + interval
-          totalLength = 2 * interval + 1
-          visitsVector = as.matrix(rep(0,totalLength))
-          row.names(visitsVector) = c(seq(from = -10, to = 10))
-          
-          for(j in 1:totalLength){
-            visitsVector[j] = traffic_datesub[(timeStart + j - 1), "visitsWebNet"]
+          if(timecommercial > 9 & timecommercial <1431){
+            interval = 10
+            timeStart <- timecommercial - interval
+            timeEinde <- timecommercial + interval
+            totalLength <- 2*interval + 1
+            visitsVector <- as.matrix(rep(0,totalLength))
+            row.names(visitsVector) <- c(seq(from = -10, to = 10))
+            
+            for(j in 1:totalLength){
+              visitsVector[j] <- traffic_datesub[(timeStart + j - 1), "visitsWebNet"]
+            }
+            
+            plot(visitsVector, type = "l", xaxt = "n",main = c(paste("Commercial at", tableInterest[i,"channel"],"on date", tableInterest[i,"date"], tableInterest[i,"time"]),
+                                                               paste("with GRP", tableInterest[i,"gross_rating_point"])),  
+                 xlab = "Time (minutes)", ylab = "Visits Ratio")
+            axis(side =1, at=c(1,11, 21), 
+                 labels= c('-10','0','10'))
+            abline(v = interval + 1, col = "blue")
+            
+            maxie = max(visitsVector[(11+1):(11+5)]) - visitsVector[11]
+            maxie_per = 100*(max(visitsVector[(11+1):(11+5)]) - visitsVector[11])/visitsVector[11]
+            legend(x="topleft", legend = c(paste0("VD increase in 5min: "), paste0(round(maxie,digits=2), " (", round(maxie_per,digits=2), "%)")), cex = 0.75)
+          } else {
+            if(timecommercial < 10) {
+              interval = 10
+              timeStart <- 1
+              timeEinde <- timecommercial + interval
+              totalLength <- timeEinde 
+              visitsVector <- as.matrix(rep(0,totalLength))
+              row.names(visitsVector) <- c(seq(from = (-timecommercial + 1), to = 10))
+              
+              for(j in 1:totalLength){
+                visitsVector[j] <- traffic_datesub[(timeStart + j - 1), "visitsWebNet"]
+              }
+              x = -(timecommercial - 1)
+              plot(visitsVector, type = "l", xaxt = "n", main = c(paste("Commercial at", tableInterest[i,"channel"],"on date", tableInterest[i,"date"], tableInterest[i,"time"]),
+                                                                  paste("with GRP", tableInterest[i,"gross_rating_point"])),  
+                   xlab = "Time (minutes)", ylab = "Visit Density")
+              axis(side =1, at=c(1,timecommercial, timecommercial + 10), 
+                   labels= c(x,'0','10'))
+              
+              abline(v = timecommercial, col = "blue")
+              
+              maxie = max(visitsVector[(timecommercial+1):(timecommercial+5)]) - visitsVector[timecommercial]
+              maxie_per = 100*(max(visitsVector[(timecommercial+1):(timecommercial+5)]) - visitsVector[timecommercial])/visitsVector[timecommercial]
+              legend(x="topleft", legend = c(paste0("VD increase in 5min: "), paste0(round(maxie,digits=2), " (", round(maxie_per,digits=2), "%)")), cex = 0.75)
+              
+            }   else {
+              interval = 10
+              timeStart = timecommercial - interval
+              timeEinde = 1439
+              totalLength = 1439 - timecommercial + interval + 1
+              visitsVector = as.matrix(rep(0,totalLength))
+              row.names(visitsVector) = c(seq(from = -10, to = (1439 - timecommercial)))
+              
+              for(j in 1:totalLength){
+                visitsVector[j] = traffic_datesub[(timeStart + j - 1), "visitsWebNet"]
+              }
+              x = 1439 - timecommercial
+              plot(visitsVector, type = "l", xaxt = "n", main = c(paste("Commercial at", tableInterest[i,"channel"],"on date", tableInterest[i,"date"], tableInterest[i,"time"]),
+                                                                  paste("with GRP", tableInterest[i,"gross_rating_point"])),  
+                   xlab = "Time (minutes)", ylab = "Visit Density")
+              axis(side =1, at=c(1,11, totalLength), 
+                   labels= c('-10','0',x))
+              
+              abline(v = interval + 1, col = "blue")
+              
+              maxie = max(visitsVector[(11+1):(11+x)]) - visitsVector[11]
+              maxie_per = 100*(max(visitsVector[(11+1):(11+x)]) - visitsVector[11])/visitsVector[11]
+              legend(x="topleft", legend = c(paste0("VD increase in 5min: "), paste0(round(maxie,digits=2), " (", round(maxie_per,digits=2), "%)")), cex = 0.75)
+            }
           }
-          
-          plot(visitsVector, type = "l", xaxt = "n", main = paste("Website visits (NL) commercial with GDP", tableInterest[i,"gross_rating_point"]),  
-               xlab = "Time (minutes)", ylab = "Visit Density")
-          axis(side =1, at=c(1,11, 21), 
-               labels= c('-10','0','10'))
-          
-          abline(v = interval + 1, col = "blue")
-          
-          maxie = max(visitsVector[(11+1):(11+5)]) - visitsVector[11]
-          maxie_per = 100*(max(visitsVector[(11+1):(11+5)]) - visitsVector[11])/visitsVector[11]
-          legend(x="topleft", legend = c(paste0("VD increase in 5min: "), paste0(round(maxie,digits=2), " (", round(maxie_per,digits=2), "%)")), cex = 0.75)
         })
       })
       
       do.call(tagList, plot_output_list)
     }
     else{
-      print("No Plots Available")
+      print("There are no plots available!")
     }
     
   })
