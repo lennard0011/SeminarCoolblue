@@ -337,7 +337,6 @@ server = function(session, input, output) {
     }
   })
   
-  
   output$plot = renderUI({
     tableLength = nrow(mtreact())
     if(tableLength > 0){
@@ -375,6 +374,9 @@ server = function(session, input, output) {
           
           abline(v = interval + 1, col = "blue")
           
+          maxie = max(visitsVector[(11+1):(11+5)]) - visitsVector[11]
+          maxie_per = 100*(max(visitsVector[(11+1):(11+5)]) - visitsVector[11])/visitsVector[11]
+          legend(x="topleft", legend = c(paste0("VD increase in 5min: "), paste0(round(maxie,digits=2), " (", round(maxie_per,digits=2), "%)")), cex = 0.75)
         })
       })
       
