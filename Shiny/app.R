@@ -17,7 +17,6 @@ library("gridExtra")
 
 # Input: regression function
 
-
 load("fullModelSaved.rda")
 load("testdf.rda")
 load("broadNet.rda")
@@ -100,7 +99,7 @@ ui = dashboardPage(
                                 choices = c("All", "January", "February", "March", "April", "May", "June") ),
                     #hour
                     sliderInput(inputId = "timer", label = "Choose time range: ", 
-                                min = 0, max = 24, value = c(0,24)),
+                                min = 0, max = 24, value = c(0, 24)),
                     #length_of_spot
                     selectInput(inputId = "length_of_spot", label = "Choose the spot length", 
                                 choices = c("All", as.character(sort(unique(broadNet$length_of_spot))))),
@@ -226,7 +225,7 @@ server = function(session, input, output) {
     if (input$choose_ordering == "Date") {
       reactTable = reactTable[order(reactTable$date, reactTable$time), ]
     } else {
-      reactTable = reactTable[order(-reactTable$gross_rating_point), ]
+      reactTable = reactTable[order(- reactTable$gross_rating_point), ]
     }
     return(reactTable)
   })
@@ -234,7 +233,7 @@ server = function(session, input, output) {
   # Output table
   output$Table = renderTable({
     if (nrow(mtreact()) == 0) {
-      print("No data available!")
+      print("There is no data available!")
     } else {
       outputTable = mtreact()[, c("channel", "date", "time", "gross_rating_point")]
       colnames(outputTable) = c("Channel", "Date", "Time", "Gross Rating Point")
@@ -246,7 +245,7 @@ server = function(session, input, output) {
     dataT = mtreact()
     
     if (nrow(dataT) == 0) {
-      print("No data to summarize!")
+      print("There is no data to summarize!")
     } else {
       # names has to be outside sort!
       fullChannels = gsub(",","\n ", toString(rbind(names(sort(summary(as.factor(dataT$channel)), decreasing = T)),
@@ -371,8 +370,8 @@ server = function(session, input, output) {
           
           plot(visitsVector, type = "l", xaxt = "n", main = paste("Website visits (NL) commercial with GDP", tableInterest[i,"gross_rating_point"]),  
                xlab = "Time (minutes)", ylab = "Visit Density")
-          axis(side =1, at=c(1,11, 21), 
-               labels= c('-10','0','10'))
+          axis(side =1, at=c(1, 11, 21), 
+               labels= c('-10', '0', '10'))
           
           abline(v = interval + 1, col = "blue")
           
@@ -382,7 +381,7 @@ server = function(session, input, output) {
       do.call(tagList, plot_output_list)
     }
     else{
-      print("No Plots Available")
+      print("There are no plots available!")
     }
     
   })
