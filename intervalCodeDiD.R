@@ -1,6 +1,9 @@
-# Seminar Coolblue 2021 - Direct effects model (1-hour diff-in-diff interval)
-# For the direct effects model we calculate the amount of traffic in an interval before the broadcast and after the broadcast
-# Results are stored in the column preVisitors and postVisitors in the dataframe broadMostViewed
+# Direct Effects 20-min DD model -- Seminar Coolblue 2021
+# @authors: Lennard van der Plas, Erik van der Heide, Marjolein de With, Daniel Buijs
+
+# Same set-up as intervalCode, but now with a 20-min window and GRP > 0.5
+# Note that we also calculate the results for App Data and Belgium Data, which we
+# .. decided not to include in the report after all.
 
 ## ========================================================
 ##                  Collect interval data
@@ -38,15 +41,15 @@ print(paste0("Number of commercials: ", nrow(broadNet1)))
 # Delete lowest GRP ratios
 broadNet1 = broadNet1[order(broad$gross_rating_point, decreasing = T),]
 broadNet1 = subset(broadNet1, gross_rating_point > 0.5)
-
 print(paste0("Number of commercials: ", nrow(broadNet1)))
 
+# Delete observations around midnight
 broadNet1NoMidnight = subset(broadNet1, broadNet1$time_min < 1420)
 broadNet1NoMidnight = subset(broadNet1NoMidnight, broadNet1NoMidnight$time_min > 20)
-
 broadNet1 = broadNet1NoMidnight
+print(paste0("Number of commercials: ", nrow(broadNet1)))
 
-# Calculate pre- and post visitors, Net and Bel, Web and App (1 hour)
+# Calculate pre- and post visitors, Net and Bel, Web and App (20 min)
 intervalSize = 20
 start = Sys.time()
 for (i in 1:nrow(broadNet1)) {
@@ -89,14 +92,12 @@ for (i in 1:nrow(broadNet1)) {
 broadNet = subset(broad, country == 'Netherlands')
 broadBel = subset(broad, country == 'Belgium')
 
-broadNetNoMidnight = subset(broadNet, broadNet$time_min < 1435)
-broadNetNoMidnight = subset(broadNetNoMidnight, broadNetNoMidnight$time_min > 5)
-
+broadNetNoMidnight = subset(broadNet, broadNet$time_min < 1420)
+broadNetNoMidnight = subset(broadNetNoMidnight, broadNetNoMidnight$time_min > 20)
 broadNet = broadNetNoMidnight
 
-broadBelNoMidnight = subset(broadBel, broadBel$time_min < 1435)
-broadBelNoMidnight = subset(broadBelNoMidnight, broadBelNoMidnight$time_min > 5)
-
+broadBelNoMidnight = subset(broadBel, broadBel$time_min < 1420)
+broadBelNoMidnight = subset(broadBelNoMidnight, broadBelNoMidnight$time_min > 20)
 broadBel = broadBelNoMidnight
 
 intervalSize = 20
@@ -170,7 +171,7 @@ print(paste0("Num. WebBel post > pre: ", sum(broadNet1$postVisitorsWebBel>broadN
 biggestAdsNet1 = subset(broadNet1, postVisitorsWebNet - preVisitorsWebNet > 10)
 
 ## ========================================================
-##            REGRESSION MODELS 20-minute model
+##            Regression models 20-minute model
 ## ========================================================
 
 # dummiesDirectModel contains the treatment variables
@@ -223,7 +224,7 @@ fullModelAppNet1 = lm( (broadNet1$postVisitorsAppNet-broadNet1$postVisitorsAppBe
 getModelSumm(fullModelAppNet1, T)
 
 # =============================================================
-#   TEST
+#                  Overfittings test
 # =============================================================
 
 #Calculate Mean Squared Prediction Error 
@@ -271,7 +272,7 @@ mean(avFullTestError)
 
 
 ## ========================================================
-##            Parallel trends assumption
+##              Parallel trends assumption
 ## ========================================================
 
 # test parallel trends -- website
@@ -322,4 +323,3 @@ lines(df$x, df$F, lwd = 2)
 #add red lines to plot
 lines(df$x, df$U, col="red",lty=2)
 lines(df$x, df$L, col="red",lty=2)
-## ========================================================
