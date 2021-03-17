@@ -18,6 +18,7 @@
 #install.packages("pastecs")
 #install.packages("plotrix")
 #install.packages("varhandle")
+#install.packages('write.xl')
 
 # loading packages
 library("chron")
@@ -41,6 +42,7 @@ library("seastests")
 library("pastecs")
 library("plotrix")
 library("varhandle")
+library("write.xl")
 
 ## ====================================================
 ##         Loading & subsetting the data
@@ -447,6 +449,90 @@ removeNonSingular = function(model, data) {
   data = data[, !(names(data) %in% naCoef )]
   data
 }
+
+# matrix for table statistics Netherlands
+uni = unique(broadNet$channel)
+mat = data.frame(matrix(0,nrow=length(uni), ncol = 14))
+for(i in 1:length(uni)){
+  mat[i,1] = uni[i]
+  mat[i,2] = sum(broadNet$channel == uni[i])
+  sub = subset(broadNet, channel == uni[i])
+  mat[i,3] = sum(sub$position_in_break_3option == "begin")
+  mat[i,4] = sum(sub$position_in_break_3option == "middle")
+  mat[i,5] =  sum(sub$position_in_break_3option == "end")
+  mat[i,6] = sum(sub$product_category == "televisies")
+  mat[i,7] = sum(sub$product_category == "laptops")
+  mat[i,8] = sum(sub$product_category == "wasmachines")
+  uniprod = unique(sub$program_category_before)
+  mat2 = data.frame(matrix(0,nrow = length(uniprod), ncol = 2))
+  colnames(mat2)= c("category", "number")
+  for(j in 1:length(uniprod)){
+    mat2[j,1] = uniprod[j]
+    mat2[j,2] = sum(sub$program_category_before == uniprod[j])
+  }
+  mat2 =  mat2[order(mat2$number, decreasing = TRUE),]
+  mat[i,9] = mat2[1,1]
+  
+  uniprod = unique(sub$program_category_after)
+  mat2 = data.frame(matrix(0,nrow = length(uniprod), ncol = 2))
+  colnames(mat2)= c("category", "number")
+  for(j in 1:length(uniprod)){
+    mat2[j,1] = uniprod[j]
+    mat2[j,2] = sum(sub$program_category_after == uniprod[j])
+  }
+  mat2 =  mat2[order(mat2$number, decreasing = TRUE),]
+  mat[i,10] = mat2[1,1]
+  mat[i,11] = sum(sub$length_of_spot == "30")
+  mat[i,12] = sum(sub$length_of_spot == "30 + 10")
+  mat[i,13] = sum(sub$length_of_spot == "30 + 10 + 5")
+  mat[i,14] = mean(sub$gross_rating_point)
+}
+colnames(mat) = c("Channel", "Commercials", "Begin", "Middle", "End", "televisions", "laptops", "wasching machines",
+                  "Freq. category before", "Freq. category after", "30", "30 + 10", "30 + 10 + 5", "GRP")
+row.names(mat) = mat[,1]
+statNet = mat[-1]
+
+# matrix for table statistics Belgium
+uni = unique(broadBel$channel)
+mat = data.frame(matrix(0,nrow=length(uni), ncol = 14))
+for(i in 1:length(uni)){
+  mat[i,1] = uni[i]
+  mat[i,2] = sum(broadBel$channel == uni[i])
+  sub = subset(broadBel, channel == uni[i])
+  mat[i,3] = sum(sub$position_in_break_3option == "begin")
+  mat[i,4] = sum(sub$position_in_break_3option == "middle")
+  mat[i,5] =  sum(sub$position_in_break_3option == "end")
+  mat[i,6] = sum(sub$product_category == "televisies")
+  mat[i,7] = sum(sub$product_category == "laptops")
+  mat[i,8] = sum(sub$product_category == "wasmachines")
+  uniprod = unique(sub$program_category_before)
+  mat2 = data.frame(matrix(0,nrow = length(uniprod), ncol = 2))
+  colnames(mat2)= c("category", "number")
+  for(j in 1:length(uniprod)){
+    mat2[j,1] = uniprod[j]
+    mat2[j,2] = sum(sub$program_category_before == uniprod[j])
+  }
+  mat2 =  mat2[order(mat2$number, decreasing = TRUE),]
+  mat[i,9] = mat2[1,1]
+  
+  uniprod = unique(sub$program_category_after)
+  mat2 = data.frame(matrix(0,nrow = length(uniprod), ncol = 2))
+  colnames(mat2)= c("category", "number")
+  for(j in 1:length(uniprod)){
+    mat2[j,1] = uniprod[j]
+    mat2[j,2] = sum(sub$program_category_after == uniprod[j])
+  }
+  mat2 =  mat2[order(mat2$number, decreasing = TRUE),]
+  mat[i,10] = mat2[1,1]
+  mat[i,11] = sum(sub$length_of_spot == "30")
+  mat[i,12] = sum(sub$length_of_spot == "30 + 10")
+  mat[i,13] = sum(sub$length_of_spot == "30 + 10 + 5")
+  mat[i,14] = mean(sub$gross_rating_point)
+}
+colnames(mat) = c("Channel", "Commercials", "Begin", "Middle", "End", "televisions", "laptops", "wasching machines",
+                  "Freq. category before", "Freq. category after", "30", "30 + 10", "30 + 10 + 5", "GRP")
+row.names(mat) = mat[,1]
+statBel = mat[-1]
 
 save(broadNet, file = "broadNet.rda")
 save(visitorsSum, file = "visitorsSum.rda")
