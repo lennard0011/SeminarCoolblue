@@ -15,7 +15,7 @@ Welcome to our Repository! We are four students of Business Analytics and Quanti
    
 * ```Direct Effects 20 minutes```   
 
-  We also created a Direct Effects model with a 20-minute interval. The set-up is the same as the intervalCode. However, this time we subset on commercials with a GRP higher than 0.5. In the model, we use the internet visits of Belgium during the same time frame as control variable.
+  We also created a Direct Effects model with a 20-minute interval. The set-up is the same as the intervalCode. However, this time we subset on commercials with a GRP higher than 0.5. In the model, we use the website traffic in Belgium during the same period as a control variable.
   
 * ```Artificial Neural Network```
 
@@ -23,7 +23,7 @@ Welcome to our Repository! We are four students of Business Analytics and Quanti
    
 * ```Bayesian Structural Time Series model```
 
-   In this file, we obtain the Google searches for MediaMarkt and BCC. Then, we sum the visit densities for each day of the first half of 2019, and make four Bayesian Structural Time Series models for four distinct periods. For each of these periods, we also test for a trend and for seasonality.
+   In this file, we obtain the Google searches for MediaMarkt and BCC. Then, we sum the visit densities for each day of the first half of 2019, and make four Bayesian Structural Time Series models for four distinct periods. We construct a synthetic control variable using the website traffic in Belgium during the same period, and the searches for MediaMarkt and BCC. For each of these periods, we also test for a trend and for seasonality.
 
 * ```R Shiny```
 
