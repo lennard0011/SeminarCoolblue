@@ -1,5 +1,5 @@
-# Z Score Algorithm -- Seminar Coolblue 2020-2021
-# @authors: Lennard van der Plas, Erik van der Heide, Marjolein de With, Daniel Buijs
+# Seminar Coolblue 2021 -- Z Score Algorithm
+# @author: Lennard van der Plas, Erik van der Heide, Marjolein de With, Daniel Buijs
 # Reference: https://stackoverflow.com/questions/22583391/peak-signal-detection-in-realtime-timeseries-data/54507329#54507329
 
 ### =====================================================

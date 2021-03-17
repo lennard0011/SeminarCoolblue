@@ -1,5 +1,5 @@
 # Seminar Coolblue 2021 -- Data Preprocessing
-# @authors: Lennard van der Plas, Erik van der Heide, Marjolein de With, Dani?l Buijs
+# @authors: Lennard van der Plas, Erik van der Heide, Marjolein de With, Daniel Buijs
 
 # install packages (uncomment to install a package)
 #install.packages("chron")

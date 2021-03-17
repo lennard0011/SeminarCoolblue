@@ -1,5 +1,5 @@
-# Direct Effects 20-min DD model -- Seminar Coolblue 2021
-# @authors: Lennard van der Plas, Erik van der Heide, Marjolein de With, Daniel Buijs
+# Seminar Coolblue 2021 -- Direct Effects 20 minutes
+# @author: Lennard van der Plas, Erik van der Heide, Marjolein de With, Daniel Buijs
 
 # Same set-up as intervalCode, but now with a 20-min window and GRP > 0.5
 # Note that we also calculate the results for App Data and Belgium Data, which we

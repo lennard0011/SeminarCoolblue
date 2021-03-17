@@ -1,4 +1,7 @@
-# Seminar Coolblue 2021 - Direct effects model (2 minute interval)
+# Seminar Coolblue 2021 -- Direct Effects 5 minutes
+# @author: Lennard van der Plas, Erik van der Heide, Marjolein de With, Daniel Buijs
+
+
 # For the direct effects model we calculate the amount of traffic in an interval 
 # before the broadcast and after the broadcast
 # Results are stored in the column preVisitorsApp, preVisitorsWeb, postVisitorsApp and postVisitorsWeb in the dataframe broad

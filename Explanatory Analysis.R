@@ -1,5 +1,5 @@
-# File for PLOTS only -- Seminar Coolblue 2020-2021 -- Team 21
-# @authors: Lennard van der Plas, Erik van der Heide, Marjolein de With, Daniel Buijs
+# Seminar Coolblue 2021 -- Explanatory Analysis
+# @author: Lennard van der Plas, Erik van der Heide, Marjolein de With, Daniel Buijs
 
 # ===========================================================
 #                 Descriptive of TRAFFIC

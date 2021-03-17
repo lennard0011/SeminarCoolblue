@@ -1,7 +1,10 @@
-#install_keras()
+# Seminar Coolblue 2021 -- Artificial Neural Network
+# @author: Lennard van der Plas, Erik van der Heide, Marjolein de With, Daniel Buijs
 
+#install_keras()
 library(keras)
 library(tensorflow)
+
 ## ===================================================================
 ##              Collect data and merge to full time series
 ## ===================================================================

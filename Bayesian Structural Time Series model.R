@@ -1,3 +1,6 @@
+# Seminar Coolblue 2021 -- Bayesian Structural Time Series model
+# @author: Lennard van der Plas, Erik van der Heide, Marjolein de With, Daniel Buijs
+
 # Google Trends
 Sys.setenv(TZ = "Europe/Amsterdam")
 
