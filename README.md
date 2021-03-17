@@ -23,7 +23,7 @@ Welcome to our Repository! We are four students of Business Analytics and Quanti
    
 * ```Bayesian Structural Time Series model```
 
-   In this file, we obtain the Google searches for MediaMarkt and BCC. The, we sum the visit densities for each day of the first half of 2019, and make four Bayesian Structural Time Series models for four distinct periods. For each of these periods, we also test for a trend and for seasonality.
+   In this file, we obtain the Google searches for MediaMarkt and BCC. Then, we sum the visit densities for each day of the first half of 2019, and make four Bayesian Structural Time Series models for four distinct periods. For each of these periods, we also test for a trend and for seasonality.
 
 * ```R Shiny```
 
