@@ -130,12 +130,16 @@ ui = dashboardPage(
                 column(width = 6,
                        box(width = 12,
                            title = "Commercial-specific effects", 
+                           # Channels
                            selectInput(inputId = "channels", label = "Choose your channel", choices = c(as.character(sort(unique(broadNet$channel))), "Slam!TV")),
+                           # GRP
                            sliderInput(inputId = "GRP", label = "Input Gross Rating Point", value = 0, min = 0, max = 7.5, step = 0.05),
                            textOutput(outputId = "warning"), tags$head(tags$style("#warning{color: red;
                                  }")),
+                           # Day of the week
                            selectInput(inputId = "weekday", label = "Choose day of the week",
                                        choices = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")),
+                           # Hour
                            sliderInput(inputId = "hour", label = "Choose broadcast time", value = 12, min = 0, max = 23)
                        ),
                        box(width = 12,
@@ -146,10 +150,13 @@ ui = dashboardPage(
                 column(width = 6,
                        box(width = 12,
                            title = "Commercial-specific effects",
+                           # Length of spot
                            radioButtons(inputId = "length_spot", label = "Choose the spot length", selected = "30",
                                         choices = c("30", "30 + 10", "30 + 10 + 5")),
+                           # Position in break
                            radioButtons(inputId = "pos_break", label = "Choose the position in break", selected = "Begin",
                                         choices = c("Begin", "Middle", "End")),
+                           # Product category
                            radioButtons(inputId = "prod_category", label = "Choose product category", selected = "Washing machines",
                                         choices = c("Washing machines", "Televisions", "Laptops"))
                        ),
@@ -165,19 +172,19 @@ ui = dashboardPage(
 )
 
 # Server
-server = function(session, input, output) {
+server = function(session, input, output){
   mtreact = reactive({
     reactTable = broadNet
     # Subset on channel
-    if(input$channel != "All") {
+    if(input$channel != "All"){
       reactTable = subset(reactTable, channel == input$channel)
     }
     # Subset on length of spot
-    if(input$length_of_spot != "All") {
+    if(input$length_of_spot != "All"){
       reactTable = subset(reactTable, length_of_spot == input$length_of_spot)
     }
     # Subset on position in break
-    if(input$position_in_break_3option != "All") {
+    if(input$position_in_break_3option != "All"){
       if(input$position_in_break_3option == "Begin"){
         reactTable = subset(reactTable, position_in_break_3option == "begin") 
       }
@@ -189,7 +196,7 @@ server = function(session, input, output) {
       }
     }
     # Subset on product category
-    if(input$product_category != "All") {
+    if(input$product_category != "All"){
       if(input$product_category == "Washing machines"){
         reactTable = subset(reactTable, product_category == "wasmachines")
       }
@@ -201,31 +208,31 @@ server = function(session, input, output) {
       }
     }
     # Subset on month
-    if(input$month != "All") {
+    if(input$month != "All"){
       nrMonth = 6
-      if(input$month == "January") {
+      if(input$month == "January"){
         nrMonth = 1
-      } else if(input$month == "February") {
+      } else if(input$month == "February"){
         nrMonth = 2
-      } else if(input$month == "March") {
+      } else if(input$month == "March"){
         nrMonth = 3
-      } else if(input$month == "April") {
+      } else if(input$month == "April"){
         nrMonth = 4
-      } else if(input$month == "May") {
+      } else if(input$month == "May"){
         nrMonth = 5
       }
       reactTable = subset(reactTable, month(date) == nrMonth)
     }
     # Put time restriction
-    if(input$timer[1] == 0 || input$timer[1] == 1) {
+    if(input$timer[1] == 0 || input$timer[1] == 1){
       reactTable = subset(reactTable, as.numeric(hours) > input$timer[1])
       reactTable = subset(reactTable, as.numeric(hours) <= input$timer[2])
     } else {
       reactTable = subset(reactTable, as.numeric(hours) >= input$timer[1])
       reactTable = subset(reactTable, as.numeric(hours) < input$timer[2])
     }
-    # Order on date or grp
-    if(input$choose_ordering == "Date") {
+    # Order on date or GRP
+    if(input$choose_ordering == "Date"){
       reactTable = reactTable[order(reactTable$date, reactTable$time), ]
     } else {
       reactTable = reactTable[order(- reactTable$gross_rating_point), ]
@@ -235,7 +242,7 @@ server = function(session, input, output) {
   
   # Output table
   output$Table = renderTable({
-    if(nrow(mtreact()) == 0) {
+    if(nrow(mtreact()) == 0){
       print("There is no data available!")
     } else {
       outputTable = mtreact()[, c("channel", "date", "time", "gross_rating_point")]
@@ -255,7 +262,7 @@ server = function(session, input, output) {
                                                     sort(summary(as.factor(dataT$channel)), decreasing = T)))
       )
       maxLength = length(unique(dataT$program_before))
-      if(maxLength > 6) {
+      if(maxLength > 6){
         maxLength = 6
       }
       minLength = 1
@@ -266,14 +273,14 @@ server = function(session, input, output) {
                                                     sort(summary(as.factor(dataT$program_before)), decreasing = T)[minLength:maxLength]))
       )
       namesLength = names(sort(summary(as.factor(dataT$length_of_spot)), decreasing = T))
-      for (i in 1:length(namesLength)) {
-        if(namesLength[i] == "30") {
+      for (i in 1:length(namesLength)){
+        if(namesLength[i] == "30"){
           namesLength[i] = "'Length 30'"
         } 
-        if(namesLength[i] == "30 + 10") {
+        if(namesLength[i] == "30 + 10"){
           namesLength[i] = "'Length 30+10'"
         } 
-        if(namesLength[i] == "30 + 10 + 5") {
+        if(namesLength[i] == "30 + 10 + 5"){
           namesLength[i] = "'Length 30+10+5'"
         } 
       }
@@ -282,14 +289,14 @@ server = function(session, input, output) {
       )
       
       namesPos = names(sort(summary(as.factor(dataT$position_in_break_3option)), decreasing = T))
-      for (i in 1:length(namesPos)) {
-        if(namesPos[i] == "begin") {
+      for (i in 1:length(namesPos)){
+        if(namesPos[i] == "begin"){
           namesPos[i] = "Begin"
         } 
-        if(namesPos[i] == "middle") {
+        if(namesPos[i] == "middle"){
           namesPos[i] = "Middle"
         } 
-        if(namesPos[i] == "end") {
+        if(namesPos[i] == "end"){
           namesPos[i] = "End"
         } 
       }
@@ -298,14 +305,14 @@ server = function(session, input, output) {
       )
       
       namesProdcat = names(sort(summary(as.factor(dataT$product_category)), decreasing = T))
-      for (i in 1:length(namesProdcat)) {
-        if(namesProdcat[i] == "televisies") {
+      for (i in 1:length(namesProdcat)){
+        if(namesProdcat[i] == "televisies"){
           namesProdcat[i] = "Televisions"
         } 
-        if(namesProdcat[i] == "wasmachines") {
+        if(namesProdcat[i] == "wasmachines"){
           namesProdcat[i] = "Washing machines"
         } 
-        if(namesProdcat[i] == "laptops") {
+        if(namesProdcat[i] == "laptops"){
           namesProdcat[i] = "Laptops"
         } 
       }
@@ -347,7 +354,7 @@ server = function(session, input, output) {
       if(tableLength > 10){
         tableLength = 10
       } 
-      plot_output_list = lapply(1:tableLength, function(i) {
+      plot_output_list = lapply(1:tableLength, function(i){
         plotname = paste("plot", i, sep = "") 
         plotOutput(plotname, height = 50, width = 100)
         tableInterest = mtreact()
@@ -359,7 +366,7 @@ server = function(session, input, output) {
           timecommercial = str_split_fixed(timecommercial, ":", 3)
           colnames(timecommercial) = c("hour", "minute", "seconds")
           timecommercial = data.frame(timecommercial)
-          timecommercial = 60*as.numeric(timecommercial[1,"hour"]) + as.numeric(timecommercial[1,"minute"]) + 1
+          timecommercial = 60 * as.numeric(timecommercial[1, "hour"]) + as.numeric(timecommercial[1, "minute"]) + 1
           
           if(timecommercial > 9 & timecommercial < 1431){
             interval = 10
@@ -373,9 +380,9 @@ server = function(session, input, output) {
               visitsVector[j] = traffic_datesub[(timeStart + j - 1), "visitsWebNet"]
             }
             
-            plot(visitsVector, type = "l", xaxt = "n",main = c(paste("Commercial at", tableInterest[i,"channel"],"on date", tableInterest[i,"date"], tableInterest[i,"time"]),
-                                                               paste("with GRP", tableInterest[i,"gross_rating_point"])),  
-                 xlab = "Time (minutes)", ylab = "Visits Ratio")
+            plot(visitsVector, type = "l", xaxt = "n", main = c(paste("Commercial at", tableInterest[i, "channel"], "on date", tableInterest[i, "date"], tableInterest[i, "time"]),
+                                                                paste("with GRP", tableInterest[i, "gross_rating_point"])),  
+                 xlab = "Time (minutes)", ylab = "Visits Density")
             axis(side = 1, at = c(1, 11, 21), 
                  labels= c('-10', '0', '10'))
             abline(v = interval + 1, col = "blue")
@@ -384,7 +391,7 @@ server = function(session, input, output) {
             maxie_per = 100 * (max(visitsVector[(11 + 1):(11 + 5)]) - visitsVector[11])/visitsVector[11]
             legend(x = "topleft", legend = c(paste0("VD increase in 5min: "), paste0(round(maxie, digits = 2), " (", round(maxie_per, digits = 2), "%)")), cex = 0.75)
           } else {
-            if(timecommercial < 10) {
+            if(timecommercial < 10){
               interval = 10
               timeStart = 1
               timeEinde = timecommercial + interval
@@ -395,7 +402,7 @@ server = function(session, input, output) {
               for(j in 1:totalLength){
                 visitsVector[j] = traffic_datesub[(timeStart + j - 1), "visitsWebNet"]
               }
-              x = -(timecommercial - 1)
+              x = (- timecommercial + 1)
               plot(visitsVector, type = "l", xaxt = "n", main = c(paste("Commercial at", tableInterest[i, "channel"], "on date", tableInterest[i, "date"], tableInterest[i, "time"]),
                                                                   paste("with GRP", tableInterest[i, "gross_rating_point"])),  
                    xlab = "Time (minutes)", ylab = "Visit Density")
