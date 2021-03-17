@@ -1,7 +1,7 @@
 # Seminar Coolblue 2021 - Direct effects model (2 minute interval)
 # For the direct effects model we calculate the amount of traffic in an interval 
 # before the broadcast and after the broadcast
-# Results are stored in the column preVisitors and postVisitors in the dataframe broad
+# Results are stored in the column preVisitorsApp, preVisitorsWeb, postVisitorsApp and postVisitorsWeb in the dataframe broad
 
 ## ========================================================
 ##                  Collect interval data
@@ -15,7 +15,7 @@ broad['postVisitorsApp'] = 0
 intervalSize
 
 start = Sys.time()
-for (i in 1:nBroad) { # nBroad
+for (i in 1:nBroad) { # count visitors for every commercial
   broadDate = broad$date[[i]]
   broadTime = broad$time_min[[i]]
   broadCountry = broad$country[[i]]
@@ -65,7 +65,7 @@ for (i in 1:nBroad) { # nBroad
 ##                    First analysis
 ## ========================================================
 
-# website analysis
+# website simple statistics
 mean(broad$postVisitorsWeb - broad$preVisitorsWeb)
 min(broad$postVisitorsWeb - broad$preVisitorsWeb)
 max(broad$postVisitorsWeb - broad$preVisitorsWeb)
@@ -152,6 +152,7 @@ baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours) + weekdays, 
 getModelSumm(baselineModel, T)
 
 # Full model - Netherlands (website)
+# also make fullModelTest to be used in the R Shiny dashboard
 fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(broadNet$hours) + broadNet$gross_rating_point + ., data = dummiesDirectModel)
 
 input = as.data.frame(cbind(broadNet$postVisitorsWeb, broadNet$preVisitorsWeb, factor(broadNet$hours), broadNet$gross_rating_point, dummiesDirectModel))

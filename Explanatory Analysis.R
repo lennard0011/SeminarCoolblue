@@ -287,7 +287,7 @@ for(j in 1:plots){
   timecommercial <- data.frame(timecommercial)
   timecommercial <- 60*as.numeric(timecommercial[1,"hour"]) + as.numeric(timecommercial[1,"minute"]) + 1
   
-  if(timecommercial > 1340 || timecommercial < 120){
+  if(timecommercial > 1320 || timecommercial < 120){
     next
   }
   
@@ -307,11 +307,11 @@ for(j in 1:plots){
   row.names(visitsMean) <- c(seq(from = timeStart, to = timeEinde))
   
   #xlim = c(timecommercial - 5, timecommercial + 10)
-  x = c(timecommercial - interval, timecommercial + interval - 1)
-  plot(visitsVector, type = "l", xlim = c(90,160),xaxt='n', main = "Website visits", xlab = "Time (minutes)", ylab = "Visits Ratio")
+ # x = c(timecommercial - interval, timecommercial + interval - 1)
+  plot(visitsVector, type = "l",xlim = c(80,160),xaxt='n', main = "Website visits", xlab = "Time (minutes)", ylab = "Visit Density")
   #paste( "Website visits (NL) commercial with GDP", broad[j,"gross_rating_point"]), xlab = "Time (minutes)", ylab = "Visits Ratio")
-  axis(side =1, at=c(0,  121, 126, 241), 
-       labels= c('-120', '0', '5','120'))
+  axis(side =1, at=c(80,  121, 141, 160), 
+       labels= c('1', '0', '20','120'))
   abline(v = interval + 1, col = "red")
   #abline(h = firstMean, col = "darkgrey", lty = 2)
   #abline(h = secondMean, col = "darkgrey", lty = 3)
