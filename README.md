@@ -9,13 +9,13 @@ Welcome to our Repository! We are four students of Business Analytics and Quanti
  
    The Z Score Algorithm finds peaks in the data for given values of the parameters __lag__, __influence__ and __threshold__. The algorithm can be performed for a single day, but also for all days concatenated. The best performing commercials are collected in a dataframe. The analysis for the Belgian commercials comes after the analysis for the Dutch commercials.
   
-* ```Direct Effects - 5 minutes```
+* ```Direct Effects 5 minutes```
 
-   For the Direct Effects model with a 5-minute interval, we calculate the amount of traffic in an interval before the broadcast of a commercial and after the broadcast. Results are stored in the columns _preVisitorsApp_, _preVisitorsWeb_, _postVisitorsApp_ and _postVisitorsWeb_ in the dataframe _broad_. Furthermore, the Direct Effects model with a 5-minute interval is constructed and tested.
+   For the Direct Effects model with a 5-minute interval, we calculate the amount of traffic in an interval before the broadcast of a commercial and after the broadcast. Results are stored in the columns _preVisitorsApp_, _preVisitorsWeb_, _postVisitorsApp_ and _postVisitorsWeb_ in the dataframe _broad_. Furthermore, the model is constructed and tested.
    
-* ```Direct Effects - 20 minutes```   
+* ```Direct Effects 20 minutes```   
 
-  We also created a Direct Effects model with a 20-minute interval. The set-up is the same as the intervalCode. However, this time we subset on commercials with a GRP higher than 0.5. In the model, we use the internet visits of Belgium during	 the same time frame as control variable.
+  We also created a Direct Effects model with a 20-minute interval. The set-up is the same as the intervalCode. However, this time we subset on commercials with a GRP higher than 0.5. In the model, we use the internet visits of Belgium during the same time frame as control variable.
   
 * ```Artificial Neural Network```
 
