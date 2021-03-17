@@ -4,11 +4,11 @@ Welcome to our Repository! We are four students of Business Analytics and Quanti
 # List of code
 * ```Explanatory Analysis```
 
-   For the explanatory analysis a couple plots of the data are constructed and data statistics are derived to give more insight and a better comprehension.
+   For the explanatory analysis, we construct several plots of the data and derive data statistics to give more insight in and a better comprehension of the data.
 
 * ```Data Preprocessing```
 
-   The data was in aggregated format. In this file we change the dataset to a more usable format where we construct a dataframe with the amount of visitors per minute and omit outliers.
+   The data was in aggregated format. In this file, we change the dataset to a more usable format where we construct a dataframe with the amount of visitors per minute. We also omit outliers.
 
 * ```Z Score Algorithm```
  
