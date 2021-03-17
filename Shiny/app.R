@@ -1,5 +1,4 @@
 # R shiny + Tutorial -- Seminar Coolblue 2021
-# @ MARJOLEIN DE WITH
 
 # TEMPLATE
 # install.packages("shiny")
@@ -15,13 +14,13 @@ library("lubridate")
 library("stringr")
 library("gridExtra")
 
-# Input: regression function
-
+# Load trained model and data
 load("fullModelSaved.rda")
 load("testdf.rda")
 load("broadNet.rda")
 load("visitorsSum.rda")
 
+# User Interface
 ui = dashboardPage(
   dashboardHeader(title = "The effects of TV-commercials", titleWidth = 350),
   
@@ -34,6 +33,7 @@ ui = dashboardPage(
     )
   ),
   
+  # Colours
   dashboardBody(
     tags$head(tags$style(HTML('
                                 /* logo */
@@ -62,6 +62,8 @@ ui = dashboardPage(
                                 }
 
                                 '))),
+    
+    # Different tabs
     tabItems(
       tabItem("dash",
               column(width = 12,
@@ -91,33 +93,33 @@ ui = dashboardPage(
               fluidRow(
                 box(width = 6,
                     title = "Commercial-specific effects", 
-                    #channel
+                    # Channel
                     selectInput(inputId = "channel", label = "Choose your channel", 
                                 choices = c("All", as.character(sort(unique(broadNet$channel))))),
-                    #month
+                    # Month
                     selectInput(inputId = "month", label = "Choose a month", 
-                                choices = c("All", "January", "February", "March", "April", "May", "June") ),
-                    #hour
+                                choices = c("All", "January", "February", "March", "April", "May", "June")),
+                    # Hour
                     sliderInput(inputId = "timer", label = "Choose time range: ", 
                                 min = 0, max = 24, value = c(0, 24)),
-                    #length_of_spot
+                    # Length of spot
                     selectInput(inputId = "length_of_spot", label = "Choose the spot length", 
                                 choices = c("All", as.character(sort(unique(broadNet$length_of_spot))))),
-                    #position_in_break_3option
+                    # Position in break
                     selectInput(inputId = "position_in_break_3option", label = "Choose the position in break", 
                                 choices = c("All", "Begin", "Middle", "End")),
-                    #product_category
+                    # Product category
                     selectInput(inputId = "product_category", label = "Choose product category", 
                                 choices = c("All", "Washing machines", "Televisions", "Laptops")),
-                    #Keuze op sorteren
+                    # Choose sort
                     radioButtons(inputId = "choose_ordering", label = "Choose ordering of data",
-                                 choices = c("Date", "Gross Rating Point"), inline=T)
+                                 choices = c("Date", "Gross Rating Point"), inline = T)
                 ),
                 box(width = 6,
                     tabsetPanel(type = "tab", 
-                                tabPanel("Data", tableOutput(outputId="Table")),
-                                tabPanel("Summary", verbatimTextOutput(outputId="summ")),
-                                tabPanel("Plot", uiOutput(outputId="plot"))
+                                tabPanel("Data", tableOutput(outputId = "Table")),
+                                tabPanel("Summary", verbatimTextOutput(outputId = "summ")),
+                                tabPanel("Plot", uiOutput(outputId = "plot"))
                     )
                 ),
               )
@@ -162,67 +164,68 @@ ui = dashboardPage(
   )
 )
 
+# Server
 server = function(session, input, output) {
   mtreact = reactive({
     reactTable = broadNet
-    # subset on channel
-    if (input$channel != "All") {
+    # Subset on channel
+    if(input$channel != "All") {
       reactTable = subset(reactTable, channel == input$channel)
     }
-    # subset on length of spot
-    if (input$length_of_spot != "All") {
+    # Subset on length of spot
+    if(input$length_of_spot != "All") {
       reactTable = subset(reactTable, length_of_spot == input$length_of_spot)
     }
-    # subset on position in break
-    if (input$position_in_break_3option != "All") {
-      if (input$position_in_break_3option == "Begin"){
+    # Subset on position in break
+    if(input$position_in_break_3option != "All") {
+      if(input$position_in_break_3option == "Begin"){
         reactTable = subset(reactTable, position_in_break_3option == "begin") 
       }
-      if (input$position_in_break_3option == "Middle"){
+      if(input$position_in_break_3option == "Middle"){
         reactTable = subset(reactTable, position_in_break_3option == "middle") 
       }
-      if (input$position_in_break_3option == "End"){
+      if(input$position_in_break_3option == "End"){
         reactTable = subset(reactTable, position_in_break_3option == "end") 
       }
     }
-    # subset on product category
-    if (input$product_category != "All") {
-      if (input$product_category == "Washing machines"){
+    # Subset on product category
+    if(input$product_category != "All") {
+      if(input$product_category == "Washing machines"){
         reactTable = subset(reactTable, product_category == "wasmachines")
       }
-      if (input$product_category == "Televisions"){
+      if(input$product_category == "Televisions"){
         reactTable = subset(reactTable, product_category == "televisies")
       }
-      if (input$product_category == "Laptops"){
+      if(input$product_category == "Laptops"){
         reactTable = subset(reactTable, product_category == "laptops")
       }
     }
-    # subset on month
-    if (input$month != "All") {
+    # Subset on month
+    if(input$month != "All") {
       nrMonth = 6
-      if (input$month == "January") {
+      if(input$month == "January") {
         nrMonth = 1
-      } else if (input$month == "February") {
+      } else if(input$month == "February") {
         nrMonth = 2
-      } else if (input$month == "March") {
+      } else if(input$month == "March") {
         nrMonth = 3
-      } else if (input$month == "April") {
+      } else if(input$month == "April") {
         nrMonth = 4
-      } else if (input$month == "May") {
+      } else if(input$month == "May") {
         nrMonth = 5
       }
       reactTable = subset(reactTable, month(date) == nrMonth)
     }
-    # put time restriction
-    if (input$timer[1] == 0 || input$timer[1] == 1) {
+    # Put time restriction
+    if(input$timer[1] == 0 || input$timer[1] == 1) {
       reactTable = subset(reactTable, as.numeric(hours) > input$timer[1])
       reactTable = subset(reactTable, as.numeric(hours) <= input$timer[2])
     } else {
       reactTable = subset(reactTable, as.numeric(hours) >= input$timer[1])
       reactTable = subset(reactTable, as.numeric(hours) < input$timer[2])
     }
-    # order on date or grp
-    if (input$choose_ordering == "Date") {
+    # Order on date or grp
+    if(input$choose_ordering == "Date") {
       reactTable = reactTable[order(reactTable$date, reactTable$time), ]
     } else {
       reactTable = reactTable[order(- reactTable$gross_rating_point), ]
@@ -232,7 +235,7 @@ server = function(session, input, output) {
   
   # Output table
   output$Table = renderTable({
-    if (nrow(mtreact()) == 0) {
+    if(nrow(mtreact()) == 0) {
       print("There is no data available!")
     } else {
       outputTable = mtreact()[, c("channel", "date", "time", "gross_rating_point")]
@@ -241,68 +244,68 @@ server = function(session, input, output) {
     }
   })
   
+  # Output summary
   output$summ = renderText({
     dataT = mtreact()
     
-    if (nrow(dataT) == 0) {
+    if(nrow(dataT) == 0){
       print("There is no data to summarize!")
     } else {
-      # names has to be outside sort!
       fullChannels = gsub(",","\n ", toString(rbind(names(sort(summary(as.factor(dataT$channel)), decreasing = T)),
                                                     sort(summary(as.factor(dataT$channel)), decreasing = T)))
       )
-      maxLength = length(unique(dataT$program_before));
-      if (maxLength > 6) {
+      maxLength = length(unique(dataT$program_before))
+      if(maxLength > 6) {
         maxLength = 6
       }
       minLength = 1
-      if ( names(sort(summary(as.factor(dataT$program_before)), decreasing = T)[1]) == "(Other)"  ) {
+      if(names(sort(summary(as.factor(dataT$program_before)), decreasing = T)[1]) == "(Other)"){
         minLength = 2
       }
-      fullPrograms = gsub(",","\n ", toString(rbind(names(sort(summary(as.factor(dataT$program_before)),decreasing=T)[minLength:maxLength]),
-                                                    sort(summary(as.factor(dataT$program_before)),decreasing=T)[minLength:maxLength]))
+      fullPrograms = gsub(",","\n ", toString(rbind(names(sort(summary(as.factor(dataT$program_before)), decreasing = T)[minLength:maxLength]),
+                                                    sort(summary(as.factor(dataT$program_before)), decreasing = T)[minLength:maxLength]))
       )
       namesLength = names(sort(summary(as.factor(dataT$length_of_spot)), decreasing = T))
       for (i in 1:length(namesLength)) {
-        if (namesLength[i] == "30") {
+        if(namesLength[i] == "30") {
           namesLength[i] = "'Length 30'"
         } 
-        if (namesLength[i] == "30 + 10") {
+        if(namesLength[i] == "30 + 10") {
           namesLength[i] = "'Length 30+10'"
         } 
-        if (namesLength[i] == "30 + 10 + 5") {
+        if(namesLength[i] == "30 + 10 + 5") {
           namesLength[i] = "'Length 30+10+5'"
         } 
       }
-      fullLength = gsub(",","  ", toString(rbind( namesLength,
-                                                  sort(summary(as.factor(dataT$length_of_spot)),decreasing=T)))
+      fullLength = gsub(",","  ", toString(rbind(namesLength,
+                                                 sort(summary(as.factor(dataT$length_of_spot)), decreasing = T)))
       )
       
-      namesPos = names(sort(summary(as.factor(dataT$position_in_break_3option)),decreasing=T))
+      namesPos = names(sort(summary(as.factor(dataT$position_in_break_3option)), decreasing = T))
       for (i in 1:length(namesPos)) {
-        if (namesPos[i] == "begin") {
+        if(namesPos[i] == "begin") {
           namesPos[i] = "Begin"
         } 
-        if (namesPos[i] == "middle") {
+        if(namesPos[i] == "middle") {
           namesPos[i] = "Middle"
         } 
-        if (namesPos[i] == "end") {
+        if(namesPos[i] == "end") {
           namesPos[i] = "End"
         } 
       }
-      fullPosition = gsub(",","  ", toString(rbind( namesPos,
-                                                    sort(summary(as.factor(dataT$position_in_break_3option)),decreasing=T)))
+      fullPosition = gsub(",","  ", toString(rbind(namesPos,
+                                                   sort(summary(as.factor(dataT$position_in_break_3option)), decreasing = T)))
       )
       
-      namesProdcat = names(sort(summary(as.factor(dataT$product_category)),decreasing=T))
+      namesProdcat = names(sort(summary(as.factor(dataT$product_category)), decreasing = T))
       for (i in 1:length(namesProdcat)) {
-        if (namesProdcat[i] == "televisies") {
+        if(namesProdcat[i] == "televisies") {
           namesProdcat[i] = "Televisions"
         } 
-        if (namesProdcat[i] == "wasmachines") {
+        if(namesProdcat[i] == "wasmachines") {
           namesProdcat[i] = "Washing machines"
         } 
-        if (namesProdcat[i] == "laptops") {
+        if(namesProdcat[i] == "laptops") {
           namesProdcat[i] = "Laptops"
         } 
       }
@@ -315,7 +318,7 @@ server = function(session, input, output) {
       fullGRPNumbers = summary(dataT$gross_rating_point)[c(1, 4, 6)]
       
       
-      # Do the printing
+      # Print
       print(paste0("Number of commercials: ", nrow(dataT),
                    "\n\nChosen options: \n  Channel: ", input$channel,
                    "\n  Month: ", input$month, "\n  Time interval: between ",
@@ -337,96 +340,97 @@ server = function(session, input, output) {
     }
   })
   
+  # Output plot
   output$plot = renderUI({
     tableLength = nrow(mtreact())
     if(tableLength > 0){
-     if(tableLength > 10){
-       tableLength = 10
-     } 
+      if(tableLength > 10){
+        tableLength = 10
+      } 
       plot_output_list = lapply(1:tableLength, function(i) {
         plotname = paste("plot", i, sep = "") 
         plotOutput(plotname, height = 50, width = 100)
         tableInterest = mtreact()
         output[[plotname]] = renderPlot({
-          datecommercial <- tableInterest[i,"date"]
-          timecommercial <- tableInterest[i,"time"]
+          datecommercial = tableInterest[i, "date"]
+          timecommercial = tableInterest[i, "time"]
           
-          traffic_datesub <- subset(visitorsSum,grepl(datecommercial, visitorsSum$date) == TRUE)
-          timecommercial <- str_split_fixed(timecommercial, ":", 3)
-          colnames(timecommercial) <- c("hour", "minute", "seconds")
-          timecommercial <- data.frame(timecommercial)
-          timecommercial <- 60*as.numeric(timecommercial[1,"hour"]) + as.numeric(timecommercial[1,"minute"]) + 1
+          traffic_datesub = subset(visitorsSum,grepl(datecommercial, visitorsSum$date) == T)
+          timecommercial = str_split_fixed(timecommercial, ":", 3)
+          colnames(timecommercial) = c("hour", "minute", "seconds")
+          timecommercial = data.frame(timecommercial)
+          timecommercial = 60*as.numeric(timecommercial[1,"hour"]) + as.numeric(timecommercial[1,"minute"]) + 1
           
-          if(timecommercial > 9 & timecommercial <1431){
+          if(timecommercial > 9 & timecommercial < 1431){
             interval = 10
-            timeStart <- timecommercial - interval
-            timeEinde <- timecommercial + interval
-            totalLength <- 2*interval + 1
-            visitsVector <- as.matrix(rep(0,totalLength))
-            row.names(visitsVector) <- c(seq(from = -10, to = 10))
+            timeStart = timecommercial - interval
+            timeEinde = timecommercial + interval
+            totalLength = 2 * interval + 1
+            visitsVector = as.matrix(rep(0, totalLength))
+            row.names(visitsVector) = c(seq(from = -10, to = 10))
             
             for(j in 1:totalLength){
-              visitsVector[j] <- traffic_datesub[(timeStart + j - 1), "visitsWebNet"]
+              visitsVector[j] = traffic_datesub[(timeStart + j - 1), "visitsWebNet"]
             }
             
             plot(visitsVector, type = "l", xaxt = "n",main = c(paste("Commercial at", tableInterest[i,"channel"],"on date", tableInterest[i,"date"], tableInterest[i,"time"]),
                                                                paste("with GRP", tableInterest[i,"gross_rating_point"])),  
                  xlab = "Time (minutes)", ylab = "Visits Ratio")
-            axis(side =1, at=c(1,11, 21), 
-                 labels= c('-10','0','10'))
+            axis(side = 1, at = c(1, 11, 21), 
+                 labels= c('-10', '0', '10'))
             abline(v = interval + 1, col = "blue")
             
-            maxie = max(visitsVector[(11+1):(11+5)]) - visitsVector[11]
-            maxie_per = 100*(max(visitsVector[(11+1):(11+5)]) - visitsVector[11])/visitsVector[11]
-            legend(x="topleft", legend = c(paste0("VD increase in 5min: "), paste0(round(maxie,digits=2), " (", round(maxie_per,digits=2), "%)")), cex = 0.75)
+            maxie = max(visitsVector[(11 + 1):(11 + 5)]) - visitsVector[11]
+            maxie_per = 100 * (max(visitsVector[(11 + 1):(11 + 5)]) - visitsVector[11])/visitsVector[11]
+            legend(x = "topleft", legend = c(paste0("VD increase in 5min: "), paste0(round(maxie, digits = 2), " (", round(maxie_per, digits = 2), "%)")), cex = 0.75)
           } else {
             if(timecommercial < 10) {
               interval = 10
-              timeStart <- 1
-              timeEinde <- timecommercial + interval
-              totalLength <- timeEinde 
-              visitsVector <- as.matrix(rep(0,totalLength))
-              row.names(visitsVector) <- c(seq(from = (-timecommercial + 1), to = 10))
+              timeStart = 1
+              timeEinde = timecommercial + interval
+              totalLength = timeEinde 
+              visitsVector = as.matrix(rep(0, totalLength))
+              row.names(visitsVector) = c(seq(from = (- timecommercial + 1), to = 10))
               
               for(j in 1:totalLength){
-                visitsVector[j] <- traffic_datesub[(timeStart + j - 1), "visitsWebNet"]
+                visitsVector[j] = traffic_datesub[(timeStart + j - 1), "visitsWebNet"]
               }
               x = -(timecommercial - 1)
-              plot(visitsVector, type = "l", xaxt = "n", main = c(paste("Commercial at", tableInterest[i,"channel"],"on date", tableInterest[i,"date"], tableInterest[i,"time"]),
-                                                                  paste("with GRP", tableInterest[i,"gross_rating_point"])),  
+              plot(visitsVector, type = "l", xaxt = "n", main = c(paste("Commercial at", tableInterest[i, "channel"], "on date", tableInterest[i, "date"], tableInterest[i, "time"]),
+                                                                  paste("with GRP", tableInterest[i, "gross_rating_point"])),  
                    xlab = "Time (minutes)", ylab = "Visit Density")
-              axis(side =1, at=c(1,timecommercial, timecommercial + 10), 
-                   labels= c(x,'0','10'))
+              axis(side = 1, at = c(1, timecommercial, timecommercial + 10), 
+                   labels= c(x, '0', '10'))
               
               abline(v = timecommercial, col = "blue")
               
-              maxie = max(visitsVector[(timecommercial+1):(timecommercial+5)]) - visitsVector[timecommercial]
-              maxie_per = 100*(max(visitsVector[(timecommercial+1):(timecommercial+5)]) - visitsVector[timecommercial])/visitsVector[timecommercial]
-              legend(x="topleft", legend = c(paste0("VD increase in 5min: "), paste0(round(maxie,digits=2), " (", round(maxie_per,digits=2), "%)")), cex = 0.75)
+              maxie = max(visitsVector[(timecommercial + 1):(timecommercial + 5)]) - visitsVector[timecommercial]
+              maxie_per = 100 * (max(visitsVector[(timecommercial + 1):(timecommercial + 5)]) - visitsVector[timecommercial])/visitsVector[timecommercial]
+              legend(x = "topleft", legend = c(paste0("VD increase in 5min: "), paste0(round(maxie, digits = 2), " (", round(maxie_per,digits = 2), "%)")), cex = 0.75)
               
             }   else {
               interval = 10
               timeStart = timecommercial - interval
               timeEinde = 1439
               totalLength = 1439 - timecommercial + interval + 1
-              visitsVector = as.matrix(rep(0,totalLength))
+              visitsVector = as.matrix(rep(0, totalLength))
               row.names(visitsVector) = c(seq(from = -10, to = (1439 - timecommercial)))
               
               for(j in 1:totalLength){
                 visitsVector[j] = traffic_datesub[(timeStart + j - 1), "visitsWebNet"]
               }
               x = 1439 - timecommercial
-              plot(visitsVector, type = "l", xaxt = "n", main = c(paste("Commercial at", tableInterest[i,"channel"],"on date", tableInterest[i,"date"], tableInterest[i,"time"]),
-                                                                  paste("with GRP", tableInterest[i,"gross_rating_point"])),  
+              plot(visitsVector, type = "l", xaxt = "n", main = c(paste("Commercial at", tableInterest[i, "channel"], "on date", tableInterest[i, "date"], tableInterest[i, "time"]),
+                                                                  paste("with GRP", tableInterest[i, "gross_rating_point"])),  
                    xlab = "Time (minutes)", ylab = "Visit Density")
-              axis(side =1, at=c(1,11, totalLength), 
-                   labels= c('-10','0',x))
+              axis(side = 1, at=c(1, 11, totalLength), 
+                   labels= c('-10', '0', x))
               
               abline(v = interval + 1, col = "blue")
               
-              maxie = max(visitsVector[(11+1):(11+x)]) - visitsVector[11]
-              maxie_per = 100*(max(visitsVector[(11+1):(11+x)]) - visitsVector[11])/visitsVector[11]
-              legend(x="topleft", legend = c(paste0("VD increase in 5min: "), paste0(round(maxie,digits=2), " (", round(maxie_per,digits=2), "%)")), cex = 0.75)
+              maxie = max(visitsVector[(11 + 1):(11 + x)]) - visitsVector[11]
+              maxie_per = 100 * (max(visitsVector[(11 + 1):(11 + x)]) - visitsVector[11])/visitsVector[11]
+              legend(x = "topleft", legend = c(paste0("VD increase in 5min: "), paste0(round(maxie, digits = 2), " (", round(maxie_per, digits = 2), "%)")), cex = 0.75)
             }
           }
         })
@@ -441,13 +445,12 @@ server = function(session, input, output) {
   })
   
   
-  
   newCoefficients = reactive({
-    #make copy of dataframe to fill in with data
+    # Make copy of dataframe to fill in with data
     currentdf = testdf
     
-    # hours
-    if (input$hour == 1 | input$hour >= 6){
+    # Hours
+    if(input$hour == 1 | input$hour >= 6){
       currentdf$hours = input$hour
     } else {
       currentdf$hours = 1
@@ -457,85 +460,85 @@ server = function(session, input, output) {
     currentdf$gross_rating_point = input$GRP
     
     # Product Category
-    if (input$prod_category == 'Laptops'){
+    if(input$prod_category == 'Laptops'){
       currentdf$product_category_laptops = 1
     }
-    else if (input$prod_category == 'Washing machines'){
+    else if(input$prod_category == 'Washing machines'){
       currentdf$product_category_wasmachines = 1
     }
     
     # Channel
     for (i in 7:34){
       rowname = names(testdf)[i]
-      if (substring(rowname, 1, 1) == "`"){
+      if(substring(rowname, 1, 1) == "`"){
         n = nchar(rowname)
         chan = substring(rowname, 10, n - 1)
       } else {
         chan = substring(rowname, 9)
       }
-      if (chan == input$channels){
+      if(chan == input$channels){
         currentdf[i] = 1
         break
       }
     }
     
     # Length of spot
-    if (input$length_spot == 30){
+    if(input$length_spot == 30){
       currentdf$length_of_spot_30 = 1
     }
-    else if (input$length_spot == '30 + 10'){
+    else if(input$length_spot == '30 + 10'){
       currentdf$`length_of_spot_30 + 10` = 1
     }
     
     # Position in break
-    if (input$pos_break == 'Begin'){
+    if(input$pos_break == 'Begin'){
       currentdf$position_in_break_3option_begin = 1
     }
-    else if (input$pos_break == 'End'){
+    else if(input$pos_break == 'End'){
       currentdf$position_in_break_3option_end = 1
     }
     
     # Weekday
     weekDay = matrix(0, 6)
-    if (input$weekday == 'Tuesday'){
+    if(input$weekday == 'Tuesday'){
       currentdf$weekdays_dinsdag = 1
     }
-    else if (input$weekday == 'Wednesday'){
+    else if(input$weekday == 'Wednesday'){
       currentdf$weekdays_woensdag = 1
     }
-    else if (input$weekday == 'Thursday'){
+    else if(input$weekday == 'Thursday'){
       currentdf$weekdays_donderdag = 1
     }
-    else if (input$weekday == 'Friday'){
+    else if(input$weekday == 'Friday'){
       currentdf$weekdays_vrijdag = 1
     }
-    else if (input$weekday == 'Sunday'){
+    else if(input$weekday == 'Sunday'){
       currentdf$weekdays_zondag = 1
     }
-    else if (input$weekday == 'Monday'){
+    else if(input$weekday == 'Monday'){
       currentdf$weekdays_maandag = 1
     }
     
     currentdf["hours"] = as.factor(currentdf["hours"])
     return(predict(fullModelTest, currentdf, interval = "prediction", level = 0.95))
   })
+  # Output expected increase
   output$text = renderText({
-    # print("TESTJE")
-    if (input$channels == "Slam!TV"){
+    if(input$channels == "Slam!TV"){
       paste0("We cannot give information for ", input$channels, ", as we do not have enough data for it.")
     }
-    else if (input$hour >= 2 & input$hour <= 5){
+    else if(input$hour >= 2 & input$hour <= 5){
       paste0("We cannot give information for this time of the day, as we have no data for it.")
     }
-    else if (input$hour < 2 || input$hour > 5){
-      if (round(input$maxVD * newCoefficients()[1]) > 0){
-        if (input$GRP > max(broadNet$gross_rating_point[broadNet$channel == input$channels])){
+    else if(input$hour < 2 || input$hour > 5){
+      if(round(input$maxVD * newCoefficients()[1]) > 0){
+        if(input$GRP > max(broadNet$gross_rating_point[broadNet$channel == input$channels])){
           paste0("We expect the amount of visitors five minutes after the commercial to be ", round(input$maxVD * newCoefficients()[1]), " more than what would have been expected without a commercial. However, please take into account that usually the broadcasts on ", input$channels ," have a lower GRP.")  
         } else {
           paste0("We expect the amount of visitors five minutes after the commercial to be ", round(input$maxVD * newCoefficients()[1]), " more than what would have been expected without a commercial.")  
         }
       }
-      else if (round(input$maxVD * newCoefficients()[1]) < 0){
+      else if(round(input$maxVD * newCoefficients()[1]) < 0){
         paste0("We could not find a significant effect for these settings.")
       } else {
         paste0("We expect the amount of visitors five minutes after the commercial to be equal to what would have been expected without a commercial.")
@@ -543,12 +546,14 @@ server = function(session, input, output) {
     }
   })
   output$warning = renderText({
-    if (input$channels != "Slam!TV" && input$GRP > max(broadNet$gross_rating_point[broadNet$channel == input$channels])){
+    if(input$channels != "Slam!TV" && input$GRP > max(broadNet$gross_rating_point[broadNet$channel == input$channels])){
       paste0("Warning: usually the broadcasts on ", input$channels ," have a lower GRP")
     }
-    else if (input$channels == "Slam!TV"){
+    else if(input$channels == "Slam!TV"){
       paste0("Warning: not enough data")
     }
   })
 }
+
+# Final app
 shinyApp(ui = ui, server = server)

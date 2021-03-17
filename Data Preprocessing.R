@@ -329,7 +329,7 @@ for (i in 1:nBroad) {
   if(broad$position_in_break[i] == "0" || broad$position_in_break[i] == "1" || broad$position_in_break[i] == "2" ||
      broad$position_in_break[i] == "First Position" || broad$position_in_break[i] == "Second Position") {
     broad$position_in_break_3option[i] = "begin"
-  } else if (broad$position_in_break[i] == "3" || broad$position_in_break[i] == "4" || broad$position_in_break[i] == "5" ||
+  } else if(broad$position_in_break[i] == "3" || broad$position_in_break[i] == "4" || broad$position_in_break[i] == "5" ||
              broad$position_in_break[i] == "6" || broad$position_in_break[i] == "7" || broad$position_in_break[i] == "8" ||
              broad$position_in_break[i] == "9" || broad$position_in_break[i] == "10" || broad$position_in_break[i] == "11" ||
              broad$position_in_break[i] == "12" || broad$position_in_break[i] == "13" || broad$position_in_break[i] == "14" ||
@@ -337,7 +337,7 @@ for (i in 1:nBroad) {
              broad$position_in_break[i] == "18" || broad$position_in_break[i] == "19" || broad$position_in_break[i] == "20" ||
              broad$position_in_break[i] == "Any Other Position") {
     broad$position_in_break_3option[i] = "middle"
-  } else if (broad$position_in_break[i] == "21" || broad$position_in_break[i] == "22" || broad$position_in_break[i] == "23" ||
+  } else if(broad$position_in_break[i] == "21" || broad$position_in_break[i] == "22" || broad$position_in_break[i] == "23" ||
              broad$position_in_break[i] == "24" || broad$position_in_break[i] == "25" || broad$position_in_break[i] == "98" ||
              broad$position_in_break[i] == "99" || broad$position_in_break[i] == "Before Last Position" || 
              broad$position_in_break[i] == "Last Position") {
@@ -357,7 +357,7 @@ broadBel = broadBel[order(broadBel$date_time), ]
 broad$overlapBefore = 0
 broad$overlapAfter = 0
 for (i in 1:nrow(broad)){
-  if (broad$country[i] == 'Netherlands'){
+  if(broad$country[i] == 'Netherlands'){
     iNet = iNet + 1
     #print(i)
     datetime = broad$date_time[i]
@@ -365,19 +365,19 @@ for (i in 1:nrow(broad)){
     timeEarlier = datetime - intervalSize * 60
     timeLater = datetime + intervalSize * 60
     # Interval before
-    if (iNet > 1){ # exclude first dutch commercial
-      if (timeEarlier <= broadNet$date_time[iNet - 1] && broadNet$date_time[iNet - 1] <= datetime){
+    if(iNet > 1){ # exclude first dutch commercial
+      if(timeEarlier <= broadNet$date_time[iNet - 1] && broadNet$date_time[iNet - 1] <= datetime){
         broad$overlapBefore[i] = 1
       }
     }
     # Interval after
-    if (iNet < nrow(broadNet)){ # exclude last dutch commercial
-      if (datetime <= broadNet$date_time[iNet + 1] && broadNet$date_time[iNet + 1] <= timeLater){
+    if(iNet < nrow(broadNet)){ # exclude last dutch commercial
+      if(datetime <= broadNet$date_time[iNet + 1] && broadNet$date_time[iNet + 1] <= timeLater){
         broad$overlapAfter[i] = 1
       }
     }
   }
-  if (broad$country[i] == 'Belgium'){
+  if(broad$country[i] == 'Belgium'){
     iBel = iBel + 1
     #print(i)
     datetime = broad$date_time[i]
@@ -385,14 +385,14 @@ for (i in 1:nrow(broad)){
     timeEarlier = datetime - intervalSize * 60
     timeLater = datetime + intervalSize * 60
     # Interval before
-    if (iBel > 1){
-      if (timeEarlier <= broadBel$date_time[iBel - 1] && broadBel$date_time[iBel - 1] <= datetime){
+    if(iBel > 1){
+      if(timeEarlier <= broadBel$date_time[iBel - 1] && broadBel$date_time[iBel - 1] <= datetime){
         broad$overlapBefore[i] = 1
       }
     }
     # Interval after
-    if (iBel < nrow(broadBel)){
-      if (datetime <= broadBel$date_time[iBel + 1] && broadBel$date_time[iBel + 1] <= timeLater){
+    if(iBel < nrow(broadBel)){
+      if(datetime <= broadBel$date_time[iBel + 1] && broadBel$date_time[iBel + 1] <= timeLater){
         broad$overlapAfter[i] = 1
       }
     }
