@@ -2,6 +2,11 @@
 
 library(keras)
 library(tensorflow)
+## ===================================================================
+##              Collect data and merge to full time series
+## ===================================================================
+# Begin with making a dataset for the whole time series with the amount of visitors and broadcast specific attributes
+
 
 ## Making appropiate data for network
 # calculate the minute in the year of the commercial
@@ -67,7 +72,9 @@ names(visitNetDummBroad)
 rm(broadGRP)
 rm(broadAmount)
 
-
+## ===================================================================
+##              Divide in dataset in Train and Test
+## ===================================================================
 # Make train and testset. Testset is last month.
 scaledvisitNetDummBroad = scale(visitNetDummBroad)
 center = attr(scaledvisitNetDummBroad, 'scaled:center')
@@ -81,7 +88,10 @@ visitTrain = na.omit(visitTrain)
 visitVal = na.omit(visitVal)
 visitTest = na.omit(visitTest)
 
-# Neural network
+## ===================================================================
+##                          Make Neural Network
+## ===================================================================
+# function to make a neural network for certain regularization parameter and input size
 makeModel = function (regParam, colAmount) {
   model <- keras_model_sequential() 
   model %>%
@@ -97,6 +107,7 @@ makeModel = function (regParam, colAmount) {
   return(model)
 }
 
+# Put data in matrix
 xTrain = as.matrix(subset(visitTrain, select = -c(visitsWebNet)))
 yTrain = as.matrix(subset(visitTrain, select = c(visitsWebNet)))
 
@@ -108,8 +119,11 @@ yTest = as.matrix(subset(visitTest, select = c(visitsWebNet)))
 
 valData = list(xVal, yVal)
 
+## ===================================================================
+##                    Find best regularization parameter
+## ===================================================================
+#logarithmic scale for regularization interval
 seqParam = c(0.5, 0.1, 0.05, 0.01, 0.005, 0.001, 0.0005, 0.0001)
-#logarithmic scale
 results = c()
 for (regParam in seqParam) {
   modelVal = makeModel(regParam, (ncol(xTrain)))
@@ -131,7 +145,9 @@ plot(seqParam, results)
 optParam = seqParam[which(results == min(results))] #equals 0.1
 optParam = 0.1
 
-#train new network on train and validation data to compare with OLS
+## ===================================================================
+##            Compare Neural Network with OLS
+## ===================================================================
 xTrainVal = rbind(xTrain, xVal)
 yTrainVal = rbind(yTrain, yVal)
 
@@ -159,7 +175,9 @@ mean((yTest - predOLS)^2) #mse
 mean(abs(yTest - predOLS)) #mae
 mean(abs(yTest - predOLS)/yTest) #mape
 
-# Sensitivity analysis
+## ===================================================================
+##              Variable effects analysis
+## ===================================================================
 xWhole = rbind(xTrainVal, xTest)
 yWhole = rbind(yTrainVal, yTest)
 
@@ -175,9 +193,7 @@ plot(history)
 predNNWhole = predict(modelWholeOpt, xWhole)
 hist((yWhole - predNNWhole))
 
-linearModel = lm(visitsWebNet ~ ., data = as.data.frame(rbind(visitTrain, visitVal, visitTest)))
-sm = summary(linearModel)
-
+#Function to determine the effects of a certain variable on the amount of visitors
 sensAn = function(model, xTrain, depVar, center, scale) {
   stepSize = 1000
   xMean = t(as.matrix(colMeans(xTrain)))
@@ -195,26 +211,7 @@ sensAn = function(model, xTrain, depVar, center, scale) {
   return(highest - lowest)
 }
 
-length(colnames(xWhole))
-
-sensAn = function(model, xTrain, depVar, center, scale) {
-  stepSize = 1000
-  xMean = t(as.matrix(colMeans(xTrain)))
-  xMeanMatrix = xMean[rep(seq_len(nrow(xMean)), each = stepSize), ]
-  maxValue = max(xTrain[,depVar])
-  minValue = min(xTrain[,depVar])
-  varTries = seq(from = minValue, to = maxValue, length.out = stepSize)
-  xMeanMatrix[,depVar] = varTries
-  xMeanMatrix[, 62:122] = xMeanMatrix[, 62:122] * varTries
-  predictions = predict(model, xMeanMatrix)
-  visitors = scale["visitsWebNet"]*predictions + center["visitsWebNet"]
-  plot(5*(varTries*scale[depVar] + center[depVar]), visitors, type = "l", xlab = depVar)
-  lowest = visitors[1]
-  highest = visitors[stepSize]
-  
-  return(highest - lowest)
-}
-
+#Effects of GRP, broadamount and lagged visits
 sensAn(modelWholeOpt, xWhole, "gross_rating_point", center, scale)
 sensAn(modelWholeOpt, xWhole, "broadAmount", center, scale)
 sensAn(modelWholeOpt, xWhole, "visitsLag1Week", center, scale)

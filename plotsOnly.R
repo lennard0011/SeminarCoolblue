@@ -1,6 +1,106 @@
 # File for PLOTS only -- Seminar Coolblue 2020-2021 -- Team 21
-# @authors: MELD
+# @authors: Lennard van der Plas, Erik van der Heide, Marjolein de With, Daniel Buijs
 
+# ===========================================================
+#                 Descriptive of TRAFFIC
+# ===========================================================
+
+rawTraffic = read.csv(file.choose(), header = T)
+
+# Separate countries
+rawTrafficNet = subset(rawTraffic, country=="Netherlands")
+sum(rawTrafficNet$visits_index)
+rawTrafficBel = subset(rawTraffic, country=="Belgium")
+sum(rawTrafficBel$visits_index)
+
+# Bounces Net
+rawTrafficBounceNet = subset(rawTrafficNet, bounces == 1)
+100 * sum(rawTrafficBounceNet$visits_index) / sum(rawTrafficNet$visits_index)
+
+# Bounces Bel
+rawTrafficBounceBel = subset(rawTrafficBel, bounces == 1)
+100 * sum(rawTrafficBounceBel$visits_index) /sum(rawTrafficBel$visits_index)
+
+# Continue with no-bounce data
+rawTrafficNet = subset(rawTrafficNet, bounces != 1 | is.na(bounces))
+sum(rawTrafficNet$visits_index)
+rawTrafficBel = subset(rawTrafficBel, bounces != 1 | is.na(bounces))
+sum(rawTrafficBel$visits_index)
+
+# Visit source Net
+rawTrafficPushNotificationNet = subset(rawTrafficNet, visit_source == "push notification")
+100 * sum(rawTrafficPushNotificationNet$visits_index) / sum(rawTrafficNet$visits_index)
+
+# Visit source Bel
+rawTrafficPushNotificationBel = subset(rawTrafficBel, visit_source == "push notification")
+100 * sum(rawTrafficPushNotificationBel$visits_index) / sum(rawTrafficBel$visits_index)
+
+# Visit source Net (App only)
+rawTrafficNetApp = subset(rawTrafficNet, medium == "app")
+sum(rawTrafficNetApp$visits_index)
+rawTrafficPushNotificationNetApp = subset(rawTrafficNetApp, visit_source == "push notification")
+100 * sum(rawTrafficPushNotificationNetAoo$visits_index) / sum(rawTrafficNetApp$visits_index)
+
+# Visit source Bel (App only)
+rawTrafficBelApp = subset(rawTrafficBel, medium == "app")
+sum(rawTrafficBelApp$visits_index)
+rawTrafficPushNotificationBelApp = subset(rawTrafficBelApp, visit_source == "push notification")
+100 * sum(rawTrafficPushNotificationBelApp$visits_index) / sum(rawTrafficBelApp$visits_index)
+
+# Continue with no-push data
+rawTrafficNet = subset(rawTrafficNet, visit_source != "push notification")
+sum(rawTrafficNet$visits_index)
+rawTrafficBel = subset(rawTrafficBel, visit_source != "push notification")
+sum(rawTrafficBel$visits_index)
+
+# Medium Net
+rawTrafficWebNet = subset(rawTrafficNet, medium == "website")
+100 * sum(rawTrafficWebNet$visits_index) / sum(rawTrafficNet$visits_index)
+
+# Medium Bel
+rawTrafficWebBel = subset(rawTrafficBel, medium == "website")
+100 * sum(rawTrafficWebBel$visits_index) / sum(rawTrafficBel$visits_index)
+
+# ============================================================
+#                 Descriptive of BROAD
+# ============================================================
+
+head(broad)
+
+sort(summary(as.factor(broadNet$channel)))
+sort(summary(as.factor(broadNet$program_before)))
+sort(summary(as.factor(broadNet$program_after)))
+
+sort(summary(as.factor(broadBel$channel)))
+sort(summary(as.factor(broadBel$program_before)))
+sort(summary(as.factor(broadBel$program_after)))
+
+sort(summary(as.factor(broad$position_in_break)))
+sum(broad$position_in_break == "99")
+summary(as.factor(broadBel$position_in_break_3option))
+
+sort(summary(as.factor(broadNet$length_of_spot)))
+sort(summary(as.factor(broadBel$length_of_spot)))
+
+hist(broadNet$gross_rating_point)
+hist(broadBel$gross_rating_point)
+
+summary(broadNet$gross_rating_point)
+nrow(subset(broadNet, gross_rating_point < 1))
+summary(broadBel$gross_rating_point)
+nrow(subset(broadBel, gross_rating_point < 1))
+
+sort(summary(as.factor(broadNet$product_category)))
+sort(summary(as.factor(broadBel$product_category)))
+
+# =============================================================
+#                       PLOTTING
+# =============================================================
+
+# Bekijk nog eens de grootste 10 reclames
+broadMostViewed <- broad[order(broad$gross_rating_point, decreasing = T),]
+broadMostViewed <- subset(broadMostViewed, gross_rating_point > 1)
+broadMostViewed <- broadMostViewed[1:10,]
 
 ## Plot of traffic (visit density) an arbitrary day (2019-05-01) [Erik]
 visitorsSumDay = subset(visitorsSum, date == "2019-05-01")
@@ -187,7 +287,7 @@ for(j in 1:plots){
   timecommercial <- data.frame(timecommercial)
   timecommercial <- 60*as.numeric(timecommercial[1,"hour"]) + as.numeric(timecommercial[1,"minute"]) + 1
   
-  if(timecommercial > 1340 || timecommercial < 120){
+  if(timecommercial > 1320 || timecommercial < 120){
     next
   }
   
@@ -207,11 +307,11 @@ for(j in 1:plots){
   row.names(visitsMean) <- c(seq(from = timeStart, to = timeEinde))
   
   #xlim = c(timecommercial - 5, timecommercial + 10)
-  x = c(timecommercial - interval, timecommercial + interval - 1)
-  plot(visitsVector, type = "l", xlim = c(90,160),xaxt='n', main = "Website visits", xlab = "Time (minutes)", ylab = "Visits Ratio")
+ # x = c(timecommercial - interval, timecommercial + interval - 1)
+  plot(visitsVector, type = "l",xlim = c(80,160),xaxt='n', main = "Website visits", xlab = "Time (minutes)", ylab = "Visit Density")
   #paste( "Website visits (NL) commercial with GDP", broad[j,"gross_rating_point"]), xlab = "Time (minutes)", ylab = "Visits Ratio")
-  axis(side =1, at=c(0,  121, 126, 241), 
-       labels= c('-120', '0', '5','120'))
+  axis(side =1, at=c(80,  121, 141, 160), 
+       labels= c('1', '0', '20','120'))
   abline(v = interval + 1, col = "red")
   #abline(h = firstMean, col = "darkgrey", lty = 2)
   #abline(h = secondMean, col = "darkgrey", lty = 3)
