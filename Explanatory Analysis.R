@@ -266,7 +266,11 @@ for(j in 1:plots){
   # j = 1 #only possible if plots is equal to 1
   datecommercial <- broad[j,"date"]
   timecommercial <- broad[j,"time"]
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> e28a3c189dc7b36d6a1127d6f62038957f447778
   traffic_datesub = subset(visitorsSum,grepl(datecommercial, visitorsSum$date) == T)
   
   timecommercial = str_split_fixed(timecommercial, ":", 3)
@@ -292,7 +296,11 @@ for(j in 1:plots){
   plot(visitsVector, type = "l",xlim = c(90,150),xaxt='n', main = "Website visits", xlab = "Time (minutes)", ylab = "Visit Density")
   axis(side =1, at=c(90,121, 126), 
        labels= c('-40','0','5'))
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> e28a3c189dc7b36d6a1127d6f62038957f447778
   abline(v = interval + 1, col = "red")
   maxie = max(visitsVector[(121+1):(121+5)]) - visitsVector[121]
   maxie_per = 100*(max(visitsVector[(121+1):(121+5)]) - visitsVector[121])/visitsVector[121]
@@ -315,4 +323,8 @@ for(j in 1:plots){
   }
 }
 print(mean(rangeValues))
+<<<<<<< HEAD
 broad = broad[order(as.numeric(row.names(broad))),]
+=======
+broad = broad[order(as.numeric(row.names(broad))),]
+>>>>>>> e28a3c189dc7b36d6a1127d6f62038957f447778
