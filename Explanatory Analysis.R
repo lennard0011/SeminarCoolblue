@@ -104,11 +104,7 @@ broadMostViewed = broad[order(broad$gross_rating_point, decreasing = T), ]
 broadMostViewed = subset(broadMostViewed, gross_rating_point > 1)
 broadMostViewed = broadMostViewed[1:10, ]
 
-<<<<<<< HEAD
-# Plot of traffic (visit density) on an arbitrary day (2019-05-01)
-=======
 ## Plot of traffic (visit density) an arbitrary day (2019-05-01) 
->>>>>>> e919bf00b5faf89fd9d6a554c470b3bba60159fb
 visitorsSumDay = subset(visitorsSum, date == "2019-05-01")
 par(mfrow=c(2, 2))
 plot(visitorsSumDay$visitsWebNet, type = 'l', main = "Website-Netherlands visits on 2019-05-01",
@@ -131,15 +127,9 @@ plot(visitorsSumDay$visitsAppBel, type = 'l', main = "App-Belgium visits on 2019
 rm(visitorsSumDay); rm(broadDay)
 
 
-<<<<<<< HEAD
-# Plots of visit density over 6 months (2x2)
-par(mfrow=c(2, 2))
-# Plot Netherlands - Website
-=======
 ## Plots of visit density over 6 months (2x2) 
 par(mfrow=c(2,2))
 # plot Netherlands -- Website
->>>>>>> e919bf00b5faf89fd9d6a554c470b3bba60159fb
 plot(as.numeric(daysVisitorsSum[,2])/as.numeric(max(daysVisitorsSum[,2])), type = "l", xaxt='n',  yaxt='n', ann=F)
 for (i in 1:length(uniqueDatesNet)){
   abline(v = yday(uniqueDatesNet[i]), col = '#DCDCDC', lwd = 3) # Ads
@@ -188,12 +178,7 @@ axis(side = 1, at = c(ceiling(0 + (31 - 0)/2), ceiling(31 + (59 - 31)/2), ceilin
                    (90 + (120 - 90)/2), ceiling(120 + (151 - 120)/2), ceiling(151 + (181 - 151)/2)), 
      labels= c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'), tick = F)
 
-
-<<<<<<< HEAD
-# Barplot of total Broadcasts, per hour
-=======
 ## Barplot of total Broadcasts, per hour 
->>>>>>> e919bf00b5faf89fd9d6a554c470b3bba60159fb
 avBroadDayNet = matrix(0, 25)
 for (i in 1:24){
   totBroadDayNetSubset = subset(broadNet, (time_min >= (i - 1) * 60) & (time_min < i * 60))
@@ -257,11 +242,7 @@ for (i in 1:24){
 }
 avTrafficDayBelWebsite = avTrafficDayBelWebsite/maxHourVisitors
 
-<<<<<<< HEAD
-# Barplot of total Website traffic, per hour
-=======
 ## Barplot of total Website traffic, per hour 
->>>>>>> e919bf00b5faf89fd9d6a554c470b3bba60159fb
 value = c(avTrafficDayNetWebsite, avTrafficDayBelWebsite)
 data = data.frame(categories, hours, value)
 hourlyTraffic = ggplot(data, aes(fill = categories, y = value, x = hours)) + scale_fill_grey(start = 0.7, end = 0.4)  +  geom_bar(position="dodge", stat="identity")
@@ -274,13 +255,8 @@ print(hourlyTraffic +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"))
 
 
-<<<<<<< HEAD
-# Barplot of total App traffic, per hour
-value = c(av_traffic_day_net_app, av_traffic_day_bel_app)
-=======
 ## Barplot of total App traffic, per hour
 value = c(avTrafficDayNetApp, avTrafficDayBelApp)
->>>>>>> e919bf00b5faf89fd9d6a554c470b3bba60159fb
 data = data.frame(categories, hours, value)
 hourly_traffic = ggplot(data, aes(fill = categories, y = value, x = hours)) + scale_fill_grey(start = 0.7, end = 0.4)  +  geom_bar(position="dodge", stat="identity")
 print(hourly_traffic + 
@@ -292,19 +268,6 @@ print(hourly_traffic +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"))
 
 
-<<<<<<< HEAD
-# Plots of time before-after commercials with biggest GRP
-library(stringr)
-broad = broad[order(broad$gross_rating_point, decreasing = T), ]
-interval = 120
-plots = 1
-par(mfrow = c(1, 1))
-rangeValues = matrix(rep(0, plots))
-for(j in 1:plots){
-  j = 1
-  datecommercial = broad[j, "date"]
-  timecommercial = broad[j, "time"]
-=======
 ## Plots of time before-after commercials with biggest GRP
 ## If you want to plot a specific plot, change plots to one,
 ## and set the value for j in the for loop.
@@ -317,8 +280,7 @@ for(j in 1:plots){
   # j = 1 #only possible if plots is equal to 1
   datecommercial <- broad[j,"date"]
   timecommercial <- broad[j,"time"]
->>>>>>> e919bf00b5faf89fd9d6a554c470b3bba60159fb
-  
+
   traffic_datesub = subset(visitorsSum,grepl(datecommercial, visitorsSum$date) == T)
   
   timecommercial = str_split_fixed(timecommercial, ":", 3)
@@ -326,20 +288,6 @@ for(j in 1:plots){
   timecommercial = data.frame(timecommercial)
   timecommercial = 60 * as.numeric(timecommercial[1,"hour"]) + as.numeric(timecommercial[1, "minute"]) + 1
   
-<<<<<<< HEAD
-  if(timecommercial > 1320 || timecommercial < 120){
-    next
-  }
-  
-  timeStart = timecommercial - interval
-  timeEinde = timecommercial + interval
-  totalLength = 2*interval + 1
-  visitsVector = as.matrix(rep(0,totalLength))
-  row.names(visitsVector) = c(seq(from = timeStart, to = timeEinde))
-  
-  for(i in 1:totalLength){
-    visitsVector[i] = traffic_datesub[(timeStart + i), "visitsWebNet"]
-=======
   timeStart <- timecommercial - interval
   timeEinde <- timecommercial + interval
   totalLength <- 2*interval + 1
@@ -348,7 +296,6 @@ for(j in 1:plots){
   
   for(i in 1:totalLength){
     visitsVector[i] <- traffic_datesub[(timeStart + i - 1), "visitsWebNet"]
->>>>>>> e919bf00b5faf89fd9d6a554c470b3bba60159fb
   }
   
   visitsMean = rollmeanr(visitsVector, 10, align = 'center', fill = NA)
@@ -356,18 +303,10 @@ for(j in 1:plots){
   secondMean =  mean(visitsVector[(interval + 40): (2*interval -50)])
   row.names(visitsMean) = c(seq(from = timeStart, to = timeEinde))
   
-<<<<<<< HEAD
-  #xlim = c(timecommercial - 5, timecommercial + 10)
-  #x = c(timecommercial - interval, timecommercial + interval - 1)
-  plot(visitsVector, type = "l",xlim = c(80,160),xaxt='n', main = "Website visits", xlab = "Time (minutes)", ylab = "Visit Density")
-  #paste( "Website visits (NL) commercial with GDP", broad[j,"gross_rating_point"]), xlab = "Time (minutes)", ylab = "Visits Ratio")
-  axis(side =1, at=c(80,  121, 141, 160), 
-       labels= c('1', '0', '20','120'))
-=======
   plot(visitsVector, type = "l",xlim = c(90,150),xaxt='n', main = "Website visits", xlab = "Time (minutes)", ylab = "Visit Density")
   axis(side =1, at=c(90,121, 126), 
        labels= c('-40','0','5'))
->>>>>>> e919bf00b5faf89fd9d6a554c470b3bba60159fb
+
   abline(v = interval + 1, col = "red")
   maxie = max(visitsVector[(121+1):(121+5)]) - visitsVector[121]
   maxie_per = 100*(max(visitsVector[(121+1):(121+5)]) - visitsVector[121])/visitsVector[121]
@@ -390,10 +329,4 @@ for(j in 1:plots){
   }
 }
 print(mean(rangeValues))
-<<<<<<< HEAD
-broad = broad[order(as.numeric(row.names(broad))), ]
-
-# Plots of time before-after commercials with biggest pre-post visitors
-=======
 broad = broad[order(as.numeric(row.names(broad))),]
->>>>>>> e919bf00b5faf89fd9d6a554c470b3bba60159fb
