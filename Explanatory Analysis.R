@@ -254,20 +254,6 @@ print(hourlyTraffic +
   theme(axis.text.x = element_text(color=c("black","transparent","transparent","transparent", "transparent","transparent", "black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent", "black"))) +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"))
 
-
-## Barplot of total App traffic, per hour
-value = c(avTrafficDayNetApp, avTrafficDayBelApp)
-data = data.frame(categories, hours, value)
-hourly_traffic = ggplot(data, aes(fill = categories, y = value, x = hours)) + scale_fill_grey(start = 0.7, end = 0.4)  +  geom_bar(position="dodge", stat="identity")
-print(hourly_traffic + 
-        labs(fill = "Countries", title = "Average amount of app visitors per hour", y = "Average amount of app visitors", x = "Hour of the day")) + 
-  theme(plot.title = element_text(hjust = 0.5)) +
-  theme(axis.title.x = element_text(vjust = -0.5)) + 
-  theme(axis.ticks = element_blank()) + 
-  theme(axis.text.x = element_text(color=c("black","transparent","transparent","transparent", "transparent","transparent", "black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent","black","transparent","transparent","transparent","transparent","transparent"))) +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"))
-
-
 ## Plots of time before-after commercials with biggest GRP
 ## If you want to plot a specific plot, change plots to one,
 ## and set the value for j in the for loop.
