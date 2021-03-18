@@ -16,56 +16,56 @@ library(tensorflow)
 # Input: latent vistors
 visitNet = visitorsSum[, c("date", "time_min", "visitsWebNet")]
 broadNet = subset(broad, country == "Netherlands")
-broadNet = broadNet[broadNet$time_min < (1440 - 5) & broadNet$time_min > 5,]
+broadNet = broadNet[broadNet$time_min < (1440 - 5) & broadNet$time_min > 5, ]
 
 # Add minute_in_year to visitor data and broadcast data
-visitNet = visitNet[order(visitNet$date, visitNet$time),]
+visitNet = visitNet[order(visitNet$date, visitNet$time), ]
 dayCom = yday(visitNet$date)
 dayTime = visitNet$time_min
-visitNet$minute_in_year = ((dayCom-1)*1440)+dayTime+1
+visitNet$minute_in_year = ((dayCom - 1) * 1440) + dayTime + 1
 dayCom = yday(broadNet$date)
 dayTime = broadNet$time_min
-broadNet$minute_in_year = ((dayCom-1)*1440)+dayTime+1
+broadNet$minute_in_year = ((dayCom - 1) * 1440) + dayTime + 1
 broadNet$date = NULL
 
-# time specific feature adding
+# Time specific feature adding
 #visitNet['visitsLag1Min'] = dplyr::lag(visitNet$visitsWebNet, 1)
 #visitNet['visitsLag1Hour'] = dplyr::lag(visitNet$visitsWebNet, 60)
-visitNet['visitsLag1Week'] = dplyr::lag(visitNet$visitsWebNet, 60*24*7)
-visitNetDumm = cbind(visitNet, dummy_cols(weekdays(as.Date(visitNet$date)), remove_most_frequent_dummy = TRUE, remove_selected_columns = TRUE))
-visitNetDumm = cbind(visitNetDumm, dummy_cols(floor(visitNet$time_min / 60), remove_most_frequent_dummy = TRUE, remove_selected_columns = TRUE))
+visitNet['visitsLag1Week'] = dplyr::lag(visitNet$visitsWebNet, 60 * 24 * 7)
+visitNetDumm = cbind(visitNet, dummy_cols(weekdays(as.Date(visitNet$date)), remove_most_frequent_dummy = T, remove_selected_columns = T))
+visitNetDumm = cbind(visitNetDumm, dummy_cols(floor(visitNet$time_min / 60), remove_most_frequent_dummy = T, remove_selected_columns = T))
 
-#adding broadcast specific data
+# Adding broadcast specific data
 broadInterval = 5
-#aggregate grp and broadAmount over minute_in_year
-broadGRP = aggregate(gross_rating_point ~ minute_in_year, data = broadNet, FUN=sum, simplify = TRUE, drop = TRUE)
+# Aggregate grp and broadAmount over minute_in_year
+broadGRP = aggregate(gross_rating_point ~ minute_in_year, data = broadNet, FUN = sum, simplify = T, drop = T)
 broadAmount = as.data.frame(table(broadNet$minute_in_year))
 names(broadAmount) = cbind("minute_in_year", "broadAmount")
 
-#make channel dummies
-channeldummys = dummy_cols(broadNet$channel, remove_most_frequent_dummy = TRUE, remove_selected_columns = TRUE)
+# Make channel dummies
+channeldummys = dummy_cols(broadNet$channel, remove_most_frequent_dummy = T, remove_selected_columns = T)
 channeldummys = channeldummys[, colSums(channeldummys != 0) > 0]
-#aggregate channels on minute_in_year
-channeldummys2 = aggregate(. ~ broadNet$minute_in_year, data = channeldummys, FUN = sum, simplify = TRUE, drop = TRUE)
-#namechange of minute_in_year
+# Aggregate channels on minute_in_year
+channeldummys2 = aggregate(. ~ broadNet$minute_in_year, data = channeldummys, FUN = sum, simplify = T, drop = T)
+# Name change of minute_in_year
 channeldummys2['minute_in_year'] = channeldummys2['broadNet$minute_in_year']; channeldummys2['broadNet$minute_in_year'] = NULL 
-channeldummys3 = merge(visitNet['minute_in_year'], channeldummys2, all = TRUE)
+channeldummys3 = merge(visitNet['minute_in_year'], channeldummys2, all = T)
 channeldummys3[is.na(channeldummys3)] = 0
 channeldummys3$minute_in_year = NULL
 channeldummys4 = rollsum(channeldummys3, k = broadInterval, fill = NA, align = "right")
 channeldummys5 = cbind(visitNet['minute_in_year'], channeldummys4)
 
 
-#merge grp and broadAmount with visitNetDumm 
-visitNetDummBroad = merge(merge(broadGRP, broadAmount, all = TRUE), visitNetDumm, all = TRUE)
-#set missing grp and broadamount to zero
+# Merge grp and broadAmount with visitNetDumm 
+visitNetDummBroad = merge(merge(broadGRP, broadAmount, all = T), visitNetDumm, all = T)
+# Set missing grp and broadamount to zero
 visitNetDummBroad$broadAmount[is.na(visitNetDummBroad$broadAmount)] = 0
 visitNetDummBroad$gross_rating_point[is.na(visitNetDummBroad$gross_rating_point)] = 0
-#make 20 minute average which is right alligned
+# Make 20 minute average which is right alligned
 visitNetDummBroad$broadAmount = rollmean(visitNetDummBroad$broadAmount, k = broadInterval, fill = NA, align = "right")
 visitNetDummBroad$gross_rating_point = rollmean(visitNetDummBroad$gross_rating_point, broadInterval, fill = NA, align = "right")
 
-visitNetDummBroad = merge(visitNetDummBroad, channeldummys5, all=TRUE)
+visitNetDummBroad = merge(visitNetDummBroad, channeldummys5, all = T)
 
 visitNetDummBroad = na.omit(visitNetDummBroad)
 visitNetDummBroad['time_min'] = NULL; visitNetDummBroad['date'] = NULL
@@ -83,9 +83,9 @@ scaledvisitNetDummBroad = scale(visitNetDummBroad)
 center = attr(scaledvisitNetDummBroad, 'scaled:center')
 scale = attr(scaledvisitNetDummBroad, 'scaled:scale')
 
-visitTrain = scaledvisitNetDummBroad[visitNetDummBroad$minute_in_year <= 172800,]
-visitVal = scaledvisitNetDummBroad[visitNetDummBroad$minute_in_year > 172800 & visitNetDummBroad$minute_in_year <= 217440,]
-visitTest = scaledvisitNetDummBroad[visitNetDummBroad$minute_in_year > 217440,]
+visitTrain = scaledvisitNetDummBroad[visitNetDummBroad$minute_in_year <= 172800, ]
+visitVal = scaledvisitNetDummBroad[visitNetDummBroad$minute_in_year > 172800 & visitNetDummBroad$minute_in_year <= 217440, ]
+visitTest = scaledvisitNetDummBroad[visitNetDummBroad$minute_in_year > 217440, ]
 
 visitTrain = na.omit(visitTrain)
 visitVal = na.omit(visitVal)
@@ -94,7 +94,7 @@ visitTest = na.omit(visitTest)
 ## ===================================================================
 ##                          Make Neural Network
 ## ===================================================================
-# function to make a neural network for certain regularization parameter and input size
+# Function to make a neural network for certain regularization parameter and input size
 makeModel = function (regParam, colAmount) {
   model <- keras_model_sequential() 
   model %>%
@@ -125,7 +125,7 @@ valData = list(xVal, yVal)
 ## ===================================================================
 ##                    Find best regularization parameter
 ## ===================================================================
-#logarithmic scale for regularization interval
+# Logarithmic scale for regularization interval
 seqParam = c(0.5, 0.1, 0.05, 0.01, 0.005, 0.001, 0.0005, 0.0001)
 results = c()
 for (regParam in seqParam) {
@@ -144,7 +144,7 @@ for (regParam in seqParam) {
 }
 
 plot(seqParam, results)
-# get parameter value with lowest error
+# Get parameter value with lowest error
 optParam = seqParam[which(results == min(results))] #equals 0.1
 optParam = 0.1
 
@@ -165,18 +165,18 @@ history <- modelOpt %>% fit(
 )
 
 predNN = predict(modelOpt, xTest)
-mean((yTest - predNN)^2) #mse
-mean(abs(yTest - predNN)) #mae
-mean(abs(yTest - predNN)/yTest) #mape
+mean((yTest - predNN)^2) #MSE
+mean(abs(yTest - predNN)) #MAE
+mean(abs(yTest - predNN)/yTest) #MAPE
 # = 0.135807
 
 # Linear model to test
 linearModel = lm(visitsWebNet ~ ., data = as.data.frame(rbind(visitTrain, visitVal)))
 sm = summary(linearModel)
 predOLS = predict(linearModel, as.data.frame(visitTest))
-mean((yTest - predOLS)^2) #mse
-mean(abs(yTest - predOLS)) #mae
-mean(abs(yTest - predOLS)/yTest) #mape
+mean((yTest - predOLS)^2) #MSE
+mean(abs(yTest - predOLS)) #MAE
+mean(abs(yTest - predOLS)/yTest) #MAPE
 
 ## ===================================================================
 ##              Variable effects analysis
@@ -196,7 +196,7 @@ plot(history)
 predNNWhole = predict(modelWholeOpt, xWhole)
 hist((yWhole - predNNWhole))
 
-#Function to determine the effects of a certain variable on the amount of visitors
+# Function to determine the effects of a certain variable on the amount of visitors
 sensAn = function(model, xTrain, depVar, center, scale) {
   stepSize = 1000
   xMean = t(as.matrix(colMeans(xTrain)))
@@ -214,11 +214,11 @@ sensAn = function(model, xTrain, depVar, center, scale) {
   return(highest - lowest)
 }
 
-#Effects of GRP, broadamount and lagged visits
+# Effects of GRP, broadamount and lagged visits
 sensAn(modelWholeOpt, xWhole, "gross_rating_point", center, scale)
 sensAn(modelWholeOpt, xWhole, "broadAmount", center, scale)
 sensAn(modelWholeOpt, xWhole, "visitsLag1Week", center, scale)
-#channeleffect
+# Channel effect
 varNames = colnames(xTrain)
 channelNames = varNames[34:61]
 sensAn(modelWholeOpt, xTrain, channelNames[1], center, scale)

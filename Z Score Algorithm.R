@@ -6,54 +6,54 @@
 ###                   PRE-WORK
 ### =====================================================
 
-options(max.print=1500)
+options(max.print = 1500)
 
-# NL: Subsetting day of the biggest commercial [2019-04-30 and 21:55:00]
-broad = broad[order(broad$gross_rating_point, decreasing=T),]
+# Netherlands: Subsetting day of the biggest commercial [2019-04-30 and 21:55:00]
+broad = broad[order(broad$gross_rating_point, decreasing=T), ]
 dayCommercials = subset(broad, date == "2019-04-30")
-dayCommercials = dayCommercials[order(dayCommercials$time_min),]
+dayCommercials = dayCommercials[order(dayCommercials$time_min), ]
 dayVisits = subset(visitorsSum, date == "2019-04-30")
 dayVisitsWeb = dayVisits$visitsWebNet
 dayVisitsApp = dayVisits$visitsAppNet
 
-# NL: calculate the minute in the year of the commercial
+# Netherlands: calculate the minute in the year of the commercial
 broadNet = subset(broad, country == 'Netherlands')
-broadNet = broadNet[order(broadNet$date, broadNet$time),]
+broadNet = broadNet[order(broadNet$date, broadNet$time), ]
 broadNet['minute_in_year'] = 0
 print(paste0("Num of. Dutch commercials we consider: ", nrow(broadNet)))
 for (i in 1:nrow(broadNet)) {
   dayCom = yday(broadNet$date[i])
   dayTime = broadNet$time_min[i]
-  broadNet$minute_in_year[i] = ((dayCom-1)*1440)+dayTime+1
+  broadNet$minute_in_year[i] = ((dayCom - 1) * 1440) + dayTime + 1
 }
 
 # Basic Z Score Algorithm (function which does signalling)
-  # lag = lag of moving window (5 = use 5 last obsv)
-  # threshold = the z-score at which the algorithm signals (e.g. 3.5 stdev away)
-  # influence = the influence (between 0 and 1) of new signals on the mean and standard deviation (?)
+  # Lag: lag of moving window (5 = use 5 last obsv)
+  # Threshold = the z-score at which the algorithm signals (e.g. 3.5 stdev away)
+  # Influence = the influence (between 0 and 1) of new signals on the mean and standard deviation (?)
 ThresholdingAlgo = function(y, lag, threshold, influence) {
   signals = rep(0,length(y))
   filteredY = y[0:lag]
   avgFilter = NULL
   stdFilter = NULL
-  avgFilter[lag] = mean(y[0:lag], na.rm=TRUE)
-  stdFilter[lag] = sd(y[0:lag], na.rm=TRUE)
-  for (i in (lag+1):length(y)){
-    if (abs(y[i]-avgFilter[i-1]) > threshold*stdFilter[i-1]) {
-      if (y[i] > avgFilter[i-1]) {
+  avgFilter[lag] = mean(y[0:lag], na.rm = T)
+  stdFilter[lag] = sd(y[0:lag], na.rm = T)
+  for (i in (lag + 1):length(y)){
+    if (abs(y[i] - avgFilter[i - 1]) > threshold*stdFilter[i - 1]) {
+      if (y[i] > avgFilter[i - 1]) {
         signals[i] = 1;
       } else {
         signals[i] = -1;
       }
-      filteredY[i] = influence*y[i]+(1-influence)*filteredY[i-1]
+      filteredY[i] = influence * y[i] + (1 - influence) * filteredY[i - 1]
     } else {
       signals[i] = 0
       filteredY[i] = y[i]
     }
-    avgFilter[i] = mean(filteredY[(i-lag):i], na.rm=TRUE)
-    stdFilter[i] = sd(filteredY[(i-lag):i], na.rm=TRUE)
+    avgFilter[i] = mean(filteredY[(i - lag):i], na.rm = T)
+    stdFilter[i] = sd(filteredY[(i - lag):i], na.rm = T)
   }
-  return(list("signals"=signals,"avgFilter"=avgFilter,"stdFilter"=stdFilter))
+  return(list("signals" = signals,"avgFilter" = avgFilter,"stdFilter" = stdFilter))
 }
 
 ### ===============================================================
@@ -66,38 +66,38 @@ threshold = 6
 influence = 0.75
 
 # Choose data
-# !make sure that visitorsSum has length 260640!
-y = as.numeric(visitorsSum$visitsWebNet) # apply on concatenated data
-#y = as.numeric(dayVisits$visitsWebNet)    # only pick one day 
+# Make sure that visitorsSum has length 260640!
+y = as.numeric(visitorsSum$visitsWebNet) # Apply on concatenated data
+#y = as.numeric(dayVisits$visitsWebNet)    # Only pick one day 
 
 # Run algorithm 
 result = ThresholdingAlgo(y,lag,threshold,influence)
 
 # Plot result
-par(mfrow = c(2,1), oma = c(2,2,0,0)+0.1, mar = c(0,0,2,1)+0.2)
-#plot(1:length(y),y,type="l",xaxt='n', yaxt = 'n', ann=FALSE)
-#abline(v=broad[1,]$time_min, col = 'grey') #only for single day
-#par(new=TRUE)
-plot(1:length(y),y,type="l",xaxt='n', ylab="Visit density",xlab="Time (minutes)")
-axis(side =1, at=c(1,121,241,361,481,601,721,841,961,1081,1201,1321,1441), 
-    labels= c(0,2,4,6,8,10,12,14,16,18,20,22,24))
-lines(1:length(y),result$avgFilter,type="l",col="cyan",lwd=1.8)
-lines(1:length(y),result$avgFilter+threshold*result$stdFilter,type="l",col="green",lwd=1.7)
-lines(1:length(y),result$avgFilter-threshold*result$stdFilter,type="l",col="green",lwd=1.7)
+par(mfrow = c(2, 1), oma = c(2, 2, 0, 0) + 0.1, mar = c(0, 0, 2, 1) + 0.2)
+plot(1:length(y), y, type = "l", xaxt = 'n', ylab = "Visit density", xlab = "Time (minutes)")
+#plot(1:length(y), y, type = "l", xaxt = 'n', yaxt = 'n', ann = F)
+#abline(v = broad[1, ]$time_min, col = 'grey') # Only for single day
+#par(new = T)
+axis(side = 1, at = c(1, 121, 241, 361, 481, 601, 721, 841, 961, 1081, 1201, 1321, 1441), 
+    labels = c(0, 2, 4, 6, 8, 10 , 12, 14, 16, 18, 20, 22, 24))
+lines(1:length(y), result$avgFilter, type = "l", col = "cyan", lwd = 1.8)
+lines(1:length(y), result$avgFilter + threshold * result$stdFilter, type = "l", col = "green", lwd = 1.7)
+lines(1:length(y), result$avgFilter - threshold * result$stdFilter, type = "l", col = "green", lwd = 1.7)
 
-plot(result$signals,type="S",col="red",ylab="",xlab="",ylim=c(-1.5,1.5),lwd=2, xaxt='n', yaxt='n')
-axis(side =1, at=c(1,121,241,361,481,601,721,841,961,1081,1201,1321,1441), 
-     labels= c(0,2,4,6,8,10,12,14,16,18,20,22,24))
-axis(side=2, at = c(-1,0,1), labels = c(-1,0,1))
+plot(result$signals, type = "S", col = "red", ylab = "", xlab = "", ylim = c(-1.5, 1.5),lwd = 2, xaxt = 'n', yaxt = 'n')
+axis(side = 1, at = c(1, 121, 241, 361, 481, 601, 721, 841, 961, 1081, 1201, 1321, 1441), 
+     labels= c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24))
+axis(side = 2, at = c(-1, 0, 1), labels = c(-1, 0, 1))
 
-sum(result$signals==1)
+sum(result$signals == 1)
 
 ### ===============================================================
-###             ANALYISE THE RESULTS NL (181 days)
+###             ANALYSE THE RESULTS NL (181 days)
 ### ===============================================================
 
 # Create indicator for commercials on the large line
-commercialIndicator = matrix(0, nrow = 1440*181)
+commercialIndicator = matrix(0, nrow = 1440 * 181)
 for (i in 1:nrow(broadNet)) {
   minuteInYear = broadNet$minute_in_year[i]
   if ( commercialIndicator[minuteInYear] > 0) {
@@ -109,7 +109,7 @@ for (i in 1:nrow(broadNet)) {
 sum(commercialIndicator)
 
 # Find for which positive spikes there was a commercial before
-posSpikes = which(result$signals==1) # gives TRUE indices
+posSpikes = which(result$signals == 1) # Gives TRUE indices
 length(posSpikes)
 for (i in 1:length(posSpikes)) {
   if ((posSpikes[i] %% 1440) == 1) {
@@ -119,26 +119,26 @@ for (i in 1:length(posSpikes)) {
 posSpikes = subset(posSpikes, !is.na(posSpikes))
 length(posSpikes)
 broadNet['usefulWeb'] = 0
-for (i in posSpikes) { # TODO make more efficient
+for (i in posSpikes) {
   checker = 0
-  if (commercialIndicator[i-1] > 0) {
-    ind = match(i-1, broadNet$minute_in_year)
+  if (commercialIndicator[i - 1] > 0) {
+    ind = match(i - 1, broadNet$minute_in_year)
     broadNet$usefulWeb[ind] = 1
   } 
-  if (commercialIndicator[i-2] > 0) {
-    ind = match(i-2, broadNet$minute_in_year)
+  if (commercialIndicator[i - 2] > 0) {
+    ind = match(i - 2, broadNet$minute_in_year)
     broadNet$usefulWeb[ind] = 1
   }
-  if (commercialIndicator[i-3] > 0) {
-    ind = match(i-3, broadNet$minute_in_year)
+  if (commercialIndicator[i - 3] > 0) {
+    ind = match(i - 3, broadNet$minute_in_year)
     broadNet$usefulWeb[ind] = 1
   }
-  if (commercialIndicator[i-4] > 0) {
-    ind = match(i-4, broadNet$minute_in_year)
+  if (commercialIndicator[i - 4] > 0) {
+    ind = match(i - 4, broadNet$minute_in_year)
     broadNet$usefulWeb[ind] = 1
   }
-  if (commercialIndicator[i-5] > 0) {
-    ind = match(i-5, broadNet$minute_in_year)
+  if (commercialIndicator[i - 5] > 0) {
+    ind = match(i - 5, broadNet$minute_in_year)
     broadNet$usefulWeb[ind] = 1
   }
 }
@@ -146,30 +146,30 @@ for (i in posSpikes) { # TODO make more efficient
 # Calculate number of false spikes (before double commercial correction)
 numFalseSpikes = length(posSpikes) - sum(broadNet$usefulWeb)
 
-print(paste0("Number of explained peaks web: ", sum(broadNet$usefulWeb)))
+print(paste0("Number of explained peaks website: ", sum(broadNet$usefulWeb)))
 # Correct for double commercials on the same minute
 for (i in 1:(nrow(broadNet)-1)) {
-  # if commercial is useful and the next commercial has the same minute_in_year
-  if (broadNet$usefulWeb[i] == 1 && broadNet$minute_in_year[i] == broadNet$minute_in_year[i+1]) {
-    broadNet$usefulWeb[i+1] = 1
+  # If commercial is useful and the next commercial has the same minute_in_year
+  if (broadNet$usefulWeb[i] == 1 && broadNet$minute_in_year[i] == broadNet$minute_in_year[i + 1]) {
+    broadNet$usefulWeb[i + 1] = 1
   }
 }
 
 # Print results
-print(paste0("Nr. of positive spikes web: ", length(posSpikes), " (", 
-             format((100*length(posSpikes)/(1440*181)), digits=2), "%)"))
-print(paste0("Nr. of negative spikes web: ", sum(result$signals==-1), " (", 
-             format((100*sum(result$signals==-1)/(1440*181)), digits=2), "%)"))
-print(paste0("Num. of useful commercials web: ", sum(broadNet$usefulWeb), " / ", 
-             nrow(broadNet), " (", format((sum(broadNet$usefulWeb)/nrow(broadNet))*100, digits=2), "%)"))
-print(paste0("Num of false spikes web: ", numFalseSpikes, " / ", length(posSpikes), 
-             " (", format((numFalseSpikes/length(posSpikes))*100, digits=3), "%)"))
+print(paste0("Nr. of positive spikes website: ", length(posSpikes), " (", 
+             format((100 * length(posSpikes)/(1440 * 181)), digits = 2), "%)"))
+print(paste0("Nr. of negative spikes website: ", sum(result$signals == -1), " (", 
+             format((100 * sum(result$signals == - 1)/(1440 * 181)), digits = 2), "%)"))
+print(paste0("Nr. of useful commercials website: ", sum(broadNet$usefulWeb), " / ", 
+             nrow(broadNet), " (", format((sum(broadNet$usefulWeb)/nrow(broadNet)) * 100, digits = 2 ), "%)"))
+print(paste0("Nr. of false spikes website: ", numFalseSpikes, " / ", length(posSpikes), 
+             " (", format((numFalseSpikes/length(posSpikes)) * 100, digits = 3), "%)"))
 
 # Only look at commercials in commercial period
-posSpikesInCampaignPeriod <- as.double(ceiling(posSpikes/1440))
-uniqueDatesNetDay <- as.double(sort(yday(uniqueDatesNet)))
-setDifference <- posSpikesInCampaignPeriod[!posSpikesInCampaignPeriod %in% uniqueDatesNetDay]
-print(paste0("Num. of peaks in commercial period: ", (length(posSpikes)-length(setDifference))))
+posSpikesInCampaignPeriod = as.double(ceiling(posSpikes/1440))
+uniqueDatesNetDay = as.double(sort(yday(uniqueDatesNet)))
+setDifference = posSpikesInCampaignPeriod[!posSpikesInCampaignPeriod %in% uniqueDatesNetDay]
+print(paste0("Nr. of peaks in commercial period: ", (length(posSpikes)-length(setDifference))))
 rm(posSpikesInCampaignPeriod); rm(uniqueDatesNetDay)
 
 ### ===============================================================
@@ -177,13 +177,13 @@ rm(posSpikesInCampaignPeriod); rm(uniqueDatesNetDay)
 ### ===============================================================
 
 # Choose data
-yApp = as.numeric(visitorsSum$visitsAppNet) # apply on concatenated data
+yApp = as.numeric(visitorsSum$visitsAppNet) # Apply on concatenated data
 
 # Run algorithm 
-resultApp = ThresholdingAlgo(yApp,lag,threshold,influence)
+resultApp = ThresholdingAlgo(yApp, lag, threshold, influence)
 
 # Create indicator for commercials on the large line
-commercialIndicatorApp = matrix(0, nrow = 1440*181)
+commercialIndicatorApp = matrix(0, nrow = 1440 * 181)
 for (i in 1:nrow(broadNet)) {
   minuteInYear = broadNet$minute_in_year[i]
   if (commercialIndicatorApp[minuteInYear] > 0) {
@@ -195,7 +195,7 @@ for (i in 1:nrow(broadNet)) {
 sum(commercialIndicatorApp)
 
 # Find for which positive spikes there was a commercial before
-posSpikesApp = which(resultApp$signals==1) # gives TRUE indices
+posSpikesApp = which(resultApp$signals == 1) # gives TRUE indices
 length(posSpikesApp)
 for (i in 1:length(posSpikesApp)) {
   if ((posSpikesApp[i] %% 1440) == 1) {
@@ -206,25 +206,25 @@ posSpikesApp = subset(posSpikesApp, !is.na(posSpikesApp))
 length(posSpikesApp)
 broadNet['usefulApp'] = 0
 numFalseSpikesApp = 0
-for (i in posSpikesApp) { # TODO make more efficient
+for (i in posSpikesApp) { 
   checker = 0
-  if (commercialIndicatorApp[i-1] > 0) {
-    ind = match(i-1, broadNet$minute_in_year)
+  if (commercialIndicatorApp[i - 1] > 0) {
+    ind = match(i - 1, broadNet$minute_in_year)
     broadNet$usefulApp[ind] = 1
   } 
-  if (commercialIndicatorApp[i-2] > 0) {
-    ind = match(i-2, broadNet$minute_in_year)
+  if (commercialIndicatorApp[i - 2] > 0) {
+    ind = match(i - 2, broadNet$minute_in_year)
     broadNet$usefulApp[ind] = 1
   }
-  if (commercialIndicatorApp[i-3] > 0) {
-    ind = match(i-3, broadNet$minute_in_year)
+  if (commercialIndicatorApp[i - 3] > 0) {
+    ind = match(i - 3, broadNet$minute_in_year)
     broadNet$usefulApp[ind] = 1
   }
-  if (commercialIndicatorApp[i-4] > 0) {
-    ind = match(i-4, broadNet$minute_in_year)
+  if (commercialIndicatorApp[i - 4] > 0) {
+    ind = match(i - 4, broadNet$minute_in_year)
     broadNet$usefulApp[ind] = 1
   }
-  if (commercialIndicatorApp[i-5] > 0) {
+  if (commercialIndicatorApp[i - 5] > 0) {
     ind = match(i, broadNet$minute_in_year)
     broadNet$usefulApp[ind] = 1
   }
@@ -236,10 +236,10 @@ numFalseSpikesApp = length(posSpikesApp) - sum(broadNet$usefulApp)
 
 print(paste0("Number of explained peaks app: ", sum(broadNet$usefulApp)))
 # Correct for double commercials on the same minute
-for (i in 1:(nrow(broadNet)-1)) {
-  # if commercial is useful and the next commercial has the same minute_in_year
-  if (broadNet$usefulApp[i] == 1 && broadNet$minute_in_year[i] == broadNet$minute_in_year[i+1]) {
-    broadNet$usefulApp[i+1] = 1
+for (i in 1:(nrow(broadNet) - 1)) {
+  # If commercial is useful and the next commercial has the same minute_in_year
+  if (broadNet$usefulApp[i] == 1 && broadNet$minute_in_year[i] == broadNet$minute_in_year[i + 1]) {
+    broadNet$usefulApp[i + 1] = 1
   }
 }
 
@@ -253,23 +253,23 @@ for (i in 1:nrow(broadNet)) {
 
 # Print results
 print(paste0("Nr. of positive spikes app: ", length(posSpikesApp), " (", 
-             format((100*length(posSpikesApp)/(1440*181)), digits=2), "%)"))
-print(paste0("Nr. of negative spikes app: ", sum(resultApp$signals==-1), " (", 
-             format((100*sum(resultApp$signals==-1)/(1440*181)), digits=2), "%)"))
+             format((100*length(posSpikesApp)/(1440 * 181)), digits = 2), "%)"))
+print(paste0("Nr. of negative spikes app: ", sum(resultApp$signals == -1), " (", 
+             format((100*sum(resultApp$signals == -1)/(1440 * 181)), digits = 2), "%)"))
 print(paste0("Num. of useful commercials app: ", sum(broadNet$usefulApp), " / ", 
-             nrow(broadNet), " (", format((sum(broadNet$usefulApp)/nrow(broadNet))*100, digits=2), "%)"))
+             nrow(broadNet), " (", format((sum(broadNet$usefulApp)/nrow(broadNet)) * 100, digits = 2), "%)"))
 print(paste0("Num of false spikes app: ", numFalseSpikesApp, " / ", length(posSpikesApp), 
-             " (", format((numFalseSpikesApp/length(posSpikesApp))*100, digits=3), "%)"))
-usefulCommercials = subset(broadNet, usefulWeb==1)
+             " (", format((numFalseSpikesApp/length(posSpikesApp)) * 100, digits = 3), "%)"))
+usefulCommercials = subset(broadNet, usefulWeb == 1)
 print(paste0("Num commercials useful web AND app: ", numUsefulWebAndApp, " / ", nrow(usefulCommercials), 
-             " (", format((numUsefulWebAndApp/nrow(usefulCommercials))*100, digits=3), "%)"))
+             " (", format((numUsefulWebAndApp/nrow(usefulCommercials)) * 100, digits = 3), "%)"))
 
 ## ================================================
 ##      Analyse best performing commercials
 ## ================================================
 
 # Subset on useful WEB commercials
-usefulCommercials = subset(broadNet, usefulWeb==1)
+usefulCommercials = subset(broadNet, usefulWeb == 1)
 #summary(usefulCommercials)
 sort(summary(as.factor(usefulCommercials$channel)))
 sort(summary(as.factor(usefulCommercials$position_in_break_3option)))
@@ -277,34 +277,34 @@ sort(summary(as.factor(usefulCommercials$length_of_spot)))
 sort(summary(usefulCommercials$gross_rating_point))
 summary(broadNet$gross_rating_point)
 sd(broadNet$gross_rating_point)
-quantile(broadNet$gross_rating_point, probs=seq(0,1,0.01))
+quantile(broadNet$gross_rating_point, probs = seq(0, 1, 0.01))
 sort(summary(as.factor(usefulCommercials$weekdays)))
 summary(usefulCommercials$hours)
 
 # Calculate the biggest relative increase after broadcast time
-# max i+1, i+2, i+3, i+4, i+5
+# Max i + 1, i+2, i+3, i+4, i+5
 usefulCommercials['relativePeak'] = 0
 usefulCommercials['timeTilPeak'] = 0
 for (i in 1:nrow(usefulCommercials)) {
   comTime = usefulCommercials$minute_in_year[i]
   comTraf = visitorsSum$visitsWebNet[comTime]
-  afterTraf = matrix(0.0, ncol=5)
+  afterTraf = matrix(0.0, ncol = 5)
   for (j in 1:5) {
-    afterTraf[j] = visitorsSum$visitsWebNet[comTime+j]
+    afterTraf[j] = visitorsSum$visitsWebNet[comTime + j]
   }
   usefulCommercials$relativePeak[i] = max(afterTraf) - comTraf
   usefulCommercials$timeTilPeak[i] = match(max(afterTraf), afterTraf)
 }
-usefulCommercials = usefulCommercials[order(usefulCommercials$relativePeak, decreasing=T),]
-row.names(usefulCommercials) = NULL # resets rownrs
+usefulCommercials = usefulCommercials[order(usefulCommercials$relativePeak, decreasing=T), ]
+row.names(usefulCommercials) = NULL # Resets row numbers
 sum(usefulCommercials$timeTilPeak == 1)
 
 usefulCommercials = cbind(usefulCommercials, 1:nrow(usefulCommercials))
 
 # Commercials with no peak
 nonUsefulCommercials = setdiff(broadNet, usefulCommercials[-c( (ncol(broadNet)+1):ncol(usefulCommercials) )])
-nonUsefulCommercials = nonUsefulCommercials[order(nonUsefulCommercials$gross_rating_point, decreasing=T),]
-row.names(nonUsefulCommercials) = NULL # resets rownrs
+nonUsefulCommercials = nonUsefulCommercials[order(nonUsefulCommercials$gross_rating_point, decreasing=T), ]
+row.names(nonUsefulCommercials) = NULL # Resets row numbers
 
 # Again, calculate the biggest relative increase after broadcast time
 # now for the non-peaking commercials
@@ -313,23 +313,23 @@ nonUsefulCommercials['timeTilPeak'] = 0
 for (i in 1:nrow(nonUsefulCommercials)) {
   comTime = nonUsefulCommercials$minute_in_year[i]
   comTraf = visitorsSum$visitsWebNet[comTime]
-  afterTraf = matrix(0.0, ncol=5)
+  afterTraf = matrix(0.0, ncol = 5)
   for (j in 1:5) {
-    afterTraf[j] = visitorsSum$visitsWebNet[comTime+j]
+    afterTraf[j] = visitorsSum$visitsWebNet[comTime + j]
   }
   nonUsefulCommercials$relativePeak[i] = max(afterTraf) - comTraf
   nonUsefulCommercials$timeTilPeak[i] = match(max(afterTraf), afterTraf)
 }
-#nonUsefulCommercials = nonUsefulCommercials[order(nonUsefulCommercials$relativePeak, decreasing=T),]
+#nonUsefulCommercials = nonUsefulCommercials[order(nonUsefulCommercials$relativePeak, decreasing=T), ]
 #row.names(nonUsefulCommercials) = NULL # resets rownrs
 #sum(nonUsefulCommercials$timeTilPeak == 1)
 #nonUsefulCommercials = cbind(nonUsefulCommercials, 1:nrow(nonUsefulCommercials))
 
 # 50 commercials with higest GRP, but no peak
-nonUsefulCommercials50 <- subset(nonUsefulCommercials, nonUsefulCommercials$time_min < 1435)
-nonUsefulCommercials50 <- subset(nonUsefulCommercials50, nonUsefulCommercials50$time_min > 60)
-nonUsefulCommercials50 <- nonUsefulCommercials50[1:50,]
-row.names(nonUsefulCommercials50) = NULL # resets rownrs
+nonUsefulCommercials50 = subset(nonUsefulCommercials, nonUsefulCommercials$time_min < 1435)
+nonUsefulCommercials50 = subset(nonUsefulCommercials50, nonUsefulCommercials50$time_min > 60)
+nonUsefulCommercials50 = nonUsefulCommercials50[1:50, ]
+row.names(nonUsefulCommercials50) = NULL # Resets row numbers
 sort(summary(as.factor(nonUsefulCommercials50$channel)))
 sort(summary(as.factor(nonUsefulCommercials50$position_in_break_3option)))
 sort(summary(as.factor(nonUsefulCommercials50$length_of_spot)))
@@ -348,42 +348,42 @@ summary(nonUsefulCommercials50$hours)
 
 # calculate the minute in the year of the commercial
 broadBel = subset(broad, country == 'Belgium')
-broadBel = broadBel[order(broadBel$date, broadBel$time),]
+broadBel = broadBel[order(broadBel$date, broadBel$time), ]
 broadBel['minute_in_year'] = 0
 print(paste0("Num of. Belgian commercials we consider: ", nrow(broadBel)))
 for (i in 1:nrow(broadBel)) {
   dayCom = yday(broadBel$date[i])
   dayTime = broadBel$time_min[i]
-  broadBel$minute_in_year[i] = floor(((dayCom-1)*1440)+dayTime+1) # round down
+  broadBel$minute_in_year[i] = floor(((dayCom - 1) * 1440) + dayTime + 1) # Round down
 }
 
 # Basic Z Score Algorithm (function which does signalling)
-# lag = lag of moving window (5 = use 5 last obsv)
-# threshold = the z-score at which the algorithm signals (e.g. 3.5 stdev away)
-# influence = the influence (between 0 and 1) of new signals on the mean and standard deviation (?)
+# Lag: lag of moving window (5 = use 5 last obsv)
+# Threshold = the z-score at which the algorithm signals (e.g. 3.5 stdev away)
+# Influence = the influence (between 0 and 1) of new signals on the mean and standard deviation (?)
 ThresholdingAlgo = function(y, lag, threshold, influence) {
   signals = rep(0,length(y))
   filteredY = y[0:lag]
   avgFilter = NULL
   stdFilter = NULL
-  avgFilter[lag] = mean(y[0:lag], na.rm=TRUE)
-  stdFilter[lag] = sd(y[0:lag], na.rm=TRUE)
+  avgFilter[lag] = mean(y[0:lag], na.rm = T)
+  stdFilter[lag] = sd(y[0:lag], na.rm = T)
   for (i in (lag+1):length(y)){
-    if (abs(y[i]-avgFilter[i-1]) > threshold*stdFilter[i-1]) {
-      if (y[i] > avgFilter[i-1]) {
+    if (abs(y[i] - avgFilter[i - 1]) > threshold*stdFilter[i - 1]) {
+      if (y[i] > avgFilter[i - 1]) {
         signals[i] = 1;
       } else {
         signals[i] = -1;
       }
-      filteredY[i] = influence*y[i]+(1-influence)*filteredY[i-1]
+      filteredY[i] = influence*y[i]+(1-influence)*filteredY[i - 1]
     } else {
       signals[i] = 0
       filteredY[i] = y[i]
     }
-    avgFilter[i] = mean(filteredY[(i-lag):i], na.rm=TRUE)
-    stdFilter[i] = sd(filteredY[(i-lag):i], na.rm=TRUE)
+    avgFilter[i] = mean(filteredY[(i - lag):i], na.rm=T)
+    stdFilter[i] = sd(filteredY[(i - lag):i], na.rm=T)
   }
-  return(list("signals"=signals,"avgFilter"=avgFilter,"stdFilter"=stdFilter))
+  return(list("signals" = signals, "avgFilter" = avgFilter, "stdFilter" = stdFilter))
 }
 
 ### ===============================================================
@@ -396,31 +396,31 @@ threshold = 4
 influence = 0.75
 
 # Choose data
-# !make sure that visitorsSum has length 260640!
+# Make sure that visitorsSum has length 260640!
 y = as.numeric(visitorsSum$visitsWebBel) # apply on concatenated data
 
 # Run algorithm 
-resultBel = ThresholdingAlgo(y,lag,threshold,influence)
+resultBel = ThresholdingAlgo(y, lag,threshold, influence)
 #resultReversed = ThresholdingAlgoReversed(y,lag,threshold,influence)
 
 # Plot result
-par(mfrow = c(2,1),oma = c(2,2,0,0)+0.1, mar = c(0,0,2,1)+0.2)
-#plot(1:length(y),y,type="l",xaxt='n', yaxt = 'n', ann=FALSE)
-#abline(v=broad[1,]$time_min, col = 'grey') #only for single day
-#par(new=TRUE)
-plot(1:length(y),y,type="l",ylab="Visit density",xlab="Time (minutes)")
-lines(1:length(y),resultBel$avgFilter,type="l",col="cyan",lwd=1.5)
-lines(1:length(y),resultBel$avgFilter+threshold*result$stdFilter,type="l",col="green",lwd=1.8)
-lines(1:length(y),resultBel$avgFilter-threshold*result$stdFilter,type="l",col="green",lwd=1.8)
-plot(resultBel$signals,type="S",col="red",ylab="",xlab="",ylim=c(-1.5,1.5),lwd=2)
-sum(resultBel$signals==1)
+par(mfrow = c(2, 1), oma = c(2, 2, 0, 0) + 0.1, mar = c(0, 0, 2, 1) + 0.2)
+#plot(1:length(y), y, type = "l", xaxt = 'n', yaxt = 'n', ann = F)
+#abline(v = broad[1, ]$time_min, col = 'grey') # Only for single day
+#par(new = T)
+plot(1:length(y), y, type = "l", ylab = "Visit density", xlab = "Time (minutes)")
+lines(1:length(y), resultBel$avgFilter,type = "l",col = "cyan", lwd = 1.5)
+lines(1:length(y), resultBel$avgFilter + threshold * result$stdFilter, type = "l", col = "green", lwd = 1.8)
+lines(1:length(y), resultBel$avgFilter - threshold * result$stdFilter, type = "l", col = "green", lwd = 1.8)
+plot(resultBel$signals, type = "S", col = "red", ylab = "", xlab = "", ylim = c(-1.5, 1.5), lwd = 2)
+sum(resultBel$signals == 1)
 
 ### ===============================================================
-###             ANALYISE THE RESULTS BEL (181 days)
+###             ANALYSE THE RESULTS BEL (181 days)
 ### ===============================================================
 
 # Create indicator for commercials on the large line
-commercialIndicatorBel = matrix(0, nrow = 1440*181)
+commercialIndicatorBel = matrix(0, nrow = 1440 * 181)
 for (i in 1:nrow(broadBel)) {
   minuteInYear = broadBel$minute_in_year[i]
   if ( commercialIndicatorBel[minuteInYear] > 0) {
@@ -432,7 +432,7 @@ for (i in 1:nrow(broadBel)) {
 sum(commercialIndicatorBel)
 
 # Find for which positive spikes there was a commercial before
-posSpikesBel = which(resultBel$signals==1) # gives TRUE indices
+posSpikesBel = which(resultBel$signals==1) # Gives T indices
 length(posSpikesBel)
 for (i in 1:length(posSpikesBel)) {
   if ((posSpikesBel[i] %% 1440) == 1) {
@@ -442,26 +442,26 @@ for (i in 1:length(posSpikesBel)) {
 posSpikesBel = subset(posSpikesBel, !is.na(posSpikesBel))
 length(posSpikesBel)
 broadBel['usefulWeb'] = 0
-for (i in posSpikesBel) { # TODO make more efficient
+for (i in posSpikesBel) {
   checker = 0
-  if (commercialIndicatorBel[i-1] > 0) {
-    ind = match(i-1, broadBel$minute_in_year)
+  if (commercialIndicatorBel[i - 1] > 0) {
+    ind = match(i - 1, broadBel$minute_in_year)
     broadBel$usefulWeb[ind] = 1
   } 
-  if (commercialIndicatorBel[i-2] > 0) {
-    ind = match(i-2, broadBel$minute_in_year)
+  if (commercialIndicatorBel[i - 2] > 0) {
+    ind = match(i - 2, broadBel$minute_in_year)
     broadBel$usefulWeb[ind] = 1
   }
-  if (commercialIndicatorBel[i-3] > 0) {
-    ind = match(i-3, broadBel$minute_in_year)
+  if (commercialIndicatorBel[i - 3] > 0) {
+    ind = match(i - 3, broadBel$minute_in_year)
     broadBel$usefulWeb[ind] = 1
   }
-  if (commercialIndicatorBel[i-4] > 0) {
-    ind = match(i-4, broadBel$minute_in_year)
+  if (commercialIndicatorBel[i - 4] > 0) {
+    ind = match(i - 4, broadBel$minute_in_year)
     broadBel$usefulWeb[ind] = 1
   }
-  if (commercialIndicatorBel[i-5] > 0) {
-    ind = match(i-5, broadBel$minute_in_year)
+  if (commercialIndicatorBel[i - 5] > 0) {
+    ind = match(i - 5, broadBel$minute_in_year)
     broadBel$usefulWeb[ind] = 1
   }
 }
@@ -472,26 +472,26 @@ numFalseSpikesBel = length(posSpikesBel) - sum(broadBel$usefulWeb)
 print(paste0("Number of explained peaks web: ", sum(broadBel$usefulWeb)))
 # Correct for double commercials on the same minute
 for (i in 1:(nrow(broadBel)-1)) {
-  # if commercial is useful and the next commercial has the same minute_in_year
-  if (broadBel$usefulWeb[i] == 1 && broadBel$minute_in_year[i] == broadBel$minute_in_year[i+1]) {
-    broadBel$usefulWeb[i+1] = 1
+  # If commercial is useful and the next commercial has the same minute_in_year
+  if (broadBel$usefulWeb[i] == 1 && broadBel$minute_in_year[i] == broadBel$minute_in_year[i + 1]) {
+    broadBel$usefulWeb[i + 1] = 1
   }
 }
 
 # Print results
 print(paste0("Nr. of positive spikes web: ", length(posSpikesBel), " (", 
-             format((100*length(posSpikesBel)/(1440*181)), digits=2), "%)"))
-print(paste0("Nr. of negative spikes web: ", sum(resultBel$signals==-1), " (", 
-             format((100*sum(resultBel$signals==-1)/(1440*181)), digits=2), "%)"))
+             format((100*length(posSpikesBel)/(1440 * 181)), digits = 2), "%)"))
+print(paste0("Nr. of negative spikes web: ", sum(resultBel$signals == -1), " (", 
+             format((100*sum(resultBel$signals == -1)/(1440 * 181)), digits = 2), "%)"))
 print(paste0("Num. of useful commercials web: ", sum(broadBel$usefulWeb), " / ", 
-             nrow(broadBel), " (", format((sum(broadBel$usefulWeb)/nrow(broadBel))*100, digits=2), "%)"))
+             nrow(broadBel), " (", format((sum(broadBel$usefulWeb)/nrow(broadBel)) * 100, digits = 2), "%)"))
 print(paste0("Num of false spikes web: ", numFalseSpikesBel, " / ", length(posSpikesBel), 
-             " (", format((numFalseSpikesBel/length(posSpikesBel))*100, digits=3), "%)"))
+             " (", format((numFalseSpikesBel/length(posSpikesBel)) * 100, digits = 3), "%)"))
 
 # Only look at commercials in commercial period
-posSpikesInCampaignPeriod <- as.double(ceiling(posSpikesBel/1440))
-uniqueDatesBelDay <- as.double(sort(yday(uniqueDatesBel)))
-setDifference <- posSpikesInCampaignPeriod[!posSpikesInCampaignPeriod %in% uniqueDatesBelDay]
+posSpikesInCampaignPeriod = as.double(ceiling(posSpikesBel/1440))
+uniqueDatesBelDay = as.double(sort(yday(uniqueDatesBel)))
+setDifference = posSpikesInCampaignPeriod[!posSpikesInCampaignPeriod %in% uniqueDatesBelDay]
 print(paste0("Num. of peaks in commercial period: ", (length(posSpikesBel)-length(setDifference))))
 rm(posSpikesInCampaignPeriod); rm(uniqueDatesBelDay)
 
@@ -501,13 +501,13 @@ rm(posSpikesInCampaignPeriod); rm(uniqueDatesBelDay)
 ### ===============================================================
 
 # Choose data
-yAppBel = as.numeric(visitorsSum$visitsAppBel) # apply on concatenated data
+yAppBel = as.numeric(visitorsSum$visitsAppBel) # Apply on concatenated data
 
 # Run algorithm 
-resultAppBel = ThresholdingAlgo(yAppBel,lag,threshold,influence)
+resultAppBel = ThresholdingAlgo(yAppBel, lag, threshold, influence)
 
 # Create indicator for commercials on the large line
-commercialIndicatorAppBel = matrix(0, nrow = 1440*181)
+commercialIndicatorAppBel = matrix(0, nrow = 1440 * 181)
 for (i in 1:nrow(broadBel)) {
   minuteInYear = broadBel$minute_in_year[i]
   if (commercialIndicatorAppBel[minuteInYear] > 0) {
@@ -519,7 +519,7 @@ for (i in 1:nrow(broadBel)) {
 sum(commercialIndicatorAppBel)
 
 # Find for which positive spikes there was a commercial before
-posSpikesAppBel = which(resultAppBel$signals==1) # gives TRUE indices
+posSpikesAppBel = which(resultAppBel$signals == 1) # Gives T indices
 length(posSpikesAppBel)
 for (i in 1:length(posSpikesAppBel)) {
   if ((posSpikesAppBel[i] %% 1440) == 1) {
@@ -530,25 +530,25 @@ posSpikesAppBel = subset(posSpikesAppBel, !is.na(posSpikesAppBel))
 length(posSpikesAppBel)
 broadBel['usefulApp'] = 0
 numFalseSpikesAppBel = 0
-for (i in posSpikesAppBel) { # TODO make more efficient
+for (i in posSpikesAppBel) {
   checker = 0
-  if (commercialIndicatorAppBel[i-1] > 0) {
-    ind = match(i-1, broadBel$minute_in_year)
+  if (commercialIndicatorAppBel[i - 1] > 0) {
+    ind = match(i - 1, broadBel$minute_in_year)
     broadBel$usefulApp[ind] = 1
   } 
-  if (commercialIndicatorAppBel[i-2] > 0) {
-    ind = match(i-2, broadBel$minute_in_year)
+  if (commercialIndicatorAppBel[i - 2] > 0) {
+    ind = match(i - 2, broadBel$minute_in_year)
     broadBel$usefulApp[ind] = 1
   }
-  if (commercialIndicatorAppBel[i-3] > 0) {
-    ind = match(i-3, broadBel$minute_in_year)
+  if (commercialIndicatorAppBel[i - 3] > 0) {
+    ind = match(i - 3, broadBel$minute_in_year)
     broadBel$usefulApp[ind] = 1
   }
-  if (commercialIndicatorAppBel[i-4] > 0) {
-    ind = match(i-4, broadBel$minute_in_year)
+  if (commercialIndicatorAppBel[i - 4] > 0) {
+    ind = match(i - 4, broadBel$minute_in_year)
     broadBel$usefulApp[ind] = 1
   }
-  if (commercialIndicatorAppBel[i-5] > 0) {
+  if (commercialIndicatorAppBel[i - 5] > 0) {
     ind = match(i, broadBel$minute_in_year)
     broadBel$usefulApp[ind] = 1
   }
@@ -558,10 +558,10 @@ for (i in posSpikesAppBel) { # TODO make more efficient
 numFalseSpikesAppBel = length(posSpikesAppBel) - sum(broadBel$usefulApp)
 
 # Correct for double commercials on the same minute
-for (i in 1:(nrow(broadBel)-1)) {
-  # if commercial is useful and the next commercial has the same minute_in_year
-  if (broadBel$usefulApp[i] == 1 && broadBel$minute_in_year[i] == broadBel$minute_in_year[i+1]) {
-    broadBel$usefulApp[i+1] = 1
+for (i in 1:(nrow(broadBel) - 1)) {
+  # If commercial is useful and the next commercial has the same minute_in_year
+  if (broadBel$usefulApp[i] == 1 && broadBel$minute_in_year[i] == broadBel$minute_in_year[i + 1]) {
+    broadBel$usefulApp[i + 1] = 1
   }
 }
 
@@ -575,22 +575,22 @@ for (i in 1:nrow(broadBel)) {
 
 # Print results
 print(paste0("Nr. of positive spikes app Bel: ", length(posSpikesAppBel), " (", 
-             format((100*length(posSpikesAppBel)/(1440*181)), digits=2), "%)"))
-print(paste0("Nr. of negative spikes app Bel: ", sum(resultAppBel$signals==-1), " (", 
-             format((100*sum(resultAppBel$signals==-1)/(1440*181)), digits=2), "%)"))
+             format((100*length(posSpikesAppBel)/(1440 * 181)), digits = 2), "%)"))
+print(paste0("Nr. of negative spikes app Bel: ", sum(resultAppBel$signals == -1), " (", 
+             format((100*sum(resultAppBel$signals == -1)/(1440 * 181)), digits = 2), "%)"))
 print(paste0("Num. of useful commercials app Bel: ", sum(broadBel$usefulApp), " / ", 
-             nrow(broadBel), " (", format((sum(broadBel$usefulApp)/nrow(broadBel))*100, digits=2), "%)"))
+             nrow(broadBel), " (", format((sum(broadBel$usefulApp)/nrow(broadBel)) * 100, digits = 2), "%)"))
 print(paste0("Num of false spikes app Bel: ", numFalseSpikesAppBel, " / ", length(posSpikesAppBel), 
-             " (", format((numFalseSpikesAppBel/length(posSpikesAppBel))*100, digits=3), "%)"))
+             " (", format((numFalseSpikesAppBel/length(posSpikesAppBel)) * 100, digits = 3), "%)"))
 usefulCommercialsBel = subset(broadBel, usefulWeb==1)
 print(paste0("Num commercials useful web AND app Bel: ", numUsefulWebAndAppBel, " / ", nrow(usefulCommercialsBel), 
-             " (", format((numUsefulWebAndAppBel/nrow(usefulCommercialsBel))*100, digits=3), "%)"))
+             " (", format((numUsefulWebAndAppBel/nrow(usefulCommercialsBel)) * 100, digits = 3), "%)"))
 
 ## ================================================
 ##      Analyse best performing commercials
 ## ================================================
 
-# Subset on useful WEB commercials
+# Subset on useful website commercials
 usefulCommercialsBel = subset(broadBel, usefulWeb==1)
 #summary(usefulCommercialsBel)
 sort(summary(as.factor(usefulCommercialsBel$channel)))
@@ -600,18 +600,17 @@ summary(broadBel$gross_rating_point)
 sort(summary(as.factor(usefulCommercialsBel$weekdays)))
 
 # Calculate the biggest relative increase after broadcast time
-# max i+1, i+2, i+3, i+4, i+5 (can also be i-1 vs. i, i+1, ...)
+# Max i + 1, i + 2, i + 3, i + 4, i + 5 (can also be i - 1 vs. i, i + 1, ...)
 usefulCommercialsBel['relativePeak'] = 0
 usefulCommercialsBel['timeTilPeak'] = 0
 for (i in 1:nrow(usefulCommercialsBel)) {
   comTime = usefulCommercialsBel$minute_in_year[i]
   comTraf = visitorsSum$visitsWebBel[comTime]
-  afterTraf = matrix(0.0, ncol=5)
+  afterTraf = matrix(0.0, ncol = 5)
   for (j in 1:5) {
-    afterTraf[j] = visitorsSum$visitsWebBel[comTime+j]
+    afterTraf[j] = visitorsSum$visitsWebBel[comTime + j]
   }
   usefulCommercialsBel$relativePeak[i] = max(afterTraf) - comTraf
   usefulCommercialsBel$timeTilPeak[i] = match(max(afterTraf), afterTraf)
 }
-usefulCommercialsBel = usefulCommercialsBel[order(usefulCommercialsBel$relativePeak, decreasing=T),]
-
+usefulCommercialsBel = usefulCommercialsBel[order(usefulCommercialsBel$relativePeak, decreasing=T), ]
