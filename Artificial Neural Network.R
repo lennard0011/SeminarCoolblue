@@ -11,7 +11,7 @@ library(tensorflow)
 # Begin with making a dataset for the whole time series with the amount of visitors and broadcast specific attributes
 
 
-## Making appropriate data for network
+# Making appropriate data for network
 # Calculate the minute in the year of the commercial
 # Input: latent visitors
 visitNet = visitorsSum[, c("date", "time_min", "visitsWebNet")]
