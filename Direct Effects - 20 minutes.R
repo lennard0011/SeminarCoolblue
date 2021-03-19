@@ -3,15 +3,15 @@
 
 # Same set-up as intervalCode, but now with a 20-min window and GRP > 0.5
 # Note that we also calculate the results for App Data and Belgium Data, which we
-# .. decided not to include in the report after all.
+# decided not to include in the report after all.
 
 ## ========================================================
 ##                  Collect interval data
 ## ========================================================
 
-#get commercials only in NL, with BE control
+# Get commercials only in Netherlands, with Belgium as control
 broadNet1 = subset(broad, country == "Netherlands")
-broadNet1 = broadNet1[order(broadNet1$date),]
+broadNet1 = broadNet1[order(broadNet1$date), ]
 
 broadNet1['preVisitorsWebNet'] = 0
 broadNet1['postVisitorsWebNet'] = 0
@@ -26,12 +26,12 @@ broadNet1['postVisitorsAppBel'] = 0
 # Remove commercials in Belgium sales period (assumed whole January)
 broadNet1 = subset(broadNet1, yday(date) > 31)
 
-# Remove commercials where Bel has a commercial as well
+# Remove commercials where Belgium has a commercial as well
 belAdDates = sort(unique(subset(broad, country == "Belgium")$date))
 for (i in 1:nrow(broadNet1)) {
   for (j in 1:length(belAdDates)) {
-    if (broadNet1[i,]$date == belAdDates[j]) {
-      broadNet1[i,]$channel = NA
+    if (broadNet1[i, ]$date == belAdDates[j]) {
+      broadNet1[i, ]$channel = NA
     }
   }
 }
@@ -39,7 +39,7 @@ broadNet1 = subset(broadNet1, !(is.na(channel)))
 print(paste0("Number of commercials: ", nrow(broadNet1)))
 
 # Delete lowest GRP ratios
-broadNet1 = broadNet1[order(broad$gross_rating_point, decreasing = T),]
+broadNet1 = broadNet1[order(broad$gross_rating_point, decreasing = T), ]
 broadNet1 = subset(broadNet1, gross_rating_point > 0.5)
 print(paste0("Number of commercials: ", nrow(broadNet1)))
 
@@ -49,22 +49,22 @@ broadNet1NoMidnight = subset(broadNet1NoMidnight, broadNet1NoMidnight$time_min >
 broadNet1 = broadNet1NoMidnight
 print(paste0("Number of commercials: ", nrow(broadNet1)))
 
-# Calculate pre- and post visitors, Net and Bel, Web and App (20 min)
+# Calculate pre- and post visitors, Netherlands and Belgium, Website and App (20 min)
 intervalSize = 20
 start = Sys.time()
 for (i in 1:nrow(broadNet1)) {
   broadDate = broadNet1$date[[i]]
   broadTime = broadNet1$time_min[[i]]
   
-  # count extraViewers from day before or day after at midnight!
+  # Count extra visitors from day before or day after at midnight
   if (broadTime - intervalSize < 0) {
-    #extraVis of day before
+    # Extra Visitors of day before
     preVisitorsWebNetExtra = sum(subset(visitorsSum, date == as.Date(broadDate) - 1 & time_min >= 60*24 + broadTime - intervalSize)$visitsWebNet)
     preVisitorsAppNetExtra = sum(subset(visitorsSum, date == as.Date(broadDate) - 1 & time_min >= 60*24 + broadTime - intervalSize)$visitsAppNet)
     preVisitorsWebBelExtra = sum(subset(visitorsSum, date == as.Date(broadDate) - 1 & time_min >= 60*24 + broadTime - intervalSize)$visitsWebBel)
     preVisitorsAppBelExtra = sum(subset(visitorsSum, date == as.Date(broadDate) - 1 & time_min >= 60*24 + broadTime - intervalSize)$visitsAppBel)
-  } else if (broadTime + intervalSize >= 60*24) {
-    #extraVis on day after
+  } else if (broadTime + intervalSize >= 60 * 24) {
+    # Extra Visitors of day after
     postVisitorsWebNetExtra = sum(subset(visitorsSum, date == as.Date(broadDate) - 1 & time_min <= intervalSize - 60*24 + broadTime)$visitsWebNet)
     postVisitorsAppNetExtra = sum(subset(visitorsSum, date == as.Date(broadDate) - 1 & time_min <= intervalSize - 60*24 + broadTime)$visitsAppNet)
     postVisitorsWebBelExtra = sum(subset(visitorsSum, date == as.Date(broadDate) - 1 & time_min <= intervalSize - 60*24 + broadTime)$visitsWebBel)
@@ -103,27 +103,26 @@ broadBel = broadBelNoMidnight
 intervalSize = 20
 iNet = 0
 iBel = 0
-broad = broad[order(broad$date_time),]
-broadNet = broadNet[order(broadNet$date_time),]
-broadBel = broadBel[order(broadBel$date_time),]
+broad = broad[order(broad$date_time), ]
+broadNet = broadNet[order(broadNet$date_time), ]
+broadBel = broadBel[order(broadBel$date_time), ]
 broad$overlapBefore = 0
 broad$overlapAfter = 0
 for (i in 1:nrow(broad)){
   if (broad$country[i] == 'Netherlands'){
     iNet = iNet + 1
-    #print(i)
     datetime = broad$date_time[i]
     datetime = as.POSIXct(datetime)
     timeEarlier = datetime - intervalSize * 60
     timeLater = datetime + intervalSize * 60
     # Interval before
-    if (iNet > 1){ # exclude first dutch commercial
+    if (iNet > 1){ # Exclude first Dutch commercial
       if (timeEarlier <= broadNet$date_time[iNet - 1] && broadNet$date_time[iNet - 1] <= datetime){
         broad$overlapBefore[i] = 1
       }
     }
     # Interval after
-    if (iNet < nrow(broadNet)){ # exclude last dutch commercial
+    if (iNet < nrow(broadNet)){ # Exclude last Dutch commercial
       if (datetime <= broadNet$date_time[iNet + 1] && broadNet$date_time[iNet + 1] <= timeLater){
         broad$overlapAfter[i] = 1
       }
@@ -131,7 +130,6 @@ for (i in 1:nrow(broad)){
   }
   if (broad$country[i] == 'Belgium'){
     iBel = iBel + 1
-    #print(i)
     datetime = broad$date_time[i]
     datetime = as.POSIXct(datetime)
     timeEarlier = datetime - intervalSize * 60
@@ -150,9 +148,9 @@ for (i in 1:nrow(broad)){
     }
   }
 }
-broad = broad[order(as.numeric(row.names(broad))),]
-broadNet = broadNet[order(as.numeric(row.names(broadNet))),]
-broadBel = broadBel[order(as.numeric(row.names(broadBel))),]
+broad = broad[order(as.numeric(row.names(broad))), ]
+broadNet = broadNet[order(as.numeric(row.names(broadNet))), ]
+broadBel = broadBel[order(as.numeric(row.names(broadBel))), ]
 broadNet = subset(broad, country == 'Netherlands')
 broadBel = subset(broad, country == 'Belgium')
 
@@ -160,13 +158,8 @@ broadBel = subset(broad, country == 'Belgium')
 ##                    First analysis
 ## ========================================================
 
-#par(mfrow=c(1,2))
-#plot(broadNet1$preVisitorsWebNet, broadNet1$postVisitorsWebNet, col = "blue")
-#lines(cbind(0,10000), cbind(0,10000))
-#plot(broadNet1$preVisitorsWebBel, broadNet1$postVisitorsWebBel, xlim = c(0,50), ylim = c(0,50), col = "red")
-#lines(cbind(0,10000), cbind(0,10000))
-print(paste0("Num. WebNet post > pre: ", sum(broadNet1$postVisitorsWebNet>broadNet1$preVisitorsWebNet)))
-print(paste0("Num. WebBel post > pre: ", sum(broadNet1$postVisitorsWebBel>broadNet1$preVisitorsWebBel)))
+print(paste0("Num. WebNet post > pre: ", sum(broadNet1$postVisitorsWebNet > broadNet1$preVisitorsWebNet)))
+print(paste0("Num. WebBel post > pre: ", sum(broadNet1$postVisitorsWebBel > broadNet1$preVisitorsWebBel)))
 
 biggestAdsNet1 = subset(broadNet1, postVisitorsWebNet - preVisitorsWebNet > 10)
 
@@ -177,16 +170,15 @@ biggestAdsNet1 = subset(broadNet1, postVisitorsWebNet - preVisitorsWebNet > 10)
 # dummiesDirectModel contains the treatment variables
 variablesDirectModelNet1 = c("product_category", "channel", "length_of_spot", "position_in_break_3option", "overlapBefore", "overlapAfter")
 dummiesDirectModelPreNet1 = dummy_cols(.data = broadNet1, select_columns = variablesDirectModelNet1)
-dummiesDirectModelNet1 = dummiesDirectModelPreNet1[,((ncol(broadNet1)+1):ncol(dummiesDirectModelPreNet1))]
+dummiesDirectModelNet1 = dummiesDirectModelPreNet1[,((ncol(broadNet1) + 1):ncol(dummiesDirectModelPreNet1))]
 dummiesDirectModelNet1 = as.data.frame(dummiesDirectModelNet1)
 dummiesDirectModelNet1 = subset(dummiesDirectModelNet1, select = -c(`length_of_spot_30 + 10 + 5`, product_category_laptops, `channel_Discovery Channel`, position_in_break_3option_middle, overlapBefore_0, overlapAfter_0) )
 rm(dummiesDirectModelPreNet1); rm(variablesDirectModelNet1)
 
-# function for model summary
+# Function for model summary
 getModelSumm <- function(model, coef) {
   if(coef) {
-    #print(model)
-    print(coeftest(model, vcov = vcovHC(model, type="HC1"))) # robust se
+    print(coeftest(model, vcov = vcovHC(model, type="HC1"))) # Robust SE
   }
   print(paste("R^2: ", summary(model)$r.squared))
   print(paste("AIC: ",AIC(model)))
@@ -194,47 +186,47 @@ getModelSumm <- function(model, coef) {
 }
 
 # Baseline model
-# web
-broadNet1['minusPreVisitorsWebBel'] = -1*broadNet1$preVisitorsWebBel
+# Website
+broadNet1['minusPreVisitorsWebBel'] = -1 * broadNet1$preVisitorsWebBel
 baselineModelWebNet1 = lm( (postVisitorsWebNet-postVisitorsWebBel) ~ preVisitorsWebNet +
                           minusPreVisitorsWebBel + factor(hours) + factor(weekdays), data = broadNet1)
 getModelSumm(baselineModelWebNet1, T)
 
 # Full model
-# web
-broadNet1['minusPreVisitorsWebBel'] = -1*broadNet1$preVisitorsWebBel
+# Website
+broadNet1['minusPreVisitorsWebBel'] = -1 * broadNet1$preVisitorsWebBel
 fullModelWebNet1 = lm( (broadNet1$postVisitorsWebNet-broadNet1$postVisitorsWebBel) ~ 
                          broadNet1$preVisitorsWebNet + broadNet1$minusPreVisitorsWebBel + 
                          factor(broadNet1$hours) + factor(broadNet1$weekdays) + broadNet1$gross_rating_point +., data = dummiesDirectModelNet1)
 getModelSumm(fullModelWebNet1, T)
 
 # Baseline model
-# app
-broadNet1['minusPreVisitorsAppBel'] = -1*broadNet1$preVisitorsAppBel
+# App
+broadNet1['minusPreVisitorsAppBel'] = -1 * broadNet1$preVisitorsAppBel
 baselineModelAppNet1 = lm( (postVisitorsAppNet-postVisitorsAppBel) ~ preVisitorsAppNet +
                           minusPreVisitorsAppBel + factor(hours) + factor(weekdays), data = broadNet1)
 getModelSumm(baselineModelAppNet1, T)
 
 # Full model
-# app
-broadNet1['minusPreVisitorsAppBel'] = -1*broadNet1$preVisitorsAppBel
+# App
+broadNet1['minusPreVisitorsAppBel'] = -1 * broadNet1$preVisitorsAppBel
 fullModelAppNet1 = lm( (broadNet1$postVisitorsAppNet-broadNet1$postVisitorsAppBel) ~ 
                       broadNet1$preVisitorsAppNet + broadNet1$minusPreVisitorsAppBel + 
                       factor(broadNet1$hours) + factor(broadNet1$weekdays) + broadNet1$gross_rating_point + ., data = dummiesDirectModelNet1)
 getModelSumm(fullModelAppNet1, T)
 
 # =============================================================
-#                  Overfittings test
+#                  Test for overfitting
 # =============================================================
 
-#Calculate Mean Squared Prediction Error 
+# Calculate Mean Squared Prediction Error 
 preVisitorsWebNet = broadNet1$preVisitorsWebNet
 postVisitorsWebNet = broadNet1$postVisitorsWebNet
 hours = broadNet1$hours
 weekdays = broadNet1$weekdays
 postVisitorsWebBel = broadNet1$postVisitorsWebBel
 grossRating = broadNet1$gross_rating_point
-minusPreVisitorsWebBel = -1*broadNet1$preVisitorsWebBel
+minusPreVisitorsWebBel = -1 * broadNet1$preVisitorsWebBel
 broadDumm = cbind(postVisitorsWebNet, preVisitorsWebNet, postVisitorsWebBel, hours, minusPreVisitorsWebBel, weekdays, grossRating, dummiesDirectModelNet1)
 
 set.seed(21)
@@ -247,11 +239,11 @@ for (i in 1:folds){
   broadTotal = broadDumm
   
   sampleSplit = sample.split(broadNet1$postVisitorsWebNet, SplitRatio = 0.8)
-  broadTrain = broadDumm[sampleSplit == TRUE,]
-  broadTest = broadDumm[sampleSplit == FALSE,]
+  broadTrain = broadDumm[sampleSplit == T, ]
+  broadTest = broadDumm[sampleSplit == F, ]
 
   # Baseline model
-   baselineModelWebNet1 = lm((postVisitorsWebNet - postVisitorsWebBel) ~ preVisitorsWebNet +
+  baselineModelWebNet1 = lm((postVisitorsWebNet - postVisitorsWebBel) ~ preVisitorsWebNet +
                               minusPreVisitorsWebBel + factor(weekdays) + factor(hours) , data = broadTotal)
  
   avBaseTrainError[i] = rmse((broadTrain$postVisitorsWebNet - broadTrain$postVisitorsWebBel), predict(baselineModelWebNet1, broadTrain))
@@ -275,7 +267,7 @@ mean(avFullTestError)
 ##              Parallel trends assumption
 ## ========================================================
 
-# test parallel trends -- website
+# Test parallel trends - website
 set.seed(21)
 minutes = 20
 trendsMatrix = matrix(NA, nrow(broadNet1), minutes)
@@ -320,7 +312,6 @@ meanPeak = mean(trendsMatrix[max, ])
 df = data.frame(x = 1:20, F = trendsMatrix[max, ], L = meanPeak - 2 * sdPeak, U = meanPeak + 2 * sdPeak)
 plot(df$x, df$F, ylim = c(0, 0.4), type = "l", main = "", xlab = "Minute", ylab = "Difference")
 lines(df$x, df$F, lwd = 2)
-#add red lines to plot
-lines(df$x, df$U, col="red",lty=2)
-lines(df$x, df$L, col="red",lty=2)
-
+# Add red lines to plot
+lines(df$x, df$U, col = "red", lty = 2)
+lines(df$x, df$L, col = "red", lty = 2)

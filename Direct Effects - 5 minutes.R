@@ -10,7 +10,7 @@
 ##                  Collect interval data
 ## ========================================================
 
-# count visits pre-commercial
+# Count visits pre-commercial
 broad['preVisitorsWeb'] = 0
 broad['postVisitorsWeb'] = 0
 broad['preVisitorsApp'] = 0
@@ -18,18 +18,18 @@ broad['postVisitorsApp'] = 0
 intervalSize
 
 start = Sys.time()
-for (i in 1:nBroad) { # count visitors for every commercial
+for (i in 1:nBroad) { # Count visitors for every commercial
   broadDate = broad$date[[i]]
   broadTime = broad$time_min[[i]]
   broadCountry = broad$country[[i]]
   
   if(broadCountry == "Belgium") {
     if(broadTime - intervalSize < 0) {
-      #extraVis of day before
+      # Extra Visits of day before
       preVisitorsAppExtra = sum(subset(visitorsSum, date == as.Date(broadDate) - 1 & time_min >= 60*24 + broadTime - intervalSize)$visitsAppBel)
       preVisitorsWebExtra = sum(subset(visitorsSum, date == as.Date(broadDate) - 1 & time_min >= 60*24 + broadTime - intervalSize)$visitsWebBel)
     } else if(broadTime + intervalSize >= 60*24) {
-      #extraVis on day after
+      # Extra Visits of day after
       postVisitorsAppExtra = sum(subset(visitorsSum, date == as.Date(broadDate) - 1 & time_min <= intervalSize - 60*24 + broadTime)$visitsAppBel)
       postVisitorsWebExtra = sum(subset(visitorsSum, date == as.Date(broadDate) - 1 & time_min <= intervalSize - 60*24 + broadTime)$visitsWebBel)
     } else {
@@ -44,11 +44,11 @@ for (i in 1:nBroad) { # count visitors for every commercial
     
   } else if(broadCountry == "Netherlands") {
     if(broadTime - intervalSize < 0) {
-      #extraVis of day before
+      # Extra Visits of day before
       preVisitorsAppExtra = sum(subset(visitorsSum, date == as.Date(broadDate) - 1 & time_min >= 60*24 + broadTime - intervalSize)$visitsAppNet)
       preVisitorsWebExtra = sum(subset(visitorsSum, date == as.Date(broadDate) - 1 & time_min >= 60*24 + broadTime - intervalSize)$visitsWebNet)
     } else if(broadTime + intervalSize >= 60*24) {
-      #extraVis on day after
+      # Extra Visits of day after
       postVisitorsAppExtra = sum(subset(visitorsSum, date == as.Date(broadDate) - 1 & time_min <= intervalSize - 60*24 + broadTime)$visitsAppNet)
       postVisitorsWebExtra = sum(subset(visitorsSum, date == as.Date(broadDate) - 1 & time_min <= intervalSize - 60*24 + broadTime)$visitsWebNet)
     } else {
@@ -68,13 +68,13 @@ for (i in 1:nBroad) { # count visitors for every commercial
 ##                    First analysis
 ## ========================================================
 
-# website simple statistics
+# Website simple statistics
 mean(broad$postVisitorsWeb - broad$preVisitorsWeb)
 min(broad$postVisitorsWeb - broad$preVisitorsWeb)
 max(broad$postVisitorsWeb - broad$preVisitorsWeb)
 sum(broad$postVisitorsWeb > broad$preVisitorsWeb)
 sum(broad$postVisitorsWeb < broad$preVisitorsWeb)
-# data plotting website
+# Data plotting website
 plot(broad$preVisitorsWeb, broad$postVisitorsWeb)
 lines(cbind(0, 10000), cbind(0, 10000))
 par(mfrow = c(2, 1))
@@ -100,13 +100,13 @@ par(mfrow = c(1, 1))
 simpleModelWebNet = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + 0)
 summary(simpleModelWebNet)
 
-# Website (Belgium)
+# Website Belgium
 mean(broadBel$postVisitorsWeb - broadBel$preVisitorsWeb)
 min(broadBel$postVisitorsWeb - broadBel$preVisitorsWeb)
 max(broadBel$postVisitorsWeb - broadBel$preVisitorsWeb)
 sum(broadBel$postVisitorsWeb > broadBel$preVisitorsWeb)
 sum(broadBel$postVisitorsWeb < broadBel$preVisitorsWeb)
-# Data plotting (website)
+# Data plotting - website
 plot(broadBel$preVisitorsWeb, broadBel$postVisitorsWeb)
 lines(cbind(0, 10000), cbind(0, 10000))
 par(mfrow = c(2, 1))
@@ -122,8 +122,8 @@ min(broad$postVisitorsApp - broad$preVisitorsApp)
 max(broad$postVisitorsApp - broad$preVisitorsApp)
 sum(broad$postVisitorsApp > broad$preVisitorsApp)
 sum(broad$postVisitorsApp < broad$preVisitorsApp)
-# Data plotting (app)
-plot(broad$preVisitorsApp, broad$postVisitorsApp, xlim = c(0, 0.2)) # deze plot....
+# Data plotting - app
+plot(broad$preVisitorsApp, broad$postVisitorsApp, xlim = c(0, 0.2))
 lines(cbind(0, 10000), cbind(0, 10000))
 par(mfrow = c(2, 1))
 hist(broad$postVisitorsApp)
@@ -141,8 +141,7 @@ biggestAds = subset(broad, postVisitorsWeb-preVisitorsWeb > 0.6)
 # Function for model summary
 getModelSumm <- function(model, coef) {
   if(coef) {
-    # Print(model)
-    print(coeftest(model, vcov = vcovHC(model, type = "HC1"))) # robust se
+    print(coeftest(model, vcov = vcovHC(model, type = "HC1"))) # Robust SE
   }
   print(paste("R-squared: ", summary(model)$r.squared))
   hist(model$residuals, breaks = 50)
@@ -150,12 +149,12 @@ getModelSumm <- function(model, coef) {
   print(paste("BIC: ", BIC(model)))
 }
 
-# Baseline model - Netherlands (website)
+# Baseline model Netherlands - website
 baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours) + weekdays, data = broadNet)
 getModelSumm(baselineModel, T)
 
-# Full model - Netherlands (website)
-# also make fullModelTest to be used in the R Shiny dashboard
+# Full model Netherlands - website
+# Also make fullModelTest to be used in the R Shiny dashboard
 fullModel = lm(broadNet$postVisitorsWeb ~ broadNet$preVisitorsWeb + factor(broadNet$hours) + broadNet$gross_rating_point + ., data = dummiesDirectModel)
 
 input = as.data.frame(cbind(broadNet$postVisitorsWeb, broadNet$preVisitorsWeb, factor(broadNet$hours), broadNet$gross_rating_point, dummiesDirectModel))
@@ -173,16 +172,16 @@ save(testdf, file = "testdf.rda")
 
 getModelSumm(fullModel, T)
 
-# Baseline models - Belgium (website)
+# Baseline models Belgium - website
 baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + factor(hours) + weekdays, data = broadBel)
 getModelSumm(baselineModel, T)
 
-# Full model - Belgium (website)
+# Full model Belgium - website
 fullModel = lm(broadBel$postVisitorsWeb ~ broadBel$preVisitorsWeb + factor(broadBel$hours) + broadBel$gross_rating_point +., data = dummiesDirectModelBel)
 getModelSumm(fullModel, T)
 
 ## ========================================================
-##                    Overfitting Test
+##                    Test for overfitting
 ## ========================================================
 
 # Calculate Mean Squared Prediction Error 
@@ -209,22 +208,16 @@ avFullTrainError = vector(length = folds)
 avFullTestError = vector(length = folds)
 for (i in 1:folds){
   sampleSplit = sample.split(broadBel$postVisitorsApp, SplitRatio = 0.8)
-  broadTrain = broadDumm[sampleSplit == TRUE, ]
-  broadTest = broadDumm[sampleSplit == FALSE, ]
+  broadTrain = broadDumm[sampleSplit == T, ]
+  broadTest = broadDumm[sampleSplit == F, ]
   
   # Baseline model
   baselineModel = lm(postVisitorsWeb ~ preVisitorsWeb + hours + weekdays_dinsdag + weekdays_donderdag + weekdays_maandag +weekdays_vrijdag + weekdays_woensdag + weekdays_zondag, data = broadTrain)
-  # getModelSumm(baselineModel, TRUE)
   avBaseTrainError[i] = rmse(broadTrain$postVisitorsWeb, predict(baselineModel, broadTrain))
   avBaseTestError[i] = rmse(broadTest$postVisitorsWeb, predict(baselineModel, broadTest))
   
-  # Treatment effects only models
-  # treatmentOnlyModel = lm(postVisitors ~ .-preVisitors, data = broadTrain)
-  # rmse(broadTest$postVisitors, predict(treatmentOnlyModel, broadTest))
-  
   # Full treatment model
   fullModel = lm(postVisitorsWeb ~ preVisitorsWeb + ., data = broadTrain)
-  # getModelSumm(fullModel, FALSE)
   avFullTrainError[i] = rmse(broadTrain$postVisitorsWeb, predict(fullModel, broadTrain))
   avFullTestError[i] = rmse(broadTest$postVisitorsWeb, predict(fullModel, broadTest))
 }
@@ -237,20 +230,19 @@ mean(avFullTestError)
 ## ================================================
 ##                Netherlands App regression
 ## ================================================
-# Baseline model - Netherlands (app)
+# Baseline model Netherlands - app
 baselineModel = lm(postVisitorsApp ~ preVisitorsApp + factor(hours) + weekdays, data = broadNet)
-getModelSumm(baselineModel, TRUE)
+getModelSumm(baselineModel, T)
 
-# Full model - Netherlands (app)
+# Full model Netherlands - app
 fullModel = lm(broadNet$postVisitorsApp ~ broadNet$preVisitorsApp + factor(broadNet$hours) + broadNet$gross_rating_point + ., data = dummiesDirectModel)
-#save(fullModel, file = "my-fitted-boost.rda")
 getModelSumm(fullModel, T)
 
-# Baseline model - Belgium (app)
+# Baseline model Belgium - app
 baselineModel = lm(postVisitorsApp ~ preVisitorsApp + factor(hours) + weekdays, data = broadBel)
-getModelSumm(baselineModel, TRUE)
+getModelSumm(baselineModel, T)
 
-# Full model - Belgium (app)
+# Full model Belgium - app
 fullModel = lm(broadBel$postVisitorsApp ~ broadBel$preVisitorsApp + factor(broadBel$hours) + broadBel$gross_rating_point + ., data = dummiesDirectModelBel)
 getModelSumm(fullModel, T)
 
@@ -271,22 +263,16 @@ avFullTrainError = vector(length = folds)
 avFullTestError = vector(length = folds)
 for (i in 1:folds){
   sampleSplit = sample.split(broadNet$postVisitorsWeb, SplitRatio = 0.8)
-  broadTrain = broadDumm[sampleSplit == TRUE, ]
-  broadTest = broadDumm[sampleSplit == FALSE, ]
+  broadTrain = broadDumm[sampleSplit == T, ]
+  broadTest = broadDumm[sampleSplit == F, ]
   
   # Baseline model
   baselineModel = lm(postVisitorsApp ~ preVisitorsApp + hours + weekdays_dinsdag + weekdays_donderdag + weekdays_maandag +weekdays_vrijdag + weekdays_woensdag + weekdays_zondag, data = broadTrain)
-  #getModelSumm(baselineModel, TRUE)
   avBaseTrainError[i] = rmse(broadTrain$postVisitorsApp, predict(baselineModel, broadTrain))
   avBaseTestError[i] = rmse(broadTest$postVisitorsApp, predict(baselineModel, broadTest))
-  
-  # Treatment effects only models
-  #treatmentOnlyModel = lm(postVisitors ~ .-preVisitors, data = broadTrain)
-  #rmse(broadTest$postVisitors, predict(treatmentOnlyModel, broadTest))
-  
+
   # Full treatment model
   fullModel = lm(postVisitorsApp ~ preVisitorsApp + ., data = broadTrain)
-  #getModelSumm(fullModel, FALSE)
   avFullTrainError[i] = rmse(broadTrain$postVisitorsApp, predict(fullModel, broadTrain))
   avFullTestError[i] = rmse(broadTest$postVisitorsApp, predict(fullModel, broadTest))
 }
