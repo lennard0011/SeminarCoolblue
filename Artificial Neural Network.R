@@ -11,9 +11,9 @@ library(tensorflow)
 # Begin with making a dataset for the whole time series with the amount of visitors and broadcast specific attributes
 
 
-## Making appropiate data for network
-# calculate the minute in the year of the commercial
-# Input: latent vistors
+## Making appropriate data for network
+# Calculate the minute in the year of the commercial
+# Input: latent visitors
 visitNet = visitorsSum[, c("date", "time_min", "visitsWebNet")]
 broadNet = subset(broad, country == "Netherlands")
 broadNet = broadNet[broadNet$time_min < (1440 - 5) & broadNet$time_min > 5, ]
@@ -29,8 +29,6 @@ broadNet$minute_in_year = ((dayCom - 1) * 1440) + dayTime + 1
 broadNet$date = NULL
 
 # Time specific feature adding
-#visitNet['visitsLag1Min'] = dplyr::lag(visitNet$visitsWebNet, 1)
-#visitNet['visitsLag1Hour'] = dplyr::lag(visitNet$visitsWebNet, 60)
 visitNet['visitsLag1Week'] = dplyr::lag(visitNet$visitsWebNet, 60 * 24 * 7)
 visitNetDumm = cbind(visitNet, dummy_cols(weekdays(as.Date(visitNet$date)), remove_most_frequent_dummy = T, remove_selected_columns = T))
 visitNetDumm = cbind(visitNetDumm, dummy_cols(floor(visitNet$time_min / 60), remove_most_frequent_dummy = T, remove_selected_columns = T))
@@ -70,15 +68,13 @@ visitNetDummBroad = merge(visitNetDummBroad, channeldummys5, all = T)
 visitNetDummBroad = na.omit(visitNetDummBroad)
 visitNetDummBroad['time_min'] = NULL; visitNetDummBroad['date'] = NULL
 
-names(visitNetDummBroad)
-
 rm(broadGRP)
 rm(broadAmount)
 
 ## ===================================================================
-##              Divide in dataset in Train and Test
+##              Divide data set in Train and Test
 ## ===================================================================
-# Make train and testset. Testset is last month.
+# Make train and test set. Test set is last month.
 scaledvisitNetDummBroad = scale(visitNetDummBroad)
 center = attr(scaledvisitNetDummBroad, 'scaled:center')
 scale = attr(scaledvisitNetDummBroad, 'scaled:scale')
@@ -96,7 +92,7 @@ visitTest = na.omit(visitTest)
 ## ===================================================================
 # Function to make a neural network for certain regularization parameter and input size
 makeModel = function (regParam, colAmount) {
-  model <- keras_model_sequential() 
+  model = keras_model_sequential() 
   model %>%
     layer_dense(units = 30, activation = 'relu', input_shape = colAmount, kernel_regularizer = regularizer_l2(l = regParam)) %>%
     layer_dense(units = 30, activation = 'relu', kernel_regularizer = regularizer_l2(l = regParam)) %>%
@@ -123,14 +119,14 @@ yTest = as.matrix(subset(visitTest, select = c(visitsWebNet)))
 valData = list(xVal, yVal)
 
 ## ===================================================================
-##                    Find best regularization parameter
+##                    Find best regularisation parameter
 ## ===================================================================
 # Logarithmic scale for regularization interval
 seqParam = c(0.5, 0.1, 0.05, 0.01, 0.005, 0.001, 0.0005, 0.0001)
 results = c()
 for (regParam in seqParam) {
   modelVal = makeModel(regParam, (ncol(xTrain)))
-  history <- modelVal %>% fit(
+  history = modelVal %>% fit(
     xTrain, 
     yTrain, 
     epochs = 20,
@@ -145,7 +141,7 @@ for (regParam in seqParam) {
 
 plot(seqParam, results)
 # Get parameter value with lowest error
-optParam = seqParam[which(results == min(results))] #equals 0.1
+optParam = seqParam[which(results == min(results))] # Equals 0.1
 optParam = 0.1
 
 ## ===================================================================
@@ -157,7 +153,7 @@ yTrainVal = rbind(yTrain, yVal)
 testData = list(xTest, yTest)
 
 modelOpt = makeModel(optParam, (ncol(xTrainVal)))
-history <- modelOpt %>% fit(
+history = modelOpt %>% fit(
   xTrainVal, 
   yTrainVal, 
   epochs = 20,
@@ -168,7 +164,6 @@ predNN = predict(modelOpt, xTest)
 mean((yTest - predNN)^2) #MSE
 mean(abs(yTest - predNN)) #MAE
 mean(abs(yTest - predNN)/yTest) #MAPE
-# = 0.135807
 
 # Linear model to test
 linearModel = lm(visitsWebNet ~ ., data = as.data.frame(rbind(visitTrain, visitVal)))
@@ -185,7 +180,7 @@ xWhole = rbind(xTrainVal, xTest)
 yWhole = rbind(yTrainVal, yTest)
 
 modelWholeOpt = makeModel(optParam, (ncol(xTrainVal)))
-history <- modelWholeOpt %>% fit(
+history = modelWholeOpt %>% fit(
   xWhole, 
   yWhole, 
   epochs = 20
@@ -207,14 +202,14 @@ sensAn = function(model, xTrain, depVar, center, scale) {
   xMeanMatrix[,depVar] = varTries
   predictions = predict(model, xMeanMatrix)
   visitors = scale["visitsWebNet"]*predictions + center["visitsWebNet"]
-  plot(5*(varTries*scale[depVar] + center[depVar]), visitors, type = "l", xlab = depVar)
+  plot(5 * (varTries*scale[depVar] + center[depVar]), visitors, type = "l", xlab = depVar)
   lowest = visitors[1]
   highest = visitors[stepSize]
   
   return(highest - lowest)
 }
 
-# Effects of GRP, broadamount and lagged visits
+# Effects of GRP, broadAmount and lagged visits
 sensAn(modelWholeOpt, xWhole, "gross_rating_point", center, scale)
 sensAn(modelWholeOpt, xWhole, "broadAmount", center, scale)
 sensAn(modelWholeOpt, xWhole, "visitsLag1Week", center, scale)

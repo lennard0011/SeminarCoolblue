@@ -123,7 +123,7 @@ max(broad$postVisitorsApp - broad$preVisitorsApp)
 sum(broad$postVisitorsApp > broad$preVisitorsApp)
 sum(broad$postVisitorsApp < broad$preVisitorsApp)
 # Data plotting - app
-plot(broad$preVisitorsApp, broad$postVisitorsApp, xlim = c(0, 0.2)) # deze plot....
+plot(broad$preVisitorsApp, broad$postVisitorsApp, xlim = c(0, 0.2))
 lines(cbind(0, 10000), cbind(0, 10000))
 par(mfrow = c(2, 1))
 hist(broad$postVisitorsApp)
@@ -141,7 +141,7 @@ biggestAds = subset(broad, postVisitorsWeb-preVisitorsWeb > 0.6)
 # Function for model summary
 getModelSumm <- function(model, coef) {
   if(coef) {
-    print(coeftest(model, vcov = vcovHC(model, type = "HC1"))) # robust se
+    print(coeftest(model, vcov = vcovHC(model, type = "HC1"))) # Robust SE
   }
   print(paste("R-squared: ", summary(model)$r.squared))
   hist(model$residuals, breaks = 50)
@@ -236,7 +236,6 @@ getModelSumm(baselineModel, T)
 
 # Full model Netherlands - app
 fullModel = lm(broadNet$postVisitorsApp ~ broadNet$preVisitorsApp + factor(broadNet$hours) + broadNet$gross_rating_point + ., data = dummiesDirectModel)
-#save(fullModel, file = "my-fitted-boost.rda")
 getModelSumm(fullModel, T)
 
 # Baseline model Belgium - app

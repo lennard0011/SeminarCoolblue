@@ -31,10 +31,10 @@ library("zoo")
 library("CausalImpact")
 library("factoextra")
 library("fastDummies")
-library("lmtest") # use the variance estimator in a linear model
-library("sandwich") # computes robust covariance matrix estimators
-library("stats") # AIC, BIC
-library("Metrics") # rmse calc
+library("lmtest") 
+library("sandwich") 
+library("stats")
+library("Metrics")
 library("plyr")
 library("gtrendsR")
 library("tseries")
@@ -53,9 +53,9 @@ traffic = read.csv(file.choose(), header = T)
 broad = read.csv(file.choose(), header = T)
 
 # Subset data
-traffic = subset(traffic, bounces != 1 | is.na(bounces)) # leave out bounces=1
+traffic = subset(traffic, bounces != 1 | is.na(bounces)) # Leave out bounces = 1
 
-broad = broad[broad[, "gross_rating_point"] > 0, ]  # leave out GRP=0
+broad = broad[broad[, "gross_rating_point"] > 0, ]  # Leave out GRP = 0
 
 broadNet = subset(broad, country == 'Netherlands')
 broadBel = subset(broad, country == 'Belgium')
@@ -92,7 +92,7 @@ for (i in 1:nBroad){
 
 # Add time_min to every broadcast
 broad$time_min = 0
-for (i in 1:nBroad) { # nBroad
+for (i in 1:nBroad) {
   time = broad$time[i]
   timeMinute = 60 * 24 * as.numeric(times(time))
   broad$time_min[i] = timeMinute
@@ -100,7 +100,7 @@ for (i in 1:nBroad) { # nBroad
 rm(timeMinute)
 rm(time)
 
-# Add time_min and date to every travel
+# Add time_min and date to every traffic
 traffic['time_min'] = 0
 traffic$date_time = as.character(traffic$date_time)
 trafficDateSplitWhole = strsplit(traffic$date_time, "\\s+")
@@ -116,7 +116,7 @@ rm(traffictime)
 ##   Separate Web/App/Net/Bel and aggregate visit_index
 ## ========================================================
 
-# Separate in four combination
+# Separate in 4 combinations
 visWebNet = traffic[traffic$medium == "website" & traffic$country == "Netherlands" & traffic$visit_source != "push notification", ]
 visAppNet = traffic[traffic$medium == "app" & traffic$country == "Netherlands" & traffic$visit_source != "push notification", ]
 visWebBel = traffic[traffic$medium == "website" & traffic$country == "Belgium" & traffic$visit_source != "push notification", ]
@@ -128,27 +128,27 @@ minutesPerDay = 60 * 24
 maxPairs = amountDays * minutesPerDay
 
 # Website - Netherlands
-visWebNetSum = aggregate(visits_index ~ date + time_min, data = visWebNet, FUN=sum, simplify = TRUE, drop = TRUE)
+visWebNetSum = aggregate(visits_index ~ date + time_min, data = visWebNet, FUN=sum, simplify = T, drop = T)
 names(visWebNetSum) = cbind("date", "time_min", "visitsWebNet")
 print(paste0("Missing pairs Website-Netherlands (incl. summer time): ", maxPairs-nrow(visWebNetSum)))
 
 # App - Netherlands
-visAppNetSum = aggregate(visits_index ~ date +  time_min + date, data = visAppNet, FUN=sum, simplify = TRUE, drop = TRUE)
+visAppNetSum = aggregate(visits_index ~ date +  time_min + date, data = visAppNet, FUN=sum, simplify = T, drop = T)
 names(visAppNetSum) = cbind("date", "time_min", "visitsAppNet")
 print(paste0("Missing pairs App-Netherlands (incl. summer time): ", maxPairs-nrow(visAppNetSum)))
 
 # Website - Belgium
-visWebBelSum = aggregate(visits_index ~ date + time_min + date, data = visWebBel, FUN=sum, simplify = TRUE, drop = TRUE)
+visWebBelSum = aggregate(visits_index ~ date + time_min + date, data = visWebBel, FUN=sum, simplify = T, drop = T)
 names(visWebBelSum) = cbind("date", "time_min", "visitsWebBel")
 print(paste0("Missing pairs Website-Belgium (incl. summer time): ", maxPairs-nrow(visWebBelSum)))
 
 # App - Belgium
-visAppBelSum = aggregate(visits_index ~ date + time_min + date, data = visAppBel, FUN=sum, simplify = TRUE, drop = TRUE)
+visAppBelSum = aggregate(visits_index ~ date + time_min + date, data = visAppBel, FUN=sum, simplify = T, drop = T)
 names(visAppBelSum) = cbind("date", "time_min", "visitsAppBel")
 print(paste0("Missing pairs App-Belgium (incl. summer time): ", maxPairs-nrow(visAppBelSum)))
 
 # Concatenate all 4 pairs in visitorsSum
-visitorsSum = merge(merge(visWebNetSum, visAppNetSum, all = TRUE), merge(visWebBelSum, visAppBelSum, all = TRUE), all = TRUE)
+visitorsSum = merge(merge(visWebNetSum, visAppNetSum, all = T), merge(visWebBelSum, visAppBelSum, all = T), all = T)
 visitorsSum[is.na(visitorsSum)] = 0
 
 ## ============================================================
@@ -167,9 +167,8 @@ for (i in 1:60) {
   summerTime[i, 6] = visitorsSum[(128279 + i - 1440), 6]
 }
 visitorsSum = rbind(visitorsSum[1:128279, ], summerTime, visitorsSum[128280:nrow(visitorsSum), ])
-row.names(visitorsSum) = NULL # resets rownrs
+row.names(visitorsSum) = NULL # Resets rownumbers
 rm(summerTime)
-nrow(visitorsSum)
 
 # Insert 2 remaining missing values
 visitorsSum = rbind(visitorsSum[1:118393, ], c("2019-03-24", 313, 0.0, 0.0, 0.0, 0.0), visitorsSum[118394:nrow(visitorsSum), ])
@@ -193,7 +192,7 @@ uniqueDates = sort(uniqueDates)
 daysVisitorsSum = matrix(0.0, nrow = amountDays, ncol = 5)
 colnames(daysVisitorsSum) = c("date", "visitsWebNetDay", "visitsAppNetDay", "visitsWebBelDay", "visitsAppBelDay")
 daysVisitorsSum[, 1] = uniqueDates
-for (i in 1:nrow(visitorsSum)) { # Takes at most 2min to run
+for (i in 1:nrow(visitorsSum)) { # Takes at most 2 minutes to run
   day = yday(visitorsSum$date[i])
   daysVisitorsSum[day, 2] = as.numeric(daysVisitorsSum[day, 2]) + visitorsSum$visitsWebNet[i]
   daysVisitorsSum[day, 3] = as.numeric(daysVisitorsSum[day, 3]) + visitorsSum$visitsAppNet[i]
@@ -283,13 +282,13 @@ adAmountBel = as.matrix(table(broadBel$date))
 allDates = sort(unique(traffic$date))
 allweekdays = weekdays(as.Date(allDates))
 
-dummyWeekdays = dummy_cols(allweekdays) # column 2 = monday, 8 = sunday
+dummyWeekdays = dummy_cols(allweekdays) # Column 2 = monday, 8 = sunday
 dummyWeekdays = cbind(allDates, dummyWeekdays[, c(4, 2, 6, 3, 5, 7, 8)])
 colnames(dummyWeekdays) = c("data", "mondag", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
 
 # Month dummies
 dummyMonths = dummy_cols(month(allDates))
-dummyMonths = cbind(allDates, dummyMonths[, 2:7]) # column 2 = Jan, 7 = Jun
+dummyMonths = cbind(allDates, dummyMonths[, 2:7]) # Column 2 = Jan, 7 = Jun
 colnames(dummyMonths) = c("data", "January", "February", "March", "April", "May", "June")
 
 # Ads dummies
@@ -308,7 +307,7 @@ for (i in 1:length(uniqueDatesBel)) {
   index = yday(uniqueDatesBel[i])
   dummyAdsBel[index] = 1
 }
-dummyAds = cbind(dummyAdsTot, dummyAdsNet, dummyAdsBel) # 1=Tot, 2=NL, 3=BE
+dummyAds = cbind(dummyAdsTot, dummyAdsNet, dummyAdsBel) # 1 = Total, 2 = Netherlands, 3 = Belgium
 colnames(dummyAds) = c("Ads Total", "Ads Netherlands", "Ads Belgium")
 rm(dummyAdsTot); rm(dummyAdsNet); rm(dummyAdsBel)
 
@@ -366,13 +365,13 @@ for (i in 1:nrow(broad)){
     timeEarlier = datetime - intervalSize * 60
     timeLater = datetime + intervalSize * 60
     # Interval before
-    if(iNet > 1){ # Exclude first dutch commercial
+    if(iNet > 1){ # Exclude first Dutch commercial
       if(timeEarlier <= broadNet$date_time[iNet - 1] && broadNet$date_time[iNet - 1] <= datetime){
         broad$overlapBefore[i] = 1
       }
     }
     # Interval after
-    if(iNet < nrow(broadNet)){ # Exclude last dutch commercial
+    if(iNet < nrow(broadNet)){ # Exclude last Dutch commercial
       if(datetime <= broadNet$date_time[iNet + 1] && broadNet$date_time[iNet + 1] <= timeLater){
         broad$overlapAfter[i] = 1
       }
@@ -405,22 +404,8 @@ broadNet = subset(broad, country == 'Netherlands')
 broadBel = subset(broad, country == 'Belgium')
 
 ## =================================================
-##   Create matrices with dummies (direct effects)
+##   Create matrices with dummies (Direct Effects)
 ## =================================================
-
-# Include in baseline models
-# PreVisitors
-# Hour (7-1)
-# Weekday (23-1)
-
-# Include in full model (treatment effect) 
-# We exclude the most freq. dummy for biggest set of commercials (WebNet, WebBel)
-# 1. Product category: (3-1) ("wasmachines", "televisies", "laptops")
-# 2. TV channel (max. 51-1)
-# 2. Length of spot: (3-1) ("30", "30+10", "30+10+5")
-# 3. Position in break: (3-1) ("begin", "middle", "end")
-# 5. Overlap with other commercial: 2 (overlap_before, overlap_after)
-# 6. GRP (no dummy)
 
 # We will continue with Web-NL
 broadNet = subset(broad, country == "Netherlands")
@@ -439,14 +424,6 @@ dummiesDirectModelPreBel = dummy_cols(.data = broadBel, select_columns = variabl
 dummiesDirectModelBel = dummiesDirectModelPreBel[, ((ncol(broadBel) + 1):ncol(dummiesDirectModelPreBel))]
 dummiesDirectModelBel = as.data.frame(dummiesDirectModelBel)
 rm(dummiesDirectModelPreBel); rm(variablesDirectModelBel)
-
-# Automate with non singular names (wordt dit nog gebruikt?)
-removeNonSingular = function(model, data) {
-  naCoef = names(which(is.na(coef(model))))
-  naCoef = gsub('`', '', naCoef)
-  data = data[, !(names(data) %in% naCoef )]
-  data
-}
 
 # Matrix for table statistics Netherlands
 uni = unique(broadNet$channel)
@@ -468,7 +445,7 @@ for(i in 1:length(uni)){
     mat2[j, 1] = uniprod[j]
     mat2[j, 2] = sum(sub$program_category_before == uniprod[j])
   }
-  mat2 =  mat2[order(mat2$number, decreasing = TRUE), ]
+  mat2 =  mat2[order(mat2$number, decreasing = T), ]
   mat[i, 9] = mat2[1, 1]
   
   uniprod = unique(sub$program_category_after)
@@ -478,7 +455,7 @@ for(i in 1:length(uni)){
     mat2[j,1] = uniprod[j]
     mat2[j,2] = sum(sub$program_category_after == uniprod[j])
   }
-  mat2 =  mat2[order(mat2$number, decreasing = TRUE), ]
+  mat2 =  mat2[order(mat2$number, decreasing = T), ]
   mat[i, 10] = mat2[1, 1]
   mat[i, 11] = sum(sub$length_of_spot == "30")
   mat[i, 12] = sum(sub$length_of_spot == "30 + 10")
@@ -510,7 +487,7 @@ for(i in 1:length(uni)){
     mat2[j, 1] = uniprod[j]
     mat2[j, 2] = sum(sub$program_category_before == uniprod[j])
   }
-  mat2 =  mat2[order(mat2$number, decreasing = TRUE), ]
+  mat2 =  mat2[order(mat2$number, decreasing = T), ]
   mat[i, 9] = mat2[1, 1]
   
   uniprod = unique(sub$program_category_after)
@@ -520,7 +497,7 @@ for(i in 1:length(uni)){
     mat2[j, 1] = uniprod[j]
     mat2[j, 2] = sum(sub$program_category_after == uniprod[j])
   }
-  mat2 =  mat2[order(mat2$number, decreasing = TRUE), ]
+  mat2 =  mat2[order(mat2$number, decreasing = T), ]
   mat[i, 10] = mat2[1, 1]
   mat[i, 11] = sum(sub$length_of_spot == "30")
   mat[i, 12] = sum(sub$length_of_spot == "30 + 10")

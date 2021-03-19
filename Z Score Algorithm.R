@@ -9,7 +9,7 @@
 options(max.print = 1500)
 
 # Netherlands: Subsetting day of the biggest commercial [2019-04-30 and 21:55:00]
-broad = broad[order(broad$gross_rating_point, decreasing=T), ]
+broad = broad[order(broad$gross_rating_point, decreasing = T), ]
 dayCommercials = subset(broad, date == "2019-04-30")
 dayCommercials = dayCommercials[order(dayCommercials$time_min), ]
 dayVisits = subset(visitorsSum, date == "2019-04-30")
@@ -28,11 +28,11 @@ for (i in 1:nrow(broadNet)) {
 }
 
 # Basic Z Score Algorithm (function which does signalling)
-  # Lag: lag of moving window (5 = use 5 last obsv)
-  # Threshold = the z-score at which the algorithm signals (e.g. 3.5 stdev away)
-  # Influence = the influence (between 0 and 1) of new signals on the mean and standard deviation (?)
+  # Lag: lag of moving window (5 = use 5 last observations)
+  # Threshold = the z-score at which the algorithm signals (e.g. 3.5 sd away)
+  # Influence = the influence (between 0 and 1) of new signals on the mean and standard deviation
 ThresholdingAlgo = function(y, lag, threshold, influence) {
-  signals = rep(0,length(y))
+  signals = rep(0, length(y))
   filteredY = y[0:lag]
   avgFilter = NULL
   stdFilter = NULL
@@ -282,7 +282,7 @@ sort(summary(as.factor(usefulCommercials$weekdays)))
 summary(usefulCommercials$hours)
 
 # Calculate the biggest relative increase after broadcast time
-# Max i + 1, i+2, i+3, i+4, i+5
+# Max i + 1, i + 2, i + 3, i + 4, i + 5
 usefulCommercials['relativePeak'] = 0
 usefulCommercials['timeTilPeak'] = 0
 for (i in 1:nrow(usefulCommercials)) {
@@ -295,15 +295,15 @@ for (i in 1:nrow(usefulCommercials)) {
   usefulCommercials$relativePeak[i] = max(afterTraf) - comTraf
   usefulCommercials$timeTilPeak[i] = match(max(afterTraf), afterTraf)
 }
-usefulCommercials = usefulCommercials[order(usefulCommercials$relativePeak, decreasing=T), ]
+usefulCommercials = usefulCommercials[order(usefulCommercials$relativePeak, decreasing = T), ]
 row.names(usefulCommercials) = NULL # Resets row numbers
 sum(usefulCommercials$timeTilPeak == 1)
 
 usefulCommercials = cbind(usefulCommercials, 1:nrow(usefulCommercials))
 
 # Commercials with no peak
-nonUsefulCommercials = setdiff(broadNet, usefulCommercials[-c( (ncol(broadNet)+1):ncol(usefulCommercials) )])
-nonUsefulCommercials = nonUsefulCommercials[order(nonUsefulCommercials$gross_rating_point, decreasing=T), ]
+nonUsefulCommercials = setdiff(broadNet, usefulCommercials[-c((ncol(broadNet) + 1):ncol(usefulCommercials))])
+nonUsefulCommercials = nonUsefulCommercials[order(nonUsefulCommercials$gross_rating_point, decreasing = T), ]
 row.names(nonUsefulCommercials) = NULL # Resets row numbers
 
 # Again, calculate the biggest relative increase after broadcast time
@@ -320,12 +320,12 @@ for (i in 1:nrow(nonUsefulCommercials)) {
   nonUsefulCommercials$relativePeak[i] = max(afterTraf) - comTraf
   nonUsefulCommercials$timeTilPeak[i] = match(max(afterTraf), afterTraf)
 }
-#nonUsefulCommercials = nonUsefulCommercials[order(nonUsefulCommercials$relativePeak, decreasing=T), ]
+#nonUsefulCommercials = nonUsefulCommercials[order(nonUsefulCommercials$relativePeak, decreasing = T), ]
 #row.names(nonUsefulCommercials) = NULL # resets rownrs
 #sum(nonUsefulCommercials$timeTilPeak == 1)
 #nonUsefulCommercials = cbind(nonUsefulCommercials, 1:nrow(nonUsefulCommercials))
 
-# 50 commercials with higest GRP, but no peak
+# 50 commercials with highest GRP, but no peak
 nonUsefulCommercials50 = subset(nonUsefulCommercials, nonUsefulCommercials$time_min < 1435)
 nonUsefulCommercials50 = subset(nonUsefulCommercials50, nonUsefulCommercials50$time_min > 60)
 nonUsefulCommercials50 = nonUsefulCommercials50[1:50, ]
@@ -358,30 +358,30 @@ for (i in 1:nrow(broadBel)) {
 }
 
 # Basic Z Score Algorithm (function which does signalling)
-# Lag: lag of moving window (5 = use 5 last obsv)
-# Threshold = the z-score at which the algorithm signals (e.g. 3.5 stdev away)
-# Influence = the influence (between 0 and 1) of new signals on the mean and standard deviation (?)
+# Lag: lag of moving window (5 = use 5 last observations)
+# Threshold = the z-score at which the algorithm signals (e.g. 3.5 sd away)
+# Influence = the influence (between 0 and 1) of new signals on the mean and standard deviation
 ThresholdingAlgo = function(y, lag, threshold, influence) {
-  signals = rep(0,length(y))
+  signals = rep(0, length(y))
   filteredY = y[0:lag]
   avgFilter = NULL
   stdFilter = NULL
   avgFilter[lag] = mean(y[0:lag], na.rm = T)
   stdFilter[lag] = sd(y[0:lag], na.rm = T)
-  for (i in (lag+1):length(y)){
-    if (abs(y[i] - avgFilter[i - 1]) > threshold*stdFilter[i - 1]) {
+  for (i in (lag + 1):length(y)){
+    if (abs(y[i] - avgFilter[i - 1]) > threshold * stdFilter[i - 1]) {
       if (y[i] > avgFilter[i - 1]) {
         signals[i] = 1;
       } else {
         signals[i] = -1;
       }
-      filteredY[i] = influence*y[i]+(1-influence)*filteredY[i - 1]
+      filteredY[i] = influence * y[i]+(1 - influence) * filteredY[i - 1]
     } else {
       signals[i] = 0
       filteredY[i] = y[i]
     }
-    avgFilter[i] = mean(filteredY[(i - lag):i], na.rm=T)
-    stdFilter[i] = sd(filteredY[(i - lag):i], na.rm=T)
+    avgFilter[i] = mean(filteredY[(i - lag):i], na.rm = T)
+    stdFilter[i] = sd(filteredY[(i - lag):i], na.rm = T)
   }
   return(list("signals" = signals, "avgFilter" = avgFilter, "stdFilter" = stdFilter))
 }
@@ -397,10 +397,10 @@ influence = 0.75
 
 # Choose data
 # Make sure that visitorsSum has length 260640!
-y = as.numeric(visitorsSum$visitsWebBel) # apply on concatenated data
+y = as.numeric(visitorsSum$visitsWebBel) # Apply to concatenated data
 
 # Run algorithm 
-resultBel = ThresholdingAlgo(y, lag,threshold, influence)
+resultBel = ThresholdingAlgo(y, lag, threshold, influence)
 #resultReversed = ThresholdingAlgoReversed(y,lag,threshold,influence)
 
 # Plot result
@@ -416,7 +416,7 @@ plot(resultBel$signals, type = "S", col = "red", ylab = "", xlab = "", ylim = c(
 sum(resultBel$signals == 1)
 
 ### ===============================================================
-###             ANALYSE THE RESULTS BEL (181 days)
+###             ANALYSE THE RESULTS BELGIUM (181 days)
 ### ===============================================================
 
 # Create indicator for commercials on the large line
@@ -432,7 +432,7 @@ for (i in 1:nrow(broadBel)) {
 sum(commercialIndicatorBel)
 
 # Find for which positive spikes there was a commercial before
-posSpikesBel = which(resultBel$signals==1) # Gives T indices
+posSpikesBel = which(resultBel$signals==1) # Gives TRUE indices
 length(posSpikesBel)
 for (i in 1:length(posSpikesBel)) {
   if ((posSpikesBel[i] %% 1440) == 1) {
@@ -519,7 +519,7 @@ for (i in 1:nrow(broadBel)) {
 sum(commercialIndicatorAppBel)
 
 # Find for which positive spikes there was a commercial before
-posSpikesAppBel = which(resultAppBel$signals == 1) # Gives T indices
+posSpikesAppBel = which(resultAppBel$signals == 1) # Gives TRUE indices
 length(posSpikesAppBel)
 for (i in 1:length(posSpikesAppBel)) {
   if ((posSpikesAppBel[i] %% 1440) == 1) {
@@ -592,7 +592,7 @@ print(paste0("Num commercials useful web AND app Bel: ", numUsefulWebAndAppBel, 
 
 # Subset on useful website commercials
 usefulCommercialsBel = subset(broadBel, usefulWeb==1)
-#summary(usefulCommercialsBel)
+summary(usefulCommercialsBel)
 sort(summary(as.factor(usefulCommercialsBel$channel)))
 sort(summary(as.factor(usefulCommercialsBel$position_in_break_3option)))
 sort(summary(usefulCommercialsBel$gross_rating_point))
@@ -613,4 +613,4 @@ for (i in 1:nrow(usefulCommercialsBel)) {
   usefulCommercialsBel$relativePeak[i] = max(afterTraf) - comTraf
   usefulCommercialsBel$timeTilPeak[i] = match(max(afterTraf), afterTraf)
 }
-usefulCommercialsBel = usefulCommercialsBel[order(usefulCommercialsBel$relativePeak, decreasing=T), ]
+usefulCommercialsBel = usefulCommercialsBel[order(usefulCommercialsBel$relativePeak, decreasing = T), ]

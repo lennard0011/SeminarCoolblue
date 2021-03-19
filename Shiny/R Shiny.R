@@ -1,7 +1,6 @@
 # Seminar Coolblue 2021 -- R Shiny
 # @author: Lennard van der Plas, Erik van der Heide, Marjolein de With, Daniel Buijs
 
-# TEMPLATE
 # install.packages("shiny")
 # install.packages("shinydashboard")
 # install.packages("shinyWidgets")

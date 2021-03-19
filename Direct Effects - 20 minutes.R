@@ -9,7 +9,7 @@
 ##                  Collect interval data
 ## ========================================================
 
-# Get commercials only in NL, with BE control
+# Get commercials only in Netherlands, with Belgium as control
 broadNet1 = subset(broad, country == "Netherlands")
 broadNet1 = broadNet1[order(broadNet1$date), ]
 
@@ -26,7 +26,7 @@ broadNet1['postVisitorsAppBel'] = 0
 # Remove commercials in Belgium sales period (assumed whole January)
 broadNet1 = subset(broadNet1, yday(date) > 31)
 
-# Remove commercials where Bel has a commercial as well
+# Remove commercials where Belgium has a commercial as well
 belAdDates = sort(unique(subset(broad, country == "Belgium")$date))
 for (i in 1:nrow(broadNet1)) {
   for (j in 1:length(belAdDates)) {
@@ -49,14 +49,14 @@ broadNet1NoMidnight = subset(broadNet1NoMidnight, broadNet1NoMidnight$time_min >
 broadNet1 = broadNet1NoMidnight
 print(paste0("Number of commercials: ", nrow(broadNet1)))
 
-# Calculate pre- and post visitors, Net and Bel, Web and App (20 min)
+# Calculate pre- and post visitors, Netherlands and Belgium, Website and App (20 min)
 intervalSize = 20
 start = Sys.time()
 for (i in 1:nrow(broadNet1)) {
   broadDate = broadNet1$date[[i]]
   broadTime = broadNet1$time_min[[i]]
   
-  # Count extraViewers from day before or day after at midnight
+  # Count extra visitors from day before or day after at midnight
   if (broadTime - intervalSize < 0) {
     # Extra Visitors of day before
     preVisitorsWebNetExtra = sum(subset(visitorsSum, date == as.Date(broadDate) - 1 & time_min >= 60*24 + broadTime - intervalSize)$visitsWebNet)
@@ -158,11 +158,6 @@ broadBel = subset(broad, country == 'Belgium')
 ##                    First analysis
 ## ========================================================
 
-#par(mfrow = c(1, 2))
-#plot(broadNet1$preVisitorsWebNet, broadNet1$postVisitorsWebNet, col = "blue")
-#lines(cbind(0, 10000), cbind(0, 10000))
-#plot(broadNet1$preVisitorsWebBel, broadNet1$postVisitorsWebBel, xlim = c(0, 50), ylim = c(0, 50), col = "red")
-#lines(cbind(0, 10000), cbind(0, 10000))
 print(paste0("Num. WebNet post > pre: ", sum(broadNet1$postVisitorsWebNet > broadNet1$preVisitorsWebNet)))
 print(paste0("Num. WebBel post > pre: ", sum(broadNet1$postVisitorsWebBel > broadNet1$preVisitorsWebBel)))
 
@@ -248,7 +243,7 @@ for (i in 1:folds){
   broadTest = broadDumm[sampleSplit == F, ]
 
   # Baseline model
-   baselineModelWebNet1 = lm((postVisitorsWebNet - postVisitorsWebBel) ~ preVisitorsWebNet +
+  baselineModelWebNet1 = lm((postVisitorsWebNet - postVisitorsWebBel) ~ preVisitorsWebNet +
                               minusPreVisitorsWebBel + factor(weekdays) + factor(hours) , data = broadTotal)
  
   avBaseTrainError[i] = rmse((broadTrain$postVisitorsWebNet - broadTrain$postVisitorsWebBel), predict(baselineModelWebNet1, broadTrain))
@@ -318,5 +313,5 @@ df = data.frame(x = 1:20, F = trendsMatrix[max, ], L = meanPeak - 2 * sdPeak, U 
 plot(df$x, df$F, ylim = c(0, 0.4), type = "l", main = "", xlab = "Minute", ylab = "Difference")
 lines(df$x, df$F, lwd = 2)
 # Add red lines to plot
-lines(df$x, df$U, col="red", lty = 2)
-lines(df$x, df$L, col="red", lty = 2)
+lines(df$x, df$U, col = "red", lty = 2)
+lines(df$x, df$L, col = "red", lty = 2)
